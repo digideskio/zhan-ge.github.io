@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="centos,python," />
+  <meta name="keywords" content="scala," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="centos下的python环境配置">
+<meta name="description" content="Scala中如何处理异常。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Python: Setup on centos">
-<meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Python-Setup-on-centos/index.html">
+<meta property="og:title" content="Simple Scala: Why You Should Never Catch Throwable">
+<meta property="og:url" content="http://yoursite.com/2015/10/01/Simple-Scala-Why-You-Should-Never-Catch-Throwable/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="centos下的python环境配置">
-<meta property="og:updated_time" content="2015-09-29T07:30:20.000Z">
+<meta property="og:description" content="Scala中如何处理异常。">
+<meta property="og:updated_time" content="2015-10-01T09:16:59.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Python: Setup on centos">
-<meta name="twitter:description" content="centos下的python环境配置">
+<meta name="twitter:title" content="Simple Scala: Why You Should Never Catch Throwable">
+<meta name="twitter:description" content="Scala中如何处理异常。">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Python: Setup on centos | Hexo </title>
+  <title> Simple Scala: Why You Should Never Catch Throwable | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Python: Setup on centos
+              Simple Scala: Why You Should Never Catch Throwable
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-29T15:14:59+08:00" content="2015-09-29">
-            2015-09-29
+          <time itemprop="dateCreated" datetime="2015-10-01T16:45:43+08:00" content="2015-10-01">
+            2015-10-01
           </time>
         </span>
 
@@ -185,20 +185,62 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="修改yum">修改yum</h2><p>centos6.x默认自带的python版本一般为2.6，其中yum默认使用该版本，因此首先修改yum配置文件，重新指认python路径：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vi /usr/bin/yum</span><br></pre></td></tr></table></figure>
-<p>修改文件头部”#!/usr/bin/python”为”#!/usr/bin/python2.6”。</p>
-<h2 id="安装xz解压缩包工具">安装xz解压缩包工具</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install -y xz</span><br></pre></td></tr></table></figure>
-<h2 id="安装python">安装python</h2><p>下载并安装python：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> /opt</span><br><span class="line">$ wget --no-check-certificate https://www.python.org/ftp/python/<span class="number">2.7</span>.<span class="number">10</span>/Python-<span class="number">2.7</span>.<span class="number">10</span>.tar.xz</span><br><span class="line">$ xz <span class="operator">-d</span> Python-<span class="number">2.7</span>.<span class="number">9</span>.tar.xz</span><br><span class="line">$ tar -xvf Python-<span class="number">2.7</span>.<span class="number">9</span>.tar</span><br><span class="line">$ <span class="built_in">cd</span> Python-<span class="number">2.7</span>.<span class="number">9</span></span><br><span class="line">$ ./configure --prefix=/usr/<span class="built_in">local</span></span><br><span class="line">$ make &amp;&amp; make altinstall</span><br></pre></td></tr></table></figure>
-<p>链接安装后的python：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ rm /usr/bin/python</span><br><span class="line">$ ln <span class="operator">-s</span> /usr/<span class="built_in">local</span>/bin/python2.<span class="number">7</span> /usr/bin/python</span><br></pre></td></tr></table></figure>
-<p>安装Python包管理工具:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py</span><br><span class="line">$ sudo /usr/<span class="built_in">local</span>/bin/python2.<span class="number">7</span> ez_setup.py</span><br><span class="line">$ sudo /usr/<span class="built_in">local</span>/bin/easy_install-<span class="number">2.7</span> pip</span><br><span class="line">$ pip list</span><br></pre></td></tr></table></figure>
-<p>或者：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ wget http://pypi.python.org/packages/<span class="built_in">source</span>/d/distribute/distribute-<span class="number">0.6</span>.<span class="number">14</span>.tar.gz</span><br><span class="line">$ sudo tar -xzvf distribute-<span class="number">0.6</span>.<span class="number">14</span>.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> distribute-<span class="number">0.6</span>.<span class="number">14</span></span><br><span class="line">$ python setup.py install</span><br><span class="line">$ &amp;&amp;</span><br><span class="line">$ <span class="built_in">cd</span> ez_setup</span><br><span class="line">$ python setup.py install</span><br><span class="line">$ &amp;&amp;</span><br><span class="line">$ easy_install pip</span><br></pre></td></tr></table></figure>
-<p>解决MySQL-python安装后无法import：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ pip uninstall MySQL-python</span><br><span class="line">$ yum install mysql-devel</span><br><span class="line">$ pip install MySQL-python</span><br></pre></td></tr></table></figure></span>
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Scala是一种微妙的野兽，你需要注意它给出的警告。大多说java和scala程序员都听说过捕捉可抛出的、所有异常的父类，是很邪恶的，像下面这种模式是应该拒绝的：</p>
+<pre><code><span class="keyword">try</span> {
+  aDangerousFunction()
+} <span class="keyword">catch</span> {
+  <span class="keyword">case</span> ex: Throwable =&gt; println(ex)
+  <span class="comment">// Or even worse</span>
+  <span class="keyword">case</span> ex =&gt; println(ex)
+}
+</code></pre><p>这种模式是非常危险的，一下将介绍原因。</p>
+<h2 id="问题所在">问题所在</h2><p>在java中，捕获一切可抛出异常会做出一些非常有危险的事，比如阻止JVM抛出StackOverflowError或OutOfMemoryError异常。这不是很理想但也不是灾难性的。<br>在scala中，它会更令人发指。scala中使用了异常从嵌套闭包返回。考虑以下代码：</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">inlineMeAgain</span>[</span><span class="type">T</span>](f: =&gt; <span class="type">T</span>): <span class="type">T</span> = {
+  f
+}
+
+<span class="function"><span class="keyword">def</span> <span class="title">inlineme</span>(</span>f: =&gt; <span class="type">Int</span>): <span class="type">Int</span> = {
+  <span class="keyword">try</span> {
+      inlineMeAgain {
+        <span class="keyword">return</span> f
+      }
+  } <span class="keyword">catch</span> {
+      <span class="keyword">case</span> ex: <span class="type">Throwable</span> =&gt; <span class="number">5</span>
+  }
+}
+
+<span class="function"><span class="keyword">def</span> <span class="title">doStuff</span> {</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">res</span> =</span> inlineme {
+      <span class="number">10</span>
+    }
+    println(<span class="string">"we got: "</span> + res + <span class="string">". should be 10"</span>)
+}
+doStuff
+</code></pre><p>我们在两个嵌套的闭包内部使用一个return语句。这似乎是一个比较模糊的边缘情况，但在实践中是可以肯定会出现的。为了解决这个问题，scala编译器会抛出一个NonLocalReturnControl异常。<br>不幸的是，这是一个可捕获异常，因此，上述代码会打印5而不是预期的10。</p>
+<h2 id="解决方法">解决方法</h2><p>虽然我们可以说“不要捕获Throwable”直到我们脸色发青，有的时候你真的需要确认真的绝对没有异常通过。你可以在任何你想捕获那些其他的类型异常的地方捕获Throwable，但这非常繁琐并且容易出错。<br>幸运的是这其实很容易处理，这要归功于Scala的重点实施多语言的无魔法“catch”，在try-catch的部分只是一些糖超过的部分功能，我们可以定义的部分功能！</p>
+<pre><code><span class="keyword">def</span> safely[T](<span class="string">handler:</span> PartialFunction[Throwable, T]): PartialFunction[Throwable, T] = {
+  <span class="keyword">case</span> <span class="string">ex:</span> ControlThrowable =&gt; <span class="keyword">throw</span> ex
+  <span class="comment">// case ex: OutOfMemoryError (Assorted other nasty exceptions you don't want to catch)</span>
+
+  <span class="comment">//If it's an exception they handle, pass it on</span>
+  <span class="keyword">case</span> <span class="string">ex:</span> Throwable <span class="keyword">if</span> handler.isDefinedAt(ex) =&gt; handler(ex)
+
+  <span class="comment">// If they didn't handle it, rethrow. This line isn't necessary, just for clarity</span>
+  <span class="keyword">case</span> <span class="string">ex:</span> Throwable =&gt; <span class="keyword">throw</span> ex
+}
+
+<span class="comment">// Usage:</span>
+<span class="comment">/*
+def doSomething: Unit = {
+  try {
+    somethingDangerous
+  } catch safely {
+    ex: Throwable =&gt; println("AHHH")
+  }
+}
+*/</span>
+</code></pre><p>定义一个safely函数，它需要提供一个partial函数然后生成另一个partial函数。现在，通过简单的使用 catch safely { /<em> catch block </em>/ }，我们可以自由安全的捕获异常，或者其他任何Throwable，并且把其他一些邪恶类型的异常限制在代码的其他部分。</p>
+</span>
       
     </div>
 
@@ -206,9 +248,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/centos/" rel="tag">#centos</a>
-          
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/scala/" rel="tag">#scala</a>
           
         </div>
       
@@ -217,13 +257,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-How-to-use-Supervisor/" rel="prev">Simple Python: How to use Supervisor</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Setup-blogs-on-GitHub-Pages/" rel="next">Setup blogs on GitHub Pages</a>
+              <a href="/2015/10/01/Simple-Scala-Implicit-JSON-conversion-with-Scala/" rel="next">Simple Scala: Implicit JSON conversion with Scala</a>
             
           </div>
         </div>
@@ -327,7 +365,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#修改yum"><span class="nav-number">1.</span> <span class="nav-text">修改yum</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装xz解压缩包工具"><span class="nav-number">2.</span> <span class="nav-text">安装xz解压缩包工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装python"><span class="nav-number">3.</span> <span class="nav-text">安装python</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#问题所在"><span class="nav-number">2.</span> <span class="nav-text">问题所在</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解决方法"><span class="nav-number">3.</span> <span class="nav-text">解决方法</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
