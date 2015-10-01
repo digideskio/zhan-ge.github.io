@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="scala," />
+  <meta name="keywords" content="Scala," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="Scala中的异步Http请求。">
+<meta name="description" content="Scala中Json的隐式转换。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Scala: Asynchronous HTTP requests with Scala and Dispatch">
-<meta property="og:url" content="http://yoursite.com/2015/09/30/Simple-Scala-Asynchronous-HTTP-requests-with-Scala-and-Dispatch/index.html">
+<meta property="og:title" content="Simple Scala: Implicit JSON conversion with Scala">
+<meta property="og:url" content="http://yoursite.com/2015/10/01/Simple-Scala-Implicit-JSON-conversion-with-Scala/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Scala中的异步Http请求。">
-<meta property="og:updated_time" content="2015-09-30T03:11:00.000Z">
+<meta property="og:description" content="Scala中Json的隐式转换。">
+<meta property="og:updated_time" content="2015-10-01T08:26:02.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Scala: Asynchronous HTTP requests with Scala and Dispatch">
-<meta name="twitter:description" content="Scala中的异步Http请求。">
+<meta name="twitter:title" content="Simple Scala: Implicit JSON conversion with Scala">
+<meta name="twitter:description" content="Scala中Json的隐式转换。">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Scala: Asynchronous HTTP requests with Scala and Dispatch | Hexo </title>
+  <title> Simple Scala: Implicit JSON conversion with Scala | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Scala: Asynchronous HTTP requests with Scala and Dispatch
+              Simple Scala: Implicit JSON conversion with Scala
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-30T10:38:54+08:00" content="2015-09-30">
-            2015-09-30
+          <time itemprop="dateCreated" datetime="2015-10-01T15:25:14+08:00" content="2015-10-01">
+            2015-10-01
           </time>
         </span>
 
@@ -185,126 +185,122 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>现在我们在很多地方使用REST API。很多时候，这需要软件开发工具包的特定语言的实现。如果你打算写一个SDK，或者，你需要调用没有SDK的可用性REST后台，你需要一个框架来发送Http请求。而在Scala中，它原生的使用Future来支持异步处理。<br>通过使用Future，可以简化你的工作：</p>
-<ul>
-<li>应用不在阻塞</li>
-<li>应用可以处理更多的并行请求</li>
-<li>不再需要一个复杂的线程模型</li>
-</ul>
-<p>在Scala中，Dispatch是一个异步http包，让我们使用Future完成一些例子。</p>
-<h2 id="普通的http请求">普通的http请求</h2><pre><code><span class="keyword">import</span> dispatch._, <span class="type">Defaults</span>._
-<span class="keyword">import</span> scala.util.{<span class="type">Success</span>, <span class="type">Failure</span>}
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>本文将介绍Json格式的打包和解包。</p>
+<h2 id="Json扩展库">Json扩展库</h2><p>在Scala中又大量的Json库可供选择。很大程度上取决于项目框架的选择和项目配置。本文不打算对现有工具包中的最佳选择进行辩论。<br>下面的文章将主要介绍Argonaut，但是大概的方法也同样适用于其他Json库。我选择Argonaut是因为它很适合我的功能发展，同时和Scala还有Scalatra都配合的很好。<br>其他Json库还有Json4s、Spray-Json、Lift-Json等，其中Json4s支持Native和Jackson。</p>
+<h2 id="转换">转换</h2><p>在我们讨论转换之前首先需要定义数据模型，这里使用slick sample structuree：</p>
+<pre><code><span class="keyword">case</span> class Person (id: <span class="built_in">Int</span>,name: <span class="built_in">String</span>,age: <span class="built_in">Int</span>,addressId:<span class="built_in">Int</span>)
+<span class="keyword">case</span> class Address (id: <span class="built_in">Int</span>, street: <span class="built_in">String</span>,city: <span class="built_in">String</span>)
 
-<span class="class"><span class="keyword">object</span> <span class="title">DispatchTest</span> {</span>
-
-  <span class="function"><span class="keyword">def</span> <span class="title">main</span> (</span>args: <span class="type">Array</span>[<span class="type">String</span>]) {
-    <span class="function"><span class="keyword">val</span> <span class="title">svc</span> =</span> url(<span class="string">"http://www.wikipedia.org/"</span>);
-    <span class="function"><span class="keyword">val</span> <span class="title">response</span> :</span> <span class="type">Future</span>[<span class="type">String</span>] = <span class="type">Http</span>(svc <span class="type">OK</span> as.<span class="type">String</span>)
-
-    response onComplete {
-      <span class="keyword">case</span> <span class="type">Success</span>(content) =&gt; {
-        println(<span class="string">"Successful response"</span> + content)
-      }
-      <span class="keyword">case</span> <span class="type">Failure</span>(t) =&gt; {
-        println(<span class="string">"An error has occurred: "</span> + t.getMessage)
-      }
-    }
-  }
-}
-</code></pre><h2 id="重定向http请求">重定向http请求</h2><p>这是常见的http端点使用重定向。默认情况下Dispatch不遵循这些重定向，你需要配置HTTP，例如通过使用 Http.configure(_ setFollowRedirects true)(svc OK as.String)。<br>下面是一个包含重定向的例子：</p>
-<pre><code><span class="keyword">import</span> dispatch._, <span class="type">Defaults</span>._
-<span class="keyword">import</span> scala.util.{<span class="type">Success</span>, <span class="type">Failure</span>}
-
-<span class="class"><span class="keyword">object</span> <span class="title">DispatchTest</span> {</span>
-
-  <span class="function"><span class="keyword">def</span> <span class="title">main</span> (</span>args: <span class="type">Array</span>[<span class="type">String</span>]) {
-
-    <span class="function"><span class="keyword">val</span> <span class="title">svc</span> =</span> url(<span class="string">"http://www.wikipedia.com"</span>);
-    <span class="function"><span class="keyword">val</span> <span class="title">response</span> :</span> <span class="type">Future</span>[<span class="type">String</span>] = <span class="type">Http</span>.configure(_ setFollowRedirects <span class="literal">true</span>)(svc <span class="type">OK</span> as.<span class="type">String</span>)
-
-    response onComplete {
-      <span class="keyword">case</span> <span class="type">Success</span>(content) =&gt; {
-        println(<span class="string">"Successful response"</span> + content)
-      }
-      <span class="keyword">case</span> <span class="type">Failure</span>(t) =&gt; {
-        println(<span class="string">"An error has occured: "</span> + t.getMessage)
-      }
-    }
-  }
-}
-</code></pre><h2 id="用户验证的http请求">用户验证的http请求</h2><p>如果你的http请求中需要基本的用户验证，使用 .as_!()来处理：</p>
-<pre><code>val svc = <span class="function"><span class="title">url</span><span class="params">(<span class="string">"http://www.wikipedia.com"</span>)</span></span>.as_!(<span class="string">"user"</span>, <span class="string">"password"</span>)
-</code></pre><h2 id="解析Json格式的Response">解析Json格式的Response</h2><p>如今几乎所有的REST端点使用JSON响应。Argonaut 是一个处理http的工具包，它使用许多scala的特性，并与scala结合的非常好。</p>
-<p>为了快速解析或者预定义的数据结构不可用时，可以只解析具体的字段：</p>
-<pre><code><span class="keyword">import</span> scalaz._, <span class="type">Scalaz</span>._
-<span class="keyword">import</span> argonaut._, <span class="type">Argonaut</span>._
-
-<span class="function"><span class="keyword">val</span> <span class="title">json</span> =</span> <span class="string">"""
-  { "name" : "Toddler", "age" : 2, "greeting": "gurgle!" }
-"""</span>
-
-<span class="comment">// extract a simple field "greeting"</span>
-<span class="function"><span class="keyword">val</span> <span class="title">greeting1</span>:</span> <span class="type">String</span> =
-    <span class="type">Parse</span>.parseWith(jsonString, _.field(<span class="string">"greeting"</span>).flatMap(_.string).getOrElse(<span class="literal">null</span>), msg =&gt; msg)
-</code></pre><p>如果你要应对不断变化的数据结构时，这种处理方式很不错。通常REST API都会定义一个固定的数据结构，既可以用于解析。假设你会得到如下用户数据：</p>
+// no direct reference, <span class="keyword">to</span> fit <span class="keyword">with</span> slick database models
+<span class="keyword">case</span> class PersonWithAddress(person: Person, address: Address)
+</code></pre><p>现在可以实例化一个带有address的person：</p>
+<pre><code>val person = <span class="function"><span class="title">Person</span><span class="params">(<span class="number">0</span>, <span class="string">"John Rambo"</span> , <span class="number">67</span>, <span class="number">0</span>)</span></span>
+val <span class="tag">address</span> = <span class="function"><span class="title">Address</span><span class="params">(<span class="number">0</span>, <span class="string">"101 W Main St"</span>, <span class="string">"Madison, Kentucky"</span>)</span></span>
+val pa = <span class="function"><span class="title">PersonWithAddress</span><span class="params">(person, address)</span></span>
+</code></pre><p>如果是在开发REST服务的话，需要适用json格式来接受或响应数据。如果需要手动构造每一个路由的数据结构转换将会非常恐怖，因此我们需要一些类似下面的功能：</p>
+<pre><code><span class="comment">// convert the person to json</span>
+<span class="variable"><span class="keyword">val</span> json</span> = pa.asJson
+</code></pre><p>Scala内部提供了隐式类型转换的功能。我们的情况使用这种功能会非常方便，并配合Argonaut的编解码器。对于我们的情况则有如下定义：</p>
+<pre><code><span class="comment">// implicit conversion with argonaut</span>
+  implicit def PersonAddressEncodeJson: EncodeJson[PersonWithAddress] =
+  <span class="function"><span class="title">EncodeJson</span><span class="params">((p: PersonWithAddress)</span></span> =&gt;
+    (<span class="string">"id"</span> := <span class="tag">p</span><span class="class">.person</span><span class="class">.id</span>) -&gt;:
+    (<span class="string">"name"</span> := <span class="tag">p</span><span class="class">.person</span><span class="class">.name</span>) -&gt;:
+    (<span class="string">"age"</span> := <span class="tag">p</span><span class="class">.person</span><span class="class">.age</span>) -&gt;:
+    (<span class="string">"address"</span> := Json (
+      (<span class="string">"id"</span> := <span class="tag">p</span><span class="class">.address</span><span class="class">.id</span>),
+      (<span class="string">"street"</span> := <span class="tag">p</span><span class="class">.address</span><span class="class">.street</span>),
+      (<span class="string">"city"</span> := <span class="tag">p</span><span class="class">.address</span><span class="class">.city</span>)
+    )
+  ) -&gt;: jEmptyObject)
+</code></pre><p>现在我们把所有的步骤拼接起来后就可以完成从scala数据类型到Json的格式转化：</p>
 <pre><code>{
-  "<span class="attribute">dn</span>"          :<span class="value"><span class="string">"uid=chris,ou=Users,dc=lollyrock,dc=com"</span></span>,
-  "<span class="attribute">controls</span>"    :<span class="value">[]</span>,
-  "<span class="attribute">cn</span>"          :<span class="value"><span class="string">"Chris Rock"</span></span>,
-  "<span class="attribute">givenName</span>"   :<span class="value"><span class="string">"Chris"</span></span>,
-  "<span class="attribute">l</span>"           :<span class="value"><span class="string">"Berlin"</span></span>,
-  "<span class="attribute">mail</span>"        :<span class="value"><span class="string">"chris@lollyrock.com"</span></span>,
-  "<span class="attribute">uid</span>"         : <span class="value"><span class="string">"chris"</span> </span>,
-  "<span class="attribute">displayName</span>" :<span class="value"><span class="string">"ch.hartmann"</span></span>,
-  "<span class="attribute">o</span>"           :<span class="value"><span class="string">"Rock Inc."</span>
+  "<span class="attribute">id</span>": <span class="value"><span class="number">0</span></span>,
+  "<span class="attribute">name</span>": <span class="value"><span class="string">"John Rambo"</span></span>,
+  "<span class="attribute">age</span>": <span class="value"><span class="number">67</span></span>,
+  "<span class="attribute">address</span>": <span class="value">{
+    "<span class="attribute">id</span>": <span class="value"><span class="number">0</span></span>,
+    "<span class="attribute">street</span>": <span class="value"><span class="string">"101 W Main St"</span></span>,
+    "<span class="attribute">city</span>": <span class="value"><span class="string">"Madison, Kentucky"</span>
+  </span>}
 </span>}
-</code></pre><p>首先我们需要一个结构来存储解析后的结果，在scala中使用case class非常合适：</p>
-<pre><code><span class="label">case</span> class User(
-   <span class="preprocessor">dn</span>           : <span class="keyword">String,
-</span>   <span class="preprocessor">cn</span>           : <span class="keyword">String,
-</span>   givenName    : <span class="keyword">String,
-</span>   l            : <span class="keyword">String,
-</span>   mail         : <span class="keyword">String,
-</span>   displayName  : <span class="keyword">String,
-</span>   o            : <span class="keyword">String
-</span>)
-</code></pre><p>下面的例子演示了JSON数据解析到一个预定义的样例类：</p>
-<pre><code><span class="keyword">import</span> scalaz._, <span class="type">Scalaz</span>._
-<span class="keyword">import</span> argonaut._, <span class="type">Argonaut</span>._
+</code></pre><p>要解析Json数据：</p>
+<pre><code>implicit <span class="function"><span class="keyword">def</span> <span class="title">PersonAddressDecodeJson</span>:</span> DecodeJson[PersonWithAddress] =
+  DecodeJson(c =&gt; <span class="keyword">for</span> {
 
-<span class="class"><span class="keyword">object</span> <span class="title">UserParser</span> {</span>
+    id &lt;- (c --\ <span class="string">"id"</span>).<span class="keyword">as</span>[Int]
+    name &lt;- (c --\ <span class="string">"name"</span>).<span class="keyword">as</span>[String]
+    age &lt;- (c --\ <span class="string">"age"</span>).<span class="keyword">as</span>[Int]
+    address &lt;- (c --\ <span class="string">"address"</span>).<span class="keyword">as</span>[Json]
 
-  <span class="comment">// use the implicit json conversion of Argonaut</span>
-  <span class="comment">// more information at http://argonaut.io/doc/parsing/</span>
-  <span class="keyword">implicit</span> <span class="function"><span class="keyword">def</span> <span class="title">UserCodecJson</span>:</span> <span class="type">CodecJson</span>[<span class="type">User</span>] =
-    <span class="comment">// the 9 represents the amount of arguments</span>
-    casecodec9(<span class="type">User</span>.apply, <span class="type">User</span>.unapply)(<span class="string">"dn"</span>, <span class="string">"cn"</span>, <span class="string">"givenName"</span>,<span class="string">"l"</span>, <span class="string">"mail"</span>, <span class="string">"uid"</span>, <span class="string">"displayName"</span>, <span class="string">"o"</span>, <span class="string">"plan"</span>)
+    // extract data <span class="keyword">from</span> address
+    addressid &lt;- (address.acursor --\ <span class="string">"id"</span>).<span class="keyword">as</span>[Int]
+    street &lt;- (address.acursor --\ <span class="string">"street"</span>).<span class="keyword">as</span>[String]
+    city &lt;- (address.acursor --\ <span class="string">"city"</span>).<span class="keyword">as</span>[String]
 
-  <span class="comment">// method to use argonaut parse</span>
-  <span class="function"><span class="keyword">def</span> <span class="title">parse</span>(</span>data: <span class="type">String</span>) : <span class="type">Option</span>[<span class="type">User</span>] = {
-    <span class="type">Parse</span>.decodeOption[<span class="type">User</span>](data)
-  }
+  } <span class="keyword">yield</span> PersonWithAddress(Person(id, name, age, addressid), Address(addressid, street, city)))
+</code></pre><p>解析的结果得到我们期望的scala数据结构：</p>
+<pre><code><span class="function"><span class="title">PersonWithAddress</span><span class="params">(Person(<span class="number">0</span>,John Rambo,<span class="number">67</span>,<span class="number">0</span>)</span></span>,<span class="function"><span class="title">Address</span><span class="params">(<span class="number">0</span>,<span class="number">101</span> W Main St,Madison, Kentucky)</span></span>)
+</code></pre><p>相对于Node.js，这种转换也是一种验证，如果一个参数错误，则转换失败。如果想要使部分参数可选，则需要进行调整，使用Option[Int]替换Int：</p>
+<pre><code><span class="atom">age</span> &lt;- (<span class="atom">c</span> --\ <span class="string">"age"</span>).<span class="atom">as</span>[<span class="name">Option</span>[<span class="name">Int</span>]]
+</code></pre><h2 id="一个复杂的实例">一个复杂的实例</h2><pre><code><span class="keyword">import</span> argonaut._, <span class="type">Argonaut</span>._
 
-  <span class="comment">// simple app to test JSON parsing</span>
+<span class="class"><span class="keyword">object</span> <span class="title">ImplicitConversion</span> {</span>
+
+  <span class="comment">// data model based on http://slick.typesafe.com/doc/2.1.0/orm-to-slick.html</span>
+  <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> (</span>id: <span class="type">Int</span>,name: <span class="type">String</span>,age: <span class="type">Int</span>,addressId:<span class="type">Int</span>)
+  <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Address</span> (</span>id: <span class="type">Int</span>, street: <span class="type">String</span>,city: <span class="type">String</span>)
+
+  <span class="comment">// no direct reference, to fit with slick database models</span>
+  <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">PersonWithAddress</span>(</span>person: <span class="type">Person</span>, address: <span class="type">Address</span>)
+
+  <span class="comment">// implicit conversion with argonaut</span>
+  <span class="keyword">implicit</span> <span class="function"><span class="keyword">def</span> <span class="title">PersonAddressEncodeJson</span>:</span> <span class="type">EncodeJson</span>[<span class="type">PersonWithAddress</span>] =
+  <span class="type">EncodeJson</span>((p: <span class="type">PersonWithAddress</span>) =&gt;
+    (<span class="string">"id"</span> := p.person.id) -&gt;:
+    (<span class="string">"name"</span> := p.person.name) -&gt;:
+    (<span class="string">"age"</span> := p.person.age) -&gt;:
+    (<span class="string">"address"</span> := <span class="type">Json</span> (
+      (<span class="string">"id"</span> := p.address.id),
+      (<span class="string">"street"</span> := p.address.street),
+      (<span class="string">"city"</span> := p.address.city)
+    )
+  ) -&gt;: jEmptyObject)
+
+  <span class="keyword">implicit</span> <span class="function"><span class="keyword">def</span> <span class="title">PersonAddressDecodeJson</span>:</span> <span class="type">DecodeJson</span>[<span class="type">PersonWithAddress</span>] =
+  <span class="type">DecodeJson</span>(c =&gt; <span class="keyword">for</span> {
+
+    id &lt;- (c --\ <span class="string">"id"</span>).as[<span class="type">Int</span>]
+    name &lt;- (c --\ <span class="string">"name"</span>).as[<span class="type">String</span>]
+    age &lt;- (c --\ <span class="string">"age"</span>).as[<span class="type">Int</span>]
+    address &lt;- (c --\ <span class="string">"address"</span>).as[<span class="type">Json</span>]
+
+    <span class="comment">// extract data from address</span>
+    addressid &lt;- (address.acursor --\ <span class="string">"id"</span>).as[<span class="type">Int</span>]
+    street &lt;- (address.acursor --\ <span class="string">"street"</span>).as[<span class="type">String</span>]
+    city &lt;- (address.acursor --\ <span class="string">"city"</span>).as[<span class="type">String</span>]
+
+  } <span class="keyword">yield</span> <span class="type">PersonWithAddress</span>(<span class="type">Person</span>(id, name, age, addressid), <span class="type">Address</span>(addressid, street, city)))
+
   <span class="function"><span class="keyword">def</span> <span class="title">main</span>(</span>args: <span class="type">Array</span>[<span class="type">String</span>]) {
+    <span class="comment">// running a sample</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">person</span> =</span> <span class="type">Person</span>(<span class="number">0</span>, <span class="string">"John Rambo"</span> , <span class="number">67</span>, <span class="number">0</span>)
+    <span class="function"><span class="keyword">val</span> <span class="title">address</span> =</span> <span class="type">Address</span>(<span class="number">0</span>, <span class="string">"101 W Main St"</span>, <span class="string">"Madison, Kentucky"</span>)
+    <span class="function"><span class="keyword">val</span> <span class="title">pa</span> =</span> <span class="type">PersonWithAddress</span>(person, address)
 
-    <span class="comment">// json input data</span>
-    <span class="keyword">var</span> jsonString =
-      <span class="string">"""
-        | {"dn":"uid=chris,ou=Users,dc=lollyrock,dc=com","controls":[],"cn":"Chris Rock","givenName":"Chris","l":"Berlin","mail":"chris@lollyrock.com","uid": "chris" ,"displayName":"ch.hartmann","o":"Rock Inc."}
-      """</span>.stripMargin
+    <span class="comment">// convert the person to json</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">json</span> =</span> pa.asJson
+    <span class="keyword">var</span> content = json.toString()
 
-    <span class="comment">// parse json content</span>
-    <span class="function"><span class="keyword">val</span> <span class="title">userdata</span>:</span> <span class="type">Option</span>[<span class="type">User</span>] = parse(jsonString)
+    println (content)
 
-    <span class="comment">// print specific values</span>
-    <span class="function"><span class="keyword">val</span> <span class="title">usr</span> =</span> userdata.get
-    println (usr.dn)
-    println (usr.displayName)
+    <span class="comment">// we should get a person instance here</span>
+    <span class="keyword">var</span> padecoded : <span class="type">PersonWithAddress</span> = content.decodeOption[<span class="type">PersonWithAddress</span>].get
+
+    println (padecoded)
   }
 }
-</code></pre><p>Dispatch与Argonout的组合提供了一种有效的方法来处理HTTP调用和Response。由于我们使用的是Future，相对一个复杂的线程系统，可以在同一时间处理更多的请求，同时代码更易于阅读。</p>
-<h2 id="参考">参考</h2><p><a href="http://lollyrock.com/articles/scala-http-requests/" title="info" target="_blank" rel="external">Asynchronous HTTP requests with Scala and Dispatch - Christoph Hartmann</a></p>
+</code></pre><h2 id="结论">结论</h2><p>简单的几行代码，我们就封装了Json的打包和拆包，真的是很容易。可能不像在Node中那么直观，但是带有附加的类型检查，如果是在Node中则会很复杂。</p>
 </span>
       
     </div>
@@ -313,7 +309,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/scala/" rel="tag">#scala</a>
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
           
         </div>
       
@@ -322,13 +318,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/10/01/Simple-Scala-Implicit-JSON-conversion-with-Scala/" rel="prev">Simple Scala: Implicit JSON conversion with Scala</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Simple-Java-NIO/" rel="next">Simple Java: NIO</a>
+              <a href="/2015/09/30/Simple-Scala-Asynchronous-HTTP-requests-with-Scala-and-Dispatch/" rel="next">Simple Scala: Asynchronous HTTP requests with Scala and Dispatch</a>
             
           </div>
         </div>
@@ -432,7 +426,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#普通的http请求"><span class="nav-number">2.</span> <span class="nav-text">普通的http请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#重定向http请求"><span class="nav-number">3.</span> <span class="nav-text">重定向http请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用户验证的http请求"><span class="nav-number">4.</span> <span class="nav-text">用户验证的http请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#解析Json格式的Response"><span class="nav-number">5.</span> <span class="nav-text">解析Json格式的Response</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Json扩展库"><span class="nav-number">2.</span> <span class="nav-text">Json扩展库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#转换"><span class="nav-number">3.</span> <span class="nav-text">转换</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个复杂的实例"><span class="nav-number">4.</span> <span class="nav-text">一个复杂的实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论"><span class="nav-number">5.</span> <span class="nav-text">结论</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
