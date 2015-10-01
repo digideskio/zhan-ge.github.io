@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="centos,python," />
+  <meta name="keywords" content="scala," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="centos下的python环境配置">
+<meta name="description" content="Scala中的异步Http请求。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Python: Setup on centos">
-<meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Python-Setup-on-centos/index.html">
+<meta property="og:title" content="Simple Scala: Asynchronous HTTP requests with Scala and Dispatch">
+<meta property="og:url" content="http://yoursite.com/2015/09/30/Simple-Scala-Asynchronous-HTTP-requests-with-Scala-and-Dispatch/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="centos下的python环境配置">
-<meta property="og:updated_time" content="2015-09-29T07:30:20.000Z">
+<meta property="og:description" content="Scala中的异步Http请求。">
+<meta property="og:updated_time" content="2015-09-30T03:07:29.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Python: Setup on centos">
-<meta name="twitter:description" content="centos下的python环境配置">
+<meta name="twitter:title" content="Simple Scala: Asynchronous HTTP requests with Scala and Dispatch">
+<meta name="twitter:description" content="Scala中的异步Http请求。">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Python: Setup on centos | Hexo </title>
+  <title> Simple Scala: Asynchronous HTTP requests with Scala and Dispatch | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Python: Setup on centos
+              Simple Scala: Asynchronous HTTP requests with Scala and Dispatch
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-29T15:14:59+08:00" content="2015-09-29">
-            2015-09-29
+          <time itemprop="dateCreated" datetime="2015-09-30T10:38:54+08:00" content="2015-09-30">
+            2015-09-30
           </time>
         </span>
 
@@ -185,20 +185,126 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="修改yum">修改yum</h2><p>centos6.x默认自带的python版本一般为2.6，其中yum默认使用该版本，因此首先修改yum配置文件，重新指认python路径：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo vi /usr/bin/yum</span><br></pre></td></tr></table></figure>
-<p>修改文件头部”#!/usr/bin/python”为”#!/usr/bin/python2.6”。</p>
-<h2 id="安装xz解压缩包工具">安装xz解压缩包工具</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install -y xz</span><br></pre></td></tr></table></figure>
-<h2 id="安装python">安装python</h2><p>下载并安装python：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cd</span> /opt</span><br><span class="line">$ wget --no-check-certificate https://www.python.org/ftp/python/<span class="number">2.7</span>.<span class="number">10</span>/Python-<span class="number">2.7</span>.<span class="number">10</span>.tar.xz</span><br><span class="line">$ xz <span class="operator">-d</span> Python-<span class="number">2.7</span>.<span class="number">9</span>.tar.xz</span><br><span class="line">$ tar -xvf Python-<span class="number">2.7</span>.<span class="number">9</span>.tar</span><br><span class="line">$ <span class="built_in">cd</span> Python-<span class="number">2.7</span>.<span class="number">9</span></span><br><span class="line">$ ./configure --prefix=/usr/<span class="built_in">local</span></span><br><span class="line">$ make &amp;&amp; make altinstall</span><br></pre></td></tr></table></figure>
-<p>链接安装后的python：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ rm /usr/bin/python</span><br><span class="line">$ ln <span class="operator">-s</span> /usr/<span class="built_in">local</span>/bin/python2.<span class="number">7</span> /usr/bin/python</span><br></pre></td></tr></table></figure>
-<p>安装Python包管理工具:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py</span><br><span class="line">$ sudo /usr/<span class="built_in">local</span>/bin/python2.<span class="number">7</span> ez_setup.py</span><br><span class="line">$ sudo /usr/<span class="built_in">local</span>/bin/easy_install-<span class="number">2.7</span> pip</span><br><span class="line">$ pip list</span><br></pre></td></tr></table></figure>
-<p>或者：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ wget http://pypi.python.org/packages/<span class="built_in">source</span>/d/distribute/distribute-<span class="number">0.6</span>.<span class="number">14</span>.tar.gz</span><br><span class="line">$ sudo tar -xzvf distribute-<span class="number">0.6</span>.<span class="number">14</span>.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> distribute-<span class="number">0.6</span>.<span class="number">14</span></span><br><span class="line">$ python setup.py install</span><br><span class="line">$ &amp;&amp;</span><br><span class="line">$ <span class="built_in">cd</span> ez_setup</span><br><span class="line">$ python setup.py install</span><br><span class="line">$ &amp;&amp;</span><br><span class="line">$ easy_install pip</span><br></pre></td></tr></table></figure>
-<p>解决MySQL-python安装后无法import：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ pip uninstall MySQL-python</span><br><span class="line">$ yum install mysql-devel</span><br><span class="line">$ pip install MySQL-python</span><br></pre></td></tr></table></figure></span>
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>现在我们在很多地方使用REST API。很多时候，这需要软件开发工具包的特定语言的实现。如果你打算写一个SDK，或者，你需要调用没有SDK的可用性REST后台，你需要一个框架来发送Http请求。而在Scala中，它原生的使用Future来支持异步处理。<br>通过使用Future，可以简化你的工作：</p>
+<ul>
+<li>应用不在阻塞</li>
+<li>应用可以处理更多的并行请求</li>
+<li>不再需要一个复杂的线程模型</li>
+</ul>
+<p>在Scala中，Dispatch是一个异步http包，让我们使用Future完成一些例子。</p>
+<h2 id="Plain_HTTP_request：普通的http请求">Plain HTTP request：普通的http请求</h2><pre><code><span class="keyword">import</span> dispatch._, <span class="type">Defaults</span>._
+<span class="keyword">import</span> scala.util.{<span class="type">Success</span>, <span class="type">Failure</span>}
+
+<span class="class"><span class="keyword">object</span> <span class="title">DispatchTest</span> {</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">main</span> (</span>args: <span class="type">Array</span>[<span class="type">String</span>]) {
+    <span class="function"><span class="keyword">val</span> <span class="title">svc</span> =</span> url(<span class="string">"http://www.wikipedia.org/"</span>);
+    <span class="function"><span class="keyword">val</span> <span class="title">response</span> :</span> <span class="type">Future</span>[<span class="type">String</span>] = <span class="type">Http</span>(svc <span class="type">OK</span> as.<span class="type">String</span>)
+
+    response onComplete {
+      <span class="keyword">case</span> <span class="type">Success</span>(content) =&gt; {
+        println(<span class="string">"Successful response"</span> + content)
+      }
+      <span class="keyword">case</span> <span class="type">Failure</span>(t) =&gt; {
+        println(<span class="string">"An error has occurred: "</span> + t.getMessage)
+      }
+    }
+  }
+}
+</code></pre><h2 id="HTTP_request_with_redirect：重定向http请求">HTTP request with redirect：重定向http请求</h2><p>这是常见的http端点使用重定向。默认情况下Dispatch不遵循这些重定向，你需要配置HTTP，例如通过使用 Http.configure(_ setFollowRedirects true)(svc OK as.String)。<br>下面是一个包含重定向的例子：</p>
+<pre><code><span class="keyword">import</span> dispatch._, <span class="type">Defaults</span>._
+<span class="keyword">import</span> scala.util.{<span class="type">Success</span>, <span class="type">Failure</span>}
+
+<span class="class"><span class="keyword">object</span> <span class="title">DispatchTest</span> {</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">main</span> (</span>args: <span class="type">Array</span>[<span class="type">String</span>]) {
+
+    <span class="function"><span class="keyword">val</span> <span class="title">svc</span> =</span> url(<span class="string">"http://www.wikipedia.com"</span>);
+    <span class="function"><span class="keyword">val</span> <span class="title">response</span> :</span> <span class="type">Future</span>[<span class="type">String</span>] = <span class="type">Http</span>.configure(_ setFollowRedirects <span class="literal">true</span>)(svc <span class="type">OK</span> as.<span class="type">String</span>)
+
+    response onComplete {
+      <span class="keyword">case</span> <span class="type">Success</span>(content) =&gt; {
+        println(<span class="string">"Successful response"</span> + content)
+      }
+      <span class="keyword">case</span> <span class="type">Failure</span>(t) =&gt; {
+        println(<span class="string">"An error has occured: "</span> + t.getMessage)
+      }
+    }
+  }
+}
+</code></pre><h2 id="HTTP_request_with_basic_authentication：用户验证的http请求">HTTP request with basic authentication：用户验证的http请求</h2><p>如果你的http请求中需要基本的用户验证，使用 .as_!()来处理：</p>
+<pre><code>val svc = <span class="function"><span class="title">url</span><span class="params">(<span class="string">"http://www.wikipedia.com"</span>)</span></span>.as_!(<span class="string">"user"</span>, <span class="string">"password"</span>)
+</code></pre><h2 id="Parse_JSON_response">Parse JSON response</h2><p>如今几乎所有的REST端点使用JSON响应。Argonaut 是一个处理http的工具包，它使用许多scala的特性，并与scala结合的非常好。</p>
+<p>为了快速解析或者预定义的数据结构不可用时，可以只解析具体的字段：</p>
+<pre><code><span class="keyword">import</span> scalaz._, <span class="type">Scalaz</span>._
+<span class="keyword">import</span> argonaut._, <span class="type">Argonaut</span>._
+
+<span class="function"><span class="keyword">val</span> <span class="title">json</span> =</span> <span class="string">"""
+  { "name" : "Toddler", "age" : 2, "greeting": "gurgle!" }
+"""</span>
+
+<span class="comment">// extract a simple field "greeting"</span>
+<span class="function"><span class="keyword">val</span> <span class="title">greeting1</span>:</span> <span class="type">String</span> =
+    <span class="type">Parse</span>.parseWith(jsonString, _.field(<span class="string">"greeting"</span>).flatMap(_.string).getOrElse(<span class="literal">null</span>), msg =&gt; msg)
+</code></pre><p>如果你要应对不断变化的数据结构时，这种处理方式很不错。通常REST API都会定义一个固定的数据结构，既可以用于解析。假设你会得到如下用户数据：</p>
+<pre><code>{
+  "<span class="attribute">dn</span>"          :<span class="value"><span class="string">"uid=chris,ou=Users,dc=lollyrock,dc=com"</span></span>,
+  "<span class="attribute">controls</span>"    :<span class="value">[]</span>,
+  "<span class="attribute">cn</span>"          :<span class="value"><span class="string">"Chris Rock"</span></span>,
+  "<span class="attribute">givenName</span>"   :<span class="value"><span class="string">"Chris"</span></span>,
+  "<span class="attribute">l</span>"           :<span class="value"><span class="string">"Berlin"</span></span>,
+  "<span class="attribute">mail</span>"        :<span class="value"><span class="string">"chris@lollyrock.com"</span></span>,
+  "<span class="attribute">uid</span>"         : <span class="value"><span class="string">"chris"</span> </span>,
+  "<span class="attribute">displayName</span>" :<span class="value"><span class="string">"ch.hartmann"</span></span>,
+  "<span class="attribute">o</span>"           :<span class="value"><span class="string">"Rock Inc."</span>
+</span>}
+</code></pre><p>首先我们需要一个结构来存储解析后的结果，在scala中使用case class非常合适：</p>
+<pre><code><span class="label">case</span> class User(
+   <span class="preprocessor">dn</span>           : <span class="keyword">String,
+</span>   <span class="preprocessor">cn</span>           : <span class="keyword">String,
+</span>   givenName    : <span class="keyword">String,
+</span>   l            : <span class="keyword">String,
+</span>   mail         : <span class="keyword">String,
+</span>   displayName  : <span class="keyword">String,
+</span>   o            : <span class="keyword">String
+</span>)
+</code></pre><p>下面的例子演示了JSON数据解析到一个预定义的样例类：</p>
+<pre><code><span class="keyword">import</span> scalaz._, <span class="type">Scalaz</span>._
+<span class="keyword">import</span> argonaut._, <span class="type">Argonaut</span>._
+
+<span class="class"><span class="keyword">object</span> <span class="title">UserParser</span> {</span>
+
+  <span class="comment">// use the implicit json conversion of Argonaut</span>
+  <span class="comment">// more information at http://argonaut.io/doc/parsing/</span>
+  <span class="keyword">implicit</span> <span class="function"><span class="keyword">def</span> <span class="title">UserCodecJson</span>:</span> <span class="type">CodecJson</span>[<span class="type">User</span>] =
+    <span class="comment">// the 9 represents the amount of arguments</span>
+    casecodec9(<span class="type">User</span>.apply, <span class="type">User</span>.unapply)(<span class="string">"dn"</span>, <span class="string">"cn"</span>, <span class="string">"givenName"</span>,<span class="string">"l"</span>, <span class="string">"mail"</span>, <span class="string">"uid"</span>, <span class="string">"displayName"</span>, <span class="string">"o"</span>, <span class="string">"plan"</span>)
+
+  <span class="comment">// method to use argonaut parse</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">parse</span>(</span>data: <span class="type">String</span>) : <span class="type">Option</span>[<span class="type">User</span>] = {
+    <span class="type">Parse</span>.decodeOption[<span class="type">User</span>](data)
+  }
+
+  <span class="comment">// simple app to test JSON parsing</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">main</span>(</span>args: <span class="type">Array</span>[<span class="type">String</span>]) {
+
+    <span class="comment">// json input data</span>
+    <span class="keyword">var</span> jsonString =
+      <span class="string">"""
+        | {"dn":"uid=chris,ou=Users,dc=lollyrock,dc=com","controls":[],"cn":"Chris Rock","givenName":"Chris","l":"Berlin","mail":"chris@lollyrock.com","uid": "chris" ,"displayName":"ch.hartmann","o":"Rock Inc."}
+      """</span>.stripMargin
+
+    <span class="comment">// parse json content</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">userdata</span>:</span> <span class="type">Option</span>[<span class="type">User</span>] = parse(jsonString)
+
+    <span class="comment">// print specific values</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">usr</span> =</span> userdata.get
+    println (usr.dn)
+    println (usr.displayName)
+  }
+}
+</code></pre><p>Dispatch与Argonout的组合提供了一种有效的方法来处理HTTP调用和Response。由于我们使用的是Future，相对一个复杂的线程系统，可以在同一时间处理更多的请求，同时代码更易于阅读。</p>
+</span>
       
     </div>
 
@@ -206,9 +312,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/centos/" rel="tag">#centos</a>
-          
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/scala/" rel="tag">#scala</a>
           
         </div>
       
@@ -217,13 +321,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-How-to-use-Supervisor/" rel="prev">Simple Python: How to use Supervisor</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Setup-blogs-on-GitHub-Pages/" rel="next">Setup blogs on GitHub Pages</a>
+              <a href="/2015/09/29/Simple-Java-NIO/" rel="next">Simple Java: NIO</a>
             
           </div>
         </div>
@@ -327,7 +429,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#修改yum"><span class="nav-number">1.</span> <span class="nav-text">修改yum</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装xz解压缩包工具"><span class="nav-number">2.</span> <span class="nav-text">安装xz解压缩包工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装python"><span class="nav-number">3.</span> <span class="nav-text">安装python</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Plain_HTTP_request：普通的http请求"><span class="nav-number">2.</span> <span class="nav-text">Plain HTTP request：普通的http请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTP_request_with_redirect：重定向http请求"><span class="nav-number">3.</span> <span class="nav-text">HTTP request with redirect：重定向http请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTP_request_with_basic_authentication：用户验证的http请求"><span class="nav-number">4.</span> <span class="nav-text">HTTP request with basic authentication：用户验证的http请求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Parse_JSON_response"><span class="nav-number">5.</span> <span class="nav-text">Parse JSON response</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
