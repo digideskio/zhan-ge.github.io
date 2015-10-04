@@ -1,0 +1,788 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Scala基本特性解析.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: Type Less, Do More">
+<meta property="og:url" content="http://yoursite.com/2015/10/04/Simple-Scala-Type-Less-Do-More/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Scala基本特性解析.">
+<meta property="og:updated_time" content="2015-10-04T15:13:06.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: Type Less, Do More">
+<meta name="twitter:description" content="Scala基本特性解析.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: Type Less, Do More | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: Type Less, Do More
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2015-10-04T19:55:13+08:00" content="2015-10-04">
+            2015-10-04
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="分号">分号</h2><p>分号在scala中是可选的,scala编译器能够自动推断语句的结束,所以不必每行语句都添加,当然可以用在同一行写多条语句的情况.</p>
+<pre><code><span class="comment">// 行尾有等号时表示还有更多的语句</span>
+def equalSign(s:<span class="keyword">String</span>) = 
+    <span class="built_in">println</span>(<span class="string">"Another line."</span>)
+
+<span class="comment">// 行尾有一个开放的大括号表示下一行有更多的代码</span>
+def equalSign2(s:<span class="keyword">String</span>) = {
+  <span class="built_in">println</span>(<span class="string">"Another line."</span>)
+}
+
+<span class="comment">// 行尾有逗号,句号或操作符均表示下一行有更多代码</span>
+def commas(s1:<span class="keyword">String</span>,
+            s2:<span class="keyword">String</span>) = Console.
+    <span class="built_in">println</span>(<span class="string">"comma: "</span> + s1 +
+        <span class="string">" , "</span> + s2)
+</code></pre><h2 id="变量声明">变量声明</h2><p>scala允许你在声明变量时指认其为不可变(immutable)或可变(mutable)变量.顾名思义,不可变变量在声明后,其值就不能再做改变了,可变变量则可以.无论何时,声明后的变量类型不可改变.</p>
+<pre><code>// 声明一个不可变<span class="keyword">Array</span>
+scala&gt; val <span class="keyword">array</span>:<span class="keyword">Array</span>[<span class="typename">String</span>] = <span class="keyword">new</span> <span class="keyword">Array</span>(<span class="number">5</span>)          // 声明一个包含<span class="number">5</span>个<span class="typename">String</span>元素的不可变数组
+<span class="keyword">array</span>: <span class="keyword">Array</span>[<span class="typename">String</span>] = <span class="keyword">Array</span>(<span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>)
+
+scala&gt; <span class="keyword">array</span> = <span class="keyword">new</span> <span class="keyword">Array</span>(<span class="number">2</span>)                            // 把<span class="keyword">array</span>变量声明为一个新的Aarray,错误
+&lt;console&gt;:<span class="number">8</span>: error: reassignment <span class="keyword">to</span> val
+            <span class="keyword">array</span> = <span class="keyword">new</span> <span class="keyword">Array</span>(<span class="number">2</span>)
+
+scala&gt; <span class="keyword">array</span>(<span class="number">0</span>) = <span class="string">"Hello"</span>                               // 初始化元素的值
+scala&gt; <span class="keyword">array</span>
+res1: <span class="keyword">Array</span>[<span class="typename">String</span>] = <span class="keyword">Array</span>(Hello, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>)
+</code></pre><p>一个变量被声明后必须被初始化.</p>
+<pre><code><span class="comment">// 声明一个可变的Double</span>
+scala&gt; <span class="variable"><span class="keyword">var</span> stockPrice</span>: <span class="typename">Double</span> = <span class="number">100.0</span>                   <span class="comment">// 声明一个可变的Double类型变量 </span>
+stockPrice: <span class="typename">Double</span> = <span class="number">100.0</span>
+
+scala&gt; stockPrice = <span class="number">200.0</span>                               <span class="comment">// 修改变量stockPrice的值</span>
+stockPrice: <span class="typename">Double</span> = <span class="number">200.0</span>
+</code></pre><p>同时,在scala中的types, char, byte, short, int, long, float, double, boolean这些基本类型都是包含方法的对象,类似于引用类型.</p>
+<p>当变量作为类的构造参数时,声明为val或var后,该变量则对应为该类的不可变或可变属性:</p>
+<pre><code>scala&gt; class <span class="function"><span class="title">Person</span><span class="params">(val name: String, var age: Int)</span></span> 
+defined class Person
+
+scala&gt; class <span class="function"><span class="title">Person</span><span class="params">(val name: String, var age: Int)</span></span> 
+defined class Person
+
+scala&gt; <span class="tag">p</span><span class="class">.name</span>                                           <span class="comment">// Show the value of firstName.</span>
+res0: String = Dean Wampler
+
+scala&gt; <span class="tag">p</span><span class="class">.age</span>                                            <span class="comment">// Show the value of age.</span>
+res2: Int = <span class="number">29</span> 
+
+scala&gt; <span class="tag">p</span><span class="class">.name</span> = <span class="string">"Buck Trends"</span>                           <span class="comment">// 不允许修改声明为val的参数</span>
+&lt;console&gt;:<span class="number">9</span>: error: reassignment to val
+            <span class="tag">p</span><span class="class">.name</span> = <span class="string">"Buck Trends"</span> ^
+
+scala&gt; <span class="tag">p</span><span class="class">.age</span> = <span class="number">30</span>
+<span class="tag">p</span><span class="class">.age</span>: Int = <span class="number">30</span>                                         <span class="comment">// 允许修改声明为var的参数</span>
+</code></pre><p>尽量使用immutable类型的参数可以最大限度的消除因为参数可变性造成的bug.</p>
+<h2 id="Ranges">Ranges</h2><p>Int, Long, Float, Double, Char, BigInt类型的随机数生成:</p>
+<pre><code><span class="number">1</span> to <span class="number">10</span>
+<span class="function"><span class="title">Range</span><span class="params">(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>)</span></span>
+
+<span class="number">1</span> until <span class="number">10</span>
+<span class="function"><span class="title">Range</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)</span></span>
+
+<span class="number">1</span> to <span class="number">10</span> by <span class="number">3</span>
+<span class="function"><span class="title">Range</span><span class="params">(<span class="number">1</span>, <span class="number">4</span>, <span class="number">7</span>, <span class="number">10</span>)</span></span>
+
+<span class="number">10</span> to <span class="number">1</span> by -<span class="number">3</span>
+<span class="number">1</span>L to <span class="number">10</span>L by <span class="number">3</span>
+
+<span class="number">1.1</span>f to <span class="number">10.3</span>f by <span class="number">3.1</span>f
+<span class="function"><span class="title">NumericRange</span><span class="params">(<span class="number">1.1</span>, <span class="number">4.2</span>, <span class="number">7.2999997</span>)</span></span>
+
+<span class="number">1.1</span>f to <span class="number">10.3</span>f by <span class="number">0.5</span>f
+<span class="function"><span class="title">NumericRange</span><span class="params">(<span class="number">1.1</span>, <span class="number">1.6</span>, <span class="number">2.1</span>, <span class="number">2.6</span>, <span class="number">3.1</span>, <span class="number">3.6</span>, <span class="number">4.1</span>, <span class="number">4.6</span>, <span class="number">5.1</span>, <span class="number">5.6</span>, <span class="number">6.1</span>, <span class="number">6.6</span>, <span class="number">7.1</span>, <span class="number">7.6</span>, <span class="number">8.1</span>, <span class="number">8.6</span>, <span class="number">9.1</span>, <span class="number">9.6</span>, <span class="number">10.1</span>)</span></span>
+
+<span class="number">1.1</span> to <span class="number">10.3</span> by <span class="number">3.1</span>
+<span class="function"><span class="title">NumericRange</span><span class="params">(<span class="number">1.1</span>, <span class="number">4.2</span>, <span class="number">7.300000000000001</span>)</span></span>
+
+<span class="string">'a'</span> to <span class="string">'g'</span> by <span class="number">3</span>
+<span class="function"><span class="title">NumericRange</span><span class="params">(a, d, g)</span></span>
+
+<span class="function"><span class="title">BigInt</span><span class="params">(<span class="number">1</span>)</span></span> to <span class="function"><span class="title">BigInt</span><span class="params">(<span class="number">10</span>)</span></span> by <span class="number">3</span>
+<span class="function"><span class="title">NumericRange</span><span class="params">(<span class="number">1</span>, <span class="number">4</span>, <span class="number">7</span>, <span class="number">10</span>)</span></span>
+
+<span class="function"><span class="title">BigDecimal</span><span class="params">(<span class="number">1.1</span>)</span></span> to <span class="function"><span class="title">BigDecimal</span><span class="params">(<span class="number">10.3</span>)</span></span> by <span class="number">3.1</span>
+<span class="function"><span class="title">NumericRange</span><span class="params">(<span class="number">1.1</span>, <span class="number">4.2</span>, <span class="number">7.3</span>)</span></span>
+</code></pre><h2 id="偏函数">偏函数</h2><p>偏函数是声明为 PartialFunction[-A,+B] 类型的一种函数,其中’A’是函数接受的参数类型,’B’是函数返回值类型.偏函数最大的特点就是只接受和处理其参数类型子集参数类型,而对于这个类型子集之外的参数抛出运行时异常.</p>
+<p>这与模式匹配中的case语句语义相近,在模式匹配时,通常是定义一组具体的模式,然后使用’_’处理所有为定义的模式.如果一组case语句没有涵盖所有情况,则这个case语句就可以被视为一个偏函数.</p>
+<pre><code>val second:PartialFunction[<span class="keyword">List</span>[<span class="keyword">Int</span>],<span class="keyword">Int</span>] = {  
+    <span class="keyword">case</span> <span class="keyword">List</span>(x::y::_) =&gt; y  
+}  
+</code></pre><p>这个函数接受一个List[Int]类型的参数,返回一个Int类型的结果,这个结果是这个List参数的第二个元素.但是如果传入的List只有一个元素,就会抛出运行时异常.<br>如果在调用偏函数前想要检查一下参数是否在其定义域范围内,可以调用偏函数的isDefinedAt()方法:</p>
+<pre><code>scala&gt; second.isDefinedAt(List(<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>))  
+res0: Boolean = <span class="literal">true</span>  
+
+scala&gt; second.isDefinedAt(List(<span class="number">2</span>))  
+res1: Boolean = <span class="literal">false</span>
+</code></pre><p>事实上,scala编译器把偏函数second编译成了:</p>
+<pre><code><span class="keyword">new</span> PartialFunction[<span class="keyword">List</span>[<span class="keyword">Int</span>], <span class="keyword">Int</span>] {  
+    def apply(xs: <span class="keyword">List</span>[<span class="keyword">Int</span>]) = xs match {  
+        <span class="keyword">case</span> x :: y :: _ =&gt; y  
+    }  
+    def isDefinedAt(xs: <span class="keyword">List</span>[<span class="keyword">Int</span>]) = xs match {  
+        <span class="keyword">case</span> x :: y :: _ =&gt; <span class="keyword">true</span>  
+        <span class="keyword">case</span> _ =&gt; <span class="keyword">false</span>  
+    }  
+} 
+</code></pre><p>这种行为是编译期行为,我们必须显示的声明函数为PartialFunction类型,则编译器会把该函数编译成完整的普通函数.</p>
+<p>因此,想要把一组case语句声明为一个偏函数,必须显式的声明其为PartialFunction类型.当确认程序不会传入不可处理的值时,就可以使用偏函数,这样一旦有定义域之外的值传入,程序会自动抛出运行时异常,而不需要手动编写抛出异常代码,节省代码量,只需处理异常即可.</p>
+<h2 id="方法声明">方法声明</h2><h3 id="带默认值的方法和命名参数">带默认值的方法和命名参数</h3><p>定义一个Point类:</p>
+<pre><code><span class="function"><span class="keyword">case</span> <span class="keyword">class</span> <span class="title">Point</span><span class="params">(x:Double = <span class="number">0.0</span>, y:Double = <span class="number">0.0</span>)</span></span>{           <span class="comment">// 定义一个带有初始参数值的Point类</span>
+  <span class="function">def <span class="title">shift</span><span class="params">(deltax:Double = <span class="number">0.0</span>, deltay:Double = <span class="number">0.0</span>)</span> </span>=     <span class="comment">// 定义一个带有默认参数值shift方法</span>
+    copy(x + deltax, y + deltay)
+}
+</code></pre><h3 id="带有参数列表的方法">带有参数列表的方法</h3><p>定义一个抽象类Shape:</p>
+<pre><code><span class="literal">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Shape</span>() </span>{ 
+<span class="comment"><span class="markdown">/**
+ * Draw takes TWO argument LISTS, one list with </span>an<span class="markdown"> offset for drawing,
+ * and </span>the<span class="markdown"> other list that is </span>the<span class="markdown"> function argument we used previously.
+ */</span></span>
+    def draw(offset: Point = Point(<span class="number">0.0</span>, <span class="number">0.0</span>))(f: <span class="built_in">String</span> =&gt; Unit): Unit = 
+    f(s<span class="string">"draw(offset = $offset), <span class="subst">${<span class="keyword">this</span>.toString}</span>"</span>)
+}
+</code></pre><p>Shape类的draw方法接受两个参数,第一个是Point类型的偏移值,并且提供了默认值Point(0.0, 0.0),即无偏移.第二个参数是一个函数,该函数接受一个String类型的参数并返回Unit.最终,draw方法返回Unit.<br>可以按如下方式调用该方法:</p>
+<pre><code><span class="keyword">case</span> class Circle(center: Point, radius: Double) extends Shape
+<span class="keyword">case</span> class Rectangle(lowerLeft: Point, <span class="variable">height</span>: Double, <span class="variable">width</span>: Double) extends Shape
+
+s.<span class="title">draw</span>(Point(<span class="number">1.0</span>, <span class="number">2.0</span>))(<span class="built_in">str</span> =&gt; <span class="built_in">println</span>(s<span class="string">"ShapesDrawingActor: $str"</span>))
+s.<span class="title">draw</span>(Point(<span class="number">1.0</span>, <span class="number">2.0</span>)){<span class="built_in">str</span> =&gt; <span class="built_in">println</span>(s<span class="string">"ShapesDrawingActor: $str"</span>)}
+s.<span class="title">draw</span>(Point(<span class="number">1.0</span>, <span class="number">2.0</span>)) { <span class="built_in">str</span> =&gt; 
+  <span class="built_in">println</span>(s<span class="string">"ShapesDrawingActor: $str"</span>)
+}
+s.<span class="title">draw</span>(Point(<span class="number">1.0</span>, <span class="number">2.0</span>)) {
+  <span class="built_in">str</span> =&gt; <span class="built_in">println</span>(s<span class="string">"ShapesDrawingActor: $str"</span>)
+}
+s.<span class="title">draw</span>() {
+  <span class="built_in">str</span> =&gt; <span class="built_in">println</span>(s<span class="string">"ShapesDrawingActor: $str"</span>)
+}
+s.<span class="title">draw</span>(Point(<span class="number">1.0</span>, <span class="number">2.0</span>),
+  <span class="built_in">str</span> =&gt; <span class="built_in">println</span>(s<span class="string">"ShapesDrawingActor: $str"</span>)
+)
+s.<span class="title">draw</span>(f = <span class="built_in">str</span> =&gt; <span class="built_in">println</span>(s<span class="string">"ShapesDrawingActor: $str"</span>))
+</code></pre><h3 id="初试Futures">初试Futures</h3><p>scala.concurrent.Future的API使用隐式转换参数来减少代码中的引用.是scala中提供的另外一种并发工具.Akka会使用Futures,但是如果你不需要使用完整的Akka,同样可以单独的使用Futures.<br>如果你再Future中包装一些动作,这些动作会以异步的方式执行,Future同时提供了多种方法来处理动作执行的结果,比如结果完成的时候提供回调方法:</p>
+<pre><code><span class="keyword">import</span> scala.concurrent.Future
+<span class="keyword">import</span> scala.concurrent.ExecutionContext.Implicits.global   <span class="comment">// 提供隐式转换</span>
+
+<span class="keyword">def</span> sleep(millis: <span class="keyword">Long</span>) = { 
+  Thread.sleep(millis)
+}
+
+<span class="comment">// Busy work ;)</span>
+<span class="keyword">def</span> doWork(index: <span class="keyword">Int</span>) = { 
+  sleep((math.random * <span class="number">1000</span>).toLong) 
+  index
+}
+
+(<span class="number">1</span> to <span class="number">5</span>) foreach { index =&gt; 
+  val future = Future {             <span class="comment">// 使用Future封装函数执行动作</span>
+    doWork(index)       
+  }
+  future onSuccess {
+    <span class="keyword">case</span> answer: <span class="keyword">Int</span> =&gt; <span class="keyword">println</span>(s<span class="string">"Success! returned: $answer"</span>)
+  }
+  future onFailure {
+    <span class="keyword">case</span> th: Throwable =&gt; <span class="keyword">println</span>(s<span class="string">"FAILURE! returned: $th"</span>) 
+  }
+}
+
+sleep(<span class="number">1000</span>) <span class="comment">// Wait long enough for the "work" to finish.</span>
+<span class="keyword">println</span>(<span class="string">"Finito!"</span>)
+</code></pre><h3 id="嵌套函数定义和递归">嵌套函数定义和递归</h3><p>使用嵌套函数定义一个阶乘计算器:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">factorial</span><span class="params">(i: Int)</span>:</span> Long = {
+  <span class="function"><span class="keyword">def</span> <span class="title">fact</span><span class="params">(i: Int, accumulator: Int)</span>:</span> Long = {
+    <span class="keyword">if</span> (i &lt;= <span class="number">1</span>) accumulator <span class="keyword">else</span> fact(i - <span class="number">1</span>, i * accumulator) 
+  }
+
+  fact(i, <span class="number">1</span>) 
+}
+
+(<span class="number">0</span> to <span class="number">5</span>) foreach ( i =&gt; println(factorial(i)) )
+</code></pre><p>内部嵌套的函数不断的调用自己,这是一个递归函数,递归函数必须定义返回值类型,同时该函数只能在factorial函数内部可见.</p>
+<p>在fact函数中调用fact(i - 1, i * accumulator)时,由于要保存之前”n”的值,必须分配一个新的函数栈,如果n值很大是,函数栈将很快被耗尽.尾递归则可以很好的处理这个问题,尾递归是指在函数处理的最后一步,只调用该递归函数本身,此时无需记录其他变量,当前的函数栈可以被重复利用,在效率上和循环是等价的.</p>
+<pre><code><span class="keyword">import</span> scala.annotation.tailrec
+
+<span class="function"><span class="keyword">def</span> <span class="title">factorial</span><span class="params">(i: Int)</span>:</span> Long = { 
+<span class="decorator">  @tailrec</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">fact</span><span class="params">(i: Int, accumulator: Int)</span>:</span> Long = { 
+    <span class="keyword">if</span> (i &lt;= <span class="number">1</span>) accumulator <span class="keyword">else</span> fact(i - <span class="number">1</span>, i * accumulator)
+  }
+
+  fact(i, <span class="number">1</span>) 
+}
+
+(<span class="number">0</span> to <span class="number">5</span>) foreach ( i =&gt; println(factorial(i)) )
+</code></pre><p>内部的fact函数要么返回结果,要么调用本身,变量accumulator每次递归调用都会更新值,直到边界条件满足是返回该值,即为最后的计算结果.注释 @tailrec可以确保写出的程序是正确的尾递归,否则编译时会报错误,以提醒修改代码.<br>JVM本身并不提供对尾递归的优化,java的编译器也不支持,只有scala的编译器提供.</p>
+<h2 id="字面值">字面值</h2><p>各种基本类型的字面值与java类似.</p>
+<h2 id="Option,Some,and_None:拒绝nulls">Option,Some,and None:拒绝nulls</h2><p>每种语言都会有一些关键字来引用那些没有任何值的变量类型,比如java中是null,是一个关键字而不是一个类型的实例,因此他不能调用任何方法,为什么会返回一个关键字而不是一个类型的实例,当需要一个实例时?<br>当一个值是null而不是任何实例的实例时,对其调用任何方法,则会报NullPointerExceptions,因此接到一个返回值时首先要检查是不是null然后再执行调用,但又如何判断不是null呢?</p>
+<p>而scala中的Option可以很好的解决这个问题,它告诉你,返回值可能会没有意义.比如Option[String],指可能会返回一个String类型的值,也可能返回一个没有意义的值.Option有两个子类:Some和None,当返回Some的时候说明有一个正确的值,如果是None则是一个没有意义的值.</p>
+<pre><code>val stateCapitals = Map( 
+    <span class="string">"Alabama"</span> -&gt; <span class="string">"Montgomery"</span>, 
+    <span class="string">"Alaska"</span> -&gt; <span class="string">"Juneau"</span>,
+    <span class="comment">// ...</span>
+    <span class="string">"Wyoming"</span> -&gt; <span class="string">"Cheyenne"</span>
+)
+stateCapitals.<span class="function"><span class="title">get</span><span class="params">(<span class="string">"Alabama"</span>)</span></span>                                res: <span class="function"><span class="title">Some</span><span class="params">(Montgomery)</span></span>
+stateCapitals.<span class="function"><span class="title">get</span><span class="params">(<span class="string">"Wyoming"</span>)</span></span>                                res: <span class="function"><span class="title">Some</span><span class="params">(Cheyenne)</span></span>
+stateCapitals.<span class="function"><span class="title">get</span><span class="params">(<span class="string">"Unknown"</span>)</span></span>                                res: None
+stateCapitals.<span class="function"><span class="title">get</span><span class="params">(<span class="string">"Wyoming"</span>)</span></span>.<span class="function"><span class="title">getOrElse</span><span class="params">(<span class="string">"Oops!"</span>)</span></span>             res: <span class="function"><span class="title">Some</span><span class="params">(Cheyenne)</span></span>
+stateCapitals.<span class="function"><span class="title">get</span><span class="params">(<span class="string">"Unknown"</span>)</span></span>.<span class="function"><span class="title">getOrElse</span><span class="params">(<span class="string">"Oops2!"</span>)</span></span>            res: <span class="function"><span class="title">Some</span><span class="params">(Oops2!)</span></span>
+</code></pre><p>Map的get方法返回值类型为Option[T],本例中T为String.如果Option.get返回的结果是Some,则Some.get时返回Some中的值,但是如果Option.get的值是None的话,使用None.get会抛出一个 NoSuchElementException异常,而使用getOrElse则可以有效避免异常.</p>
+<h2 id="密封类">密封类</h2><p>上面讨论的Option有一个很好的特性:只有两个有效的子类型Some和None.这是一种很好的设计方法,要么这样,否则那样,没有第三种情况出现.<br>scala中的关键字sealed可以实现这样的目标:</p>
+<pre><code><span class="keyword">sealed</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Option</span>[</span>+<span class="type">A</span>] ... { ... }
+</code></pre><p>sealed关键字告诉编译器所有的子类必须在当前文件声明.Scala标准库中的Option的两个子类即是在Option类文件中实现.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/scala/" rel="tag">#scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/04/Simple-Scala-Rounding-Out-the-Basics/" rel="prev">Simple Scala: Rounding Out the Basics</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/04/Akka-Concurrency-Patterns-for-Akka-Programming/" rel="next">Akka Concurrency: Patterns for Akka Programming</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">24</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">17</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#分号"><span class="nav-number">1.</span> <span class="nav-text">分号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#变量声明"><span class="nav-number">2.</span> <span class="nav-text">变量声明</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ranges"><span class="nav-number">3.</span> <span class="nav-text">Ranges</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#偏函数"><span class="nav-number">4.</span> <span class="nav-text">偏函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法声明"><span class="nav-number">5.</span> <span class="nav-text">方法声明</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#带默认值的方法和命名参数"><span class="nav-number">5.1.</span> <span class="nav-text">带默认值的方法和命名参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#带有参数列表的方法"><span class="nav-number">5.2.</span> <span class="nav-text">带有参数列表的方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#初试Futures"><span class="nav-number">5.3.</span> <span class="nav-text">初试Futures</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#嵌套函数定义和递归"><span class="nav-number">5.4.</span> <span class="nav-text">嵌套函数定义和递归</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字面值"><span class="nav-number">6.</span> <span class="nav-text">字面值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Option,Some,and_None:拒绝nulls"><span class="nav-number">7.</span> <span class="nav-text">Option,Some,and None:拒绝nulls</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#密封类"><span class="nav-number">8.</span> <span class="nav-text">密封类</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

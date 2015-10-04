@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="Zhange,GitHub" />
+  <meta name="keywords" content="akka,scala," />
 
 
 
@@ -39,16 +39,17 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="阅读书单。">
+<meta name="description" content="为什么选择Akka作为我们的为服务框架。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Reading List">
-<meta property="og:url" content="http://yoursite.com/2015/09/29/Reading-List/index.html">
+<meta property="og:title" content="Simple Akka: Why We Picked AKKA Cluster as our Microservice Framework">
+<meta property="og:url" content="http://yoursite.com/2015/10/01/Simple-Akka-Why-We-Picked-AKKA-Cluster-as-our-Microservice-Framework/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="阅读书单。">
-<meta property="og:updated_time" content="2015-09-29T08:11:54.000Z">
+<meta property="og:description" content="为什么选择Akka作为我们的为服务框架。">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/MicroserviceswithAkkaCluster.png">
+<meta property="og:updated_time" content="2015-10-01T14:33:11.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Reading List">
-<meta name="twitter:description" content="阅读书单。">
+<meta name="twitter:title" content="Simple Akka: Why We Picked AKKA Cluster as our Microservice Framework">
+<meta name="twitter:description" content="为什么选择Akka作为我们的为服务框架。">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +59,7 @@
   };
 </script>
 
-  <title> Reading List | Hexo </title>
+  <title> Simple Akka: Why We Picked AKKA Cluster as our Microservice Framework | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +158,7 @@
           
           
             
-              Reading List
+              Simple Akka: Why We Picked AKKA Cluster as our Microservice Framework
             
           
         </h1>
@@ -166,8 +167,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-29T15:50:26+08:00" content="2015-09-29">
-            2015-09-29
+          <time itemprop="dateCreated" datetime="2015-10-01T21:03:02+08:00" content="2015-10-01">
+            2015-10-01
           </time>
         </span>
 
@@ -185,120 +186,52 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="实践">实践</h2><ul>
-<li>《代码大全2》</li>
-<li>《七周七并发模型》</li>
-<li>《算法》</li>
-<li>《Mahout实战》</li>
-<li>《程序员必读之软件架构》</li>
-<li>《软件开发者路线图》</li>
-<li>《企业应用架构模式》</li>
-<li>《推荐系统实践》</li>
-<li>《信息检索导论》</li>
-<li>《分布式系统》</li>
-<li>《搜索引擎— 原理、技术与系统》</li>
-<li>《Head.First.设计模式》</li>
-<li>《大型网站技术架构》</li>
-<li>《大型分布式网站技术架构设计与实践》</li>
-<li>《大型网站系统与Java中间件实践》</li>
-<li>《编程之美》</li>
-<li>《C专家编程》</li>
-<li>《第一本Docker书》</li>
-<li>《实现领域驱动设计》</li>
-<li>《从Paxos到Zookeeper：分布式一致性原理与实践》 </li>
-<li>《增长黑客：创业公司的用户与收入增长秘籍》</li>
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>最近在iHeartRadio ，我们决定我们的一个整体的Java后端服务迁移到多个微服务，更具体地说，我们决定使用akka来实现这些微服务然后使用akka集群来实现我们的微服务集群。<br>这篇文章就是解释我们如何做出这样的决定的。主要分为三个主要的部分：首先对我们要实现的微服务的目标进行了讨论，第二，我们认为akka应用没有http接口是最有意义的追求目标，第三，简单介绍一下最初的架构设计。</p>
+<h2 id="我们要实现的目标">我们要实现的目标</h2><h3 id="目标一：更容易更快的发布周期">目标一：更容易更快的发布周期</h3><p>庞大的基于java的后端代码是阻止我们细化服务的主要原因。多个服务的代码变化不得不作为一个整体进行测试或质量控制，这意味着一个小小的变化不得不等待其他所有的变化(相关或不相关的)，否则就不能够发布。<br>我们想通过微服务的方式解决这个问题：每个微服务都基于另一部分微服务进行发布，每个微服务都有自己的发布时间表。因此我们可以以更快的速度提供新功能或补丁给客户。</p>
+<h3 id="目标二：提高开发效率，宽松清晰的模块依赖">目标二：提高开发效率，宽松清晰的模块依赖</h3><p>在我们基于java的庞大后端代码中，不同的功能区之间相互依赖紧密。这种相关性很难于进行代码跟踪，从而使代码更难于管理。这些过度的依赖是整个代码的改变变得非常繁琐-在一个地方改变代码，可能需要在多个地方进行相应的改变。这种变化的含义是很难理解的。通过微服务将代码转换成更为明显的依赖关系，则之间的信息传递要简单的多，配置文件也更易于检查。</p>
+<h3 id="目标三：更高的复用性和组合性">目标三：更高的复用性和组合性</h3><p>一个庞大后台的多个类，从多个不同的功能区是逻辑聚集变得越来越大，这使得重用的困难也越来越大。我们希望借此机会重新设计模块，这样每一个微服务有一个更小的接口，并且责任明确。这将使他们更易于作为模块复用或由低层次的服务组成更高层次的微服务。</p>
+<h3 id="目标四：更简单的团队整合">目标四：更简单的团队整合</h3><p>庞大的后端代码库规模巨大并且难于理解。这成为了外部开发者效力专业后台开发的一座屏障。每个微服务中的代码规模一方面更温和也更易于学习。这将为不同的组织打开大门，比如客户端开发人员直接对后台代码库或更多个垂直方向的的团队做出贡献。</p>
+<h2 id="为什么我们选择了以Akka集群为核心的架构作为我们的微服务">为什么我们选择了以Akka集群为核心的架构作为我们的微服务</h2><p>现在我来解释一下做出这样选择的原因：</p>
+<ul>
+<li>开箱即装即用的集群基础设施</li>
+<li>松散耦合且没有Json解析的消耗成本</li>
+<li>微服务内部透明的编程模型</li>
+<li>强大的社区和商业支持</li>
+<li>高弹性、高性能、高扩展性</li>
 </ul>
-<h2 id="数据">数据</h2><ul>
-<li>《机器学习实战》</li>
-<li>《集体智慧编程》</li>
-<li>《Elasticsearch服务器开发》</li>
-<li>《Storm源码分析》</li>
-<li>《大数据Spark企业级实战》</li>
-<li>《Hadoop大数据处理》</li>
-<li>《Hadoop权威指南》</li>
-<li>《Redis设计与实现》</li>
-<li>《MongoDB权威指南》</li>
-<li>《SQL必知必会》</li>
-<li>《DAMA 数据管理知识体系指南》</li>
-<li>《驾驭文本：文本的发现 组织和处理》</li>
-</ul>
-<h2 id="网络">网络</h2><ul>
-<li>《图解TCP/IP》</li>
-<li>《HTTP权威指南》</li>
-<li>《REST实战：超媒体和系统架构》</li>
-<li>《Netty权威指南（第2版）》</li>
-</ul>
-<h2 id="Golang">Golang</h2><ul>
-<li>《Go并发编程实战》</li>
-</ul>
-<h2 id="Javascript">Javascript</h2><ul>
-<li>《深入浅出Node.js》</li>
-<li>《Javascript基础教程》</li>
-</ul>
-<h2 id="Python">Python</h2><ul>
-<li>《利用Python进行数据分析》</li>
-<li>《Python Cookbook en3》</li>
-<li>《Python自动化运维》</li>
-<li>《Python编程实战》</li>
-<li>《Flask Web开发》</li>
-<li>《Python网络编程攻略》</li>
-<li>《Python基础教程》</li>
-<li>《Python核心教程》</li>
-</ul>
-<h2 id="Java">Java</h2><ul>
-<li>《Java核心编程 卷1》</li>
-<li>《Java JDK 7学习笔记》</li>
-<li>《Java程序员修炼之道》</li>
-<li>《Java 8函数式编程》</li>
-<li>《深入理解Java虚拟机》</li>
-<li>《Effective Java》</li>
-<li>《Java Cookbook》</li>
-<li>《Android编程权威指南》</li>
-</ul>
-<h2 id="Scala">Scala</h2><ul>
-<li>《Scala程序设计：Java虚拟机多核编程实战》</li>
-<li>《快学Scala》</li>
-<li>《深入理解Scala》</li>
-<li>《Programming Scala》</li>
-<li>《Programming In Scala》</li>
-<li>《Scala编程》</li>
-<li>《Scala与Clojure函数式编程模式》</li>
-<li>《Machine Learning with Spark》</li>
-<li>《Manning Functional Programming in Scala》</li>
-<li>《Play for Scala》</li>
-<li>《Akka In Action》</li>
-<li>《Akka Concurrency》</li>
-<li>《Akka Essentials》</li>
-<li>《Effective Akka》</li>
-<li>《Atomic Scala》</li>
-<li>《Scala world》</li>
-</ul>
-<h2 id="Others">Others</h2><ul>
-<li>Language: python、java、scala、clojure、golang、erlang、jvm</li>
-<li>Network: TCP/IP、Http、socket、websocket、stream、netty、akka(http&amp;stream)、spray、play2、Finagle</li>
-<li>Distribute: flume、kafka、RabbitMQ、Zookeeper</li>
-<li>Data: hadoop、spark、storm、Kylin</li>
-<li>DB: redis、mongodb、hbase、cassandra、pg、mysql</li>
-<li>Search: Lucene、solr、Elastic Search、nutch</li>
-</ul>
+<h3 id="开箱即装即用的集群基础设施">开箱即装即用的集群基础设施</h3><p>一个微服务的成本是你需要构建集群的基础设施，包括且不限于 - 负载均衡、监控、故障转移和微服务分割。虽然有第三方工具同样可以实现这些功能，但是很难于集成以及复杂的协议栈。akka集群提供了这些集群基础架构组件的开箱即用工具。从部署到运行集群只需要很少的配置文件。</p>
+<h3 id="松散耦合且没有Json解析的消耗成本">松散耦合且没有Json解析的消耗成本</h3><p>微服务通常采用的协议是包含json的http接口。这种协议有json解析的性能成本和写作json解析器的开发成本。基于二进制的akka消息沟通性能则更加优化并且不需要写额外的解析代码。</p>
+<h3 id="微服务内部透明的编程模型">微服务内部透明的编程模型</h3><p>Akka的actor编程模型，在内部和跨微服务都是透明的。所有的呼叫都是基于异步的消息传递而不管呼叫者和相应者是否在同一个服务内。这种开发模型有两大好处：1) 他使开发经验一致 - 写客户端时不用担心服务端是本地还是远程。2) 它可以更容易的修改涉及到的逻辑。</p>
+<h3 id="高弹性、高性能、高扩展性">高弹性、高性能、高扩展性</h3><p>Apache Spark使用akka作为driver-worker的沟通系统。他们的团队正在建设用阿卡集群无主独立触发模式。它能够轻松满足我们的性能要求。</p>
+<h2 id="基于akka集群的微服务">基于akka集群的微服务</h2><p>最后一部分，回顾一下整个架构平台。</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/MicroserviceswithAkkaCluster.png" alt="MicroserviceswithAkkaCluster" title="info"></p>
+<p>所有的微服务基于akka实现并运行于一个akka集群。在akka集群层之上，REST层使用Play Framework提供Http作为微服务的公共接口。他们通过部署在akka集群内部的带有路由actor的微服务进行沟通，我们称为agent。这些web程序还处理一些跨部门的功能，比如安全性和缓存。下面的akka簇提供基本的数据库沟通。<br>微服务实例通过需求可以加入或离开集群，当微服务的冗余实例加入集群时，所有成员都会得到通知，并且自动启动对服务的负载均衡。同样当一个实例离开集群时，所有的成员也会得到通知。这样我们可以根据服务水平扩大缩小服务。</p>
 </span>
       
     </div>
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/akka/" rel="tag">#akka</a>
+          
+            <a href="/tags/scala/" rel="tag">#scala</a>
+          
+        </div>
+      
 
       
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-How-to-use-Fabric/" rel="prev">Simple Python: How to use Fabric</a>
+              <a href="/2015/10/04/Akka-Concurrency-Preface/" rel="prev">Akka Concurrency: Preface</a>
             
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-How-to-use-Supervisor/" rel="next">Simple Python: How to use Supervisor</a>
+              <a href="/2015/10/01/Simple-Scala-Why-You-Should-Never-Catch-Throwable/" rel="next">Simple Scala: Why You Should Never Catch Throwable</a>
             
           </div>
         </div>
@@ -402,7 +335,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#实践"><span class="nav-number">1.</span> <span class="nav-text">实践</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据"><span class="nav-number">2.</span> <span class="nav-text">数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#网络"><span class="nav-number">3.</span> <span class="nav-text">网络</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Golang"><span class="nav-number">4.</span> <span class="nav-text">Golang</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Javascript"><span class="nav-number">5.</span> <span class="nav-text">Javascript</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Python"><span class="nav-number">6.</span> <span class="nav-text">Python</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java"><span class="nav-number">7.</span> <span class="nav-text">Java</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Scala"><span class="nav-number">8.</span> <span class="nav-text">Scala</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Others"><span class="nav-number">9.</span> <span class="nav-text">Others</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#我们要实现的目标"><span class="nav-number">2.</span> <span class="nav-text">我们要实现的目标</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#目标一：更容易更快的发布周期"><span class="nav-number">2.1.</span> <span class="nav-text">目标一：更容易更快的发布周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#目标二：提高开发效率，宽松清晰的模块依赖"><span class="nav-number">2.2.</span> <span class="nav-text">目标二：提高开发效率，宽松清晰的模块依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#目标三：更高的复用性和组合性"><span class="nav-number">2.3.</span> <span class="nav-text">目标三：更高的复用性和组合性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#目标四：更简单的团队整合"><span class="nav-number">2.4.</span> <span class="nav-text">目标四：更简单的团队整合</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么我们选择了以Akka集群为核心的架构作为我们的微服务"><span class="nav-number">3.</span> <span class="nav-text">为什么我们选择了以Akka集群为核心的架构作为我们的微服务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#开箱即装即用的集群基础设施"><span class="nav-number">3.1.</span> <span class="nav-text">开箱即装即用的集群基础设施</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#松散耦合且没有Json解析的消耗成本"><span class="nav-number">3.2.</span> <span class="nav-text">松散耦合且没有Json解析的消耗成本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#微服务内部透明的编程模型"><span class="nav-number">3.3.</span> <span class="nav-text">微服务内部透明的编程模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#高弹性、高性能、高扩展性"><span class="nav-number">3.4.</span> <span class="nav-text">高弹性、高性能、高扩展性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于akka集群的微服务"><span class="nav-number">4.</span> <span class="nav-text">基于akka集群的微服务</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
