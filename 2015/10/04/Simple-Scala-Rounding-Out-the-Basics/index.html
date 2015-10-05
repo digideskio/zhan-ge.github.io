@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/10/04/Simple-Scala-Rounding-Out-the-Basics/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Scala基础解析.">
-<meta property="og:updated_time" content="2015-10-04T15:14:42.000Z">
+<meta property="og:updated_time" content="2015-10-05T08:32:55.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Scala: Rounding Out the Basics">
 <meta name="twitter:description" content="Scala基础解析.">
@@ -185,7 +185,226 @@
       
 
       
-        <span itemprop="articleBody"></span>
+        <span itemprop="articleBody"><h2 id="操作符重载">操作符重载</h2><p>scala中的所有操作符都是方法. 1 + 2 事实上是 1.+(2),即调用1的”+”方法并传入参数2.并且调用无参方法时可以省略方法名前的”.”操作符,比如 2 toString.</p>
+<p>Characters:Scala中允许所有的ASCII字符,包括\u0020到\u007F之间的所有字符.<br>保留关键字不可以重用:所有保留的关键字均不可重用,字符”_”也是一个保留的关键字.<br>清晰的标示符:一个清晰的标示符可以以字母或下划线开始,后跟字母,数字或下划线.</p>
+<h2 id="无参方法">无参方法</h2><p>定义方法时,如果该方法没有参数列表,则可以省略方法名后括号,如果不省略该括号,则调用时即可以带括号也可以不带括号,通常的做法是无参方法均不添加括号,调用时也不添加括号,这样比较统一.</p>
+<h2 id="优先规则">优先规则</h2><p>scala中的运算优先级:</p>
+<ol>
+<li>All letters</li>
+<li>|</li>
+<li>^</li>
+<li>&amp;</li>
+<li>&lt; &gt;</li>
+<li>= !</li>
+<li>:</li>
+<li><ul>
+<li>-</li>
+</ul>
+</li>
+<li><ul>
+<li>/ %</li>
+</ul>
+</li>
+<li>All other special characters</li>
+</ol>
+<h2 id="特定领域语言">特定领域语言</h2><p>特定领域语言,或者说DSLs,是指针对特殊问题领域的设计语言,其目标是以更加简明直观的方式表达该领域中的概念.比如SQL就可以视为DSL,因为它是编程语言来表达的关系模型的解释.<br>scala同时支持内嵌式的DSL和需要解析器支持的外部DSL,其灵活的语法规则对中缀和后缀的方法调用语法提供了出色的支持,可以很好的使用scala语法结构编写嵌入式DSL.<br>这是一个BDD的实例,展示了非常自然的DSL语法:</p>
+<pre><code><span class="keyword">import</span> org.scalatest.{ <span class="type">FunSpec</span>, <span class="type">ShouldMatchers</span> }
+<span class="class"><span class="keyword">class</span> <span class="title">NerdFinderSpec</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">FunSpec</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">ShouldMatchers</span> {</span>
+  describe (<span class="string">"nerd finder"</span>) {
+    it (<span class="string">"identify nerds from a List"</span>) {
+      <span class="function"><span class="keyword">val</span> <span class="title">actors</span> =</span> <span class="type">List</span>(<span class="string">"Rick Moranis"</span>, <span class="string">"James Dean"</span>, <span class="string">"Woody Allen"</span>) 
+      <span class="function"><span class="keyword">val</span> <span class="title">finder</span> =</span> <span class="keyword">new</span> <span class="type">NerdFinder</span>(actors)
+      finder.findNerds shouldEqual <span class="type">List</span>(<span class="string">"Rick Moranis"</span>, <span class="string">"Woody Allen"</span>)
+    }
+  }
+}
+</code></pre><h2 id="IF语句">IF语句</h2><p>scala中的if语句与java类似提供同样的功能:</p>
+<pre><code><span class="keyword">if</span>(<span class="number">2</span>+<span class="number">2</span>==<span class="number">5</span>){
+  println(<span class="string">"Hello from 1984."</span>)
+}elseif(<span class="number">2</span>+<span class="number">2</span>==<span class="number">3</span>){
+  println(<span class="string">"Hello from Remedial Math class?"</span>)
+}<span class="keyword">else</span>{
+  println(<span class="string">"Hello from a non-Orwellian future."</span>)
+}
+</code></pre><p>但最大的不同是scala中的语句返回值,因此可以将一段if表达式当做一个值赋给变量:</p>
+<pre><code><span class="keyword">val</span> configFile = new java.io.<span class="type">File</span>(<span class="string">"somefile.txt"</span>)
+
+<span class="keyword">val</span> configFilePath = <span class="keyword">if</span> (configFile.exists<span class="literal">()</span>) { 
+  configFile.getAbsolutePath<span class="literal">()</span>
+}<span class="keyword">else</span>{ 
+  configFile.createNewFile<span class="literal">()</span> 
+  configFile.getAbsolutePath<span class="literal">()</span>
+}
+</code></pre><p>满足条件的分支计算后所得的结果将会赋给变量configFilePath,而值的类型会由编译器自动推断为所有分支类型的最接近父类.</p>
+<h2 id="FOR表达式">FOR表达式</h2><p>for循环:</p>
+<pre><code>val dogBreeds = List<span class="list">(<span class="string">"Doberman"</span>, <span class="string">"Yorkshire Terrier"</span>, <span class="string">"Dachshund"</span>,
+                        <span class="string">"Scottish Terrier"</span>, <span class="string">"Great Dane"</span>, <span class="string">"Portuguese Water Dog"</span>)</span>
+for <span class="list">(<span class="keyword">breed</span> &lt;- dogBreeds)</span> 
+  println<span class="list">(<span class="keyword">breed</span>)</span>
+</code></pre><p>生成器表达式:<br>“breed &lt;- dogBreeds”实质上是一个生成器表达式,因为它从一个集合中不停的生成值,”&lt;-“操作符遍历集合中的每个值.</p>
+<pre><code><span class="keyword">for</span> (<span class="tag">i</span> &lt;- <span class="number">1</span> to <span class="number">10</span>) <span class="function"><span class="title">println</span><span class="params">(i)</span></span>
+</code></pre><p>过滤器:</p>
+<pre><code><span class="keyword">for</span> (breed &lt;- dogBreeds
+  <span class="keyword">if</span> !breed.<span class="function"><span class="title">startsWith</span><span class="params">(<span class="string">"Yorkshire"</span>)</span></span>          <span class="comment">// if后跟一个boolean守卫,或多个</span>
+  <span class="keyword">if</span> breed.<span class="function"><span class="title">contains</span><span class="params">(<span class="string">"Terrier"</span>)</span></span> &amp;&amp; !breed.<span class="function"><span class="title">startsWith</span><span class="params">(<span class="string">"Yorkshire"</span>)</span></span>
+) <span class="function"><span class="title">println</span><span class="params">(breed)</span></span>
+</code></pre><h2 id="Yielding">Yielding</h2><p>除了循环打印集合中的值,或许需要使用另一个集合来处理当前集合中的部分值,使用yield关键字则可以在for表达式中生成新的集合:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">dogBreeds</span> =</span> <span class="type">List</span>(<span class="string">"Doberman"</span>, <span class="string">"Yorkshire Terrier"</span>, <span class="string">"Dachshund"</span>,
+                    <span class="string">"Scottish Terrier"</span>, <span class="string">"Great Dane"</span>, <span class="string">"Portuguese Water Dog"</span>)
+<span class="function"><span class="keyword">val</span> <span class="title">filteredBreeds</span> =</span> <span class="keyword">for</span> {
+  breed &lt;- dogBreeds
+  <span class="keyword">if</span> breed.contains(<span class="string">"Terrier"</span>) &amp;&amp; !breed.startsWith(<span class="string">"Yorkshire"</span>)
+} <span class="keyword">yield</span> breed       <span class="comment">// 满足if条件的元素会生成一个新的集合赋值给filteredBreeds变量,集合类型与原始集合相同</span>
+</code></pre><p>与循环不同的是,循环时for后面跟括号,而yield时使用分号.</p>
+<h2 id="while循环">while循环</h2><pre><code><span class="keyword">import</span> java.util.<span class="type">Calendar</span>
+def isFridayThirteen(cal: <span class="type">Calendar</span>): <span class="type">Boolean</span> = { 
+  val dayOfWeek = cal.get(<span class="type">Calendar</span>.<span class="type">DAY_OF_WEEK</span>) 
+  val dayOfMonth = cal.get(<span class="type">Calendar</span>.<span class="type">DAY_OF_MONTH</span>)
+  // <span class="type">Scala</span> returns the <span class="literal">result</span> <span class="keyword">of</span> the last expression <span class="keyword">in</span> a <span class="keyword">method</span>
+  (dayOfWeek == <span class="type">Calendar</span>.<span class="type">FRIDAY</span>) &amp;&amp; (dayOfMonth == <span class="number">13</span>) 
+}
+<span class="keyword">while</span> (!isFridayThirteen(<span class="type">Calendar</span>.getInstance())) { 
+  println(<span class="string">"Today isn't Friday the 13th. Lame."</span>)
+  // sleep <span class="keyword">for</span> a day
+  <span class="type">Thread</span>.sleep(<span class="number">86400000</span>)
+}
+</code></pre><h2 id="do-while循环">do-while循环</h2><pre><code><span class="keyword">var</span> <span class="built_in">count</span> = <span class="number">0</span>
+<span class="keyword">do</span>{
+  <span class="built_in">count</span> += <span class="number">1</span> 
+  <span class="built_in">println</span>(<span class="built_in">count</span>)
+} <span class="keyword">while</span> (<span class="built_in">count</span> &lt; <span class="number">10</span>)
+</code></pre><h2 id="条件操作符">条件操作符</h2><ol>
+<li>“&amp;&amp;”</li>
+<li>“||”</li>
+<li>“&gt;”</li>
+<li>“&gt;=”</li>
+<li>“&lt;”</li>
+<li>“&lt;=”</li>
+<li>“==”</li>
+<li>“!=”<br>“&amp;&amp;”和”||”是短路操作符,一旦达到条件就会停止运算.</li>
+</ol>
+<h2 id="异常处理">异常处理</h2><p>scala鼓励通过使用功能构造和强类型来减少异常处理的出现,但仍然不能避免,特别是与java代码交接的地方.与java不同,scala中没有受检异常.</p>
+<pre><code>object TryCatch {
+    <span class="comment">/** Usage: scala rounding.TryCatch filename1 filename2 ... */</span> 
+    <span class="keyword">def</span> main(args: Array[String]) = {
+        args foreach (arg =&gt; countLines(arg)) 
+    }
+    <span class="keyword">import</span> scala.io.<span class="keyword">Source</span> <span class="comment">// </span>
+    <span class="keyword">import</span> scala.util.control.NonFatal
+    <span class="keyword">def</span> countLines(fileName: String) = { 
+        <span class="keyword">println</span>()
+        var <span class="keyword">source</span>: Option[<span class="keyword">Source</span>] = None
+        <span class="keyword">try</span>{
+            <span class="keyword">source</span> = Some(<span class="keyword">Source</span>.fromFile(fileName)) 
+            val <span class="keyword">size</span> = <span class="keyword">source</span>.get.getLines.<span class="keyword">size</span>
+            <span class="keyword">println</span>(s<span class="string">"file $fileName has $size lines"</span>)
+        } <span class="keyword">catch</span> {
+            <span class="keyword">case</span> NonFatal(ex) =&gt; <span class="keyword">println</span>(s<span class="string">"Non fatal exception! $ex"</span>)
+        } <span class="keyword">finally</span> {
+            <span class="keyword">for</span> (s &lt;- <span class="keyword">source</span>) {
+            <span class="keyword">println</span>(s<span class="string">"Closing $fileName..."</span>)
+            s.close 
+            }
+        } 
+    }
+}
+</code></pre><h2 id="lazy_val">lazy val</h2><p>懒值,推迟对值的加载,只有在第一次调用时才会进行计算,必须是不可变类型,常用场景:</p>
+<ul>
+<li>表达式消耗比较高,比如打开一次数据库连接.</li>
+<li>推迟一些并不是立即需要的工作的启动时间.</li>
+<li><p>有时对象中的字段需要计算才能得到,只有在需要的时候再去计算.</p>
+<p>  class Book(name:String){</p>
+<pre><code><span class="function"><span class="title">println</span><span class="params">(<span class="string">"new book"</span>+name)</span></span>
+override def <span class="function"><span class="title">toString</span><span class="params">()</span></span> = <span class="string">"《"</span>+name+<span class="string">"》"</span>
+</code></pre><p>  }</p>
+<p>  lazy val b = new Book(“Java”)<br>  println(“Test”)<br>  println(b.toString)</p>
+<p>  res:<br>  Test                // 首先打印Test而没有初始化b<br>  new bookJava<br>  《Java》</p>
+</li>
+</ul>
+<h2 id="枚举">枚举</h2><p>scala中的枚举实现与java完全不同:</p>
+<pre><code><span class="class"><span class="keyword">object</span> <span class="title">Breed</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Enumeration</span> {</span>
+    <span class="class"><span class="keyword">type</span> <span class="title">Breed</span> =</span> <span class="type">Value</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">doberman</span> =</span> <span class="type">Value</span>(<span class="string">"Doberman Pinscher"</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">yorkie</span> =</span> <span class="type">Value</span>(<span class="string">"Yorkshire Terrier"</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">scottie</span> =</span> <span class="type">Value</span>(<span class="string">"Scottish Terrier"</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">dane</span> =</span> <span class="type">Value</span>(<span class="string">"Great Dane"</span>)
+    <span class="function"><span class="keyword">val</span> <span class="title">portie</span> =</span> <span class="type">Value</span>(<span class="string">"Portuguese Water Dog"</span>)
+}
+<span class="keyword">import</span> <span class="type">Breed</span>._
+
+<span class="comment">// Usage</span>
+<span class="comment">// print a list of breeds and their IDs</span>
+println(<span class="string">"ID\tBreed"</span>)
+<span class="keyword">for</span> (breed &lt;- <span class="type">Breed</span>.values) println(s<span class="string">"${breed.id}\t$breed"</span>)
+
+<span class="comment">// print a list of Terrier breeds</span>
+println(<span class="string">"\nJust Terriers:"</span>)
+<span class="type">Breed</span>.values filter (_.toString.endsWith(<span class="string">"Terrier"</span>)) foreach println
+
+<span class="function"><span class="keyword">def</span> <span class="title">isTerrier</span>(</span>b: <span class="type">Breed</span>) = b.toString.endsWith(<span class="string">"Terrier"</span>) 
+
+println(<span class="string">"\nTerriers Again??"</span>)
+<span class="type">Breed</span>.values filter isTerrier foreach println
+</code></pre><p>另一个实例:</p>
+<pre><code><span class="class"><span class="keyword">object</span> <span class="title">WeekDay</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Enumeration</span> {</span>
+    <span class="class"><span class="keyword">type</span> <span class="title">WeekDay</span> =</span> <span class="type">Value</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">Mon</span>, <span class="title">Tue</span>, <span class="title">Wed</span>, <span class="title">Thu</span>, <span class="title">Fri</span>, <span class="title">Sat</span>, <span class="title">Sun</span> =</span> <span class="type">Value</span>
+}
+<span class="keyword">import</span> <span class="type">WeekDay</span>._
+<span class="function"><span class="keyword">def</span> <span class="title">isWorkingDay</span>(</span>d: <span class="type">WeekDay</span>) = ! (d == <span class="type">Sat</span> || d == <span class="type">Sun</span>)
+<span class="type">WeekDay</span>.values filter isWorkingDay foreach println
+</code></pre><h2 id="格式化字符串">格式化字符串</h2><pre><code>val name = <span class="string">"Buck Trends"</span>
+println(<span class="keyword">s</span><span class="string">"Hello, <span class="variable">$name</span>"</span>)
+
+valgross =<span class="number">100000</span>F
+val net = <span class="number">64000</span>F
+val percent = (net / gross) * <span class="number">100</span>
+println(f<span class="string">"<span class="variable">$$</span><span class="subst">${gross}</span><span class="variable">%.</span>2f vs. <span class="variable">$$</span><span class="subst">${net}</span><span class="variable">%.</span>2f or <span class="subst">${percent}</span><span class="variable">%.</span>1f<span class="variable">%%</span>"</span>)
+res<span class="number">0</span>: <span class="variable">$1</span>0000<span class="number">0</span>.<span class="number">00</span> vs. <span class="variable">$6</span>400<span class="number">0</span>.<span class="number">00</span> <span class="keyword">or</span> <span class="number">64.0</span>%
+
+scala&gt; f<span class="string">"<span class="subst">${i}</span><span class="variable">%.</span>2f"</span> 
+res4: String = <span class="number">200.00</span>
+
+scala&gt; val <span class="keyword">s</span> = <span class="string">"<span class="variable">%02d</span>: name = <span class="variable">%s</span>"</span>.<span class="keyword">format</span>(<span class="number">5</span>, <span class="string">"Dean Wampler"</span>) 
+<span class="keyword">s</span>: String = <span class="string">"05: name = Dean Wampler"</span>
+</code></pre><h2 id="特质:接口和混入">特质:接口和混入</h2><p>java中的接口允许声明方法但不允许定义方法,scala中使用trait代替了java中的接口.<br>我们创建一个服务端然后混入日志类:</p>
+<pre><code><span class="keyword">class</span> ServiceImportante(name: String) { 
+    <span class="keyword">def</span> work(i: <span class="keyword">Int</span>): <span class="keyword">Int</span> = {
+        <span class="keyword">println</span>(s<span class="string">"ServiceImportante: Doing important work! $i"</span>)
+        i+<span class="number">1</span> 
+    }
+}
+val service1 = <span class="keyword">new</span> ServiceImportante(<span class="string">"uno"</span>)
+(<span class="number">1</span> to <span class="number">3</span>) foreach (i =&gt; <span class="keyword">println</span>(s<span class="string">"Result: ${service1.work(i)}"</span>))
+</code></pre><p>输出:</p>
+<pre><code><span class="attribute">ServiceImportante</span>: <span class="string">Doing important work! 1</span>
+<span class="attribute">Result</span>: <span class="string">2</span>
+<span class="attribute">ServiceImportante</span>: <span class="string">Doing important work! 2</span>
+<span class="attribute">Result</span>: <span class="string">3</span>
+<span class="attribute">ServiceImportante</span>: <span class="string">Doing important work! 3</span>
+<span class="attribute">Result</span>: <span class="string">4</span>
+</code></pre><p>然后如何混入一个日志类呢,这里会简单的使用println方法.下面有两个特质,一个是抽象特质,没有具体的成员,另一个特质实现了当一个抽象特质中的方法用于输出日志:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">Logging</span> {</span>
+definfo (message:<span class="type">String</span>):<span class="type">Unit</span> 
+<span class="function"><span class="keyword">def</span> <span class="title">warning</span>(</span>message: <span class="type">String</span>): <span class="type">Unit</span> 
+<span class="function"><span class="keyword">def</span> <span class="title">error</span> (</span>message: <span class="type">String</span>): <span class="type">Unit</span>
+}
+<span class="class"><span class="keyword">trait</span> <span class="title">StdoutLogging</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Logging</span> {</span>
+<span class="function"><span class="keyword">def</span> <span class="title">info</span> (</span>message: <span class="type">String</span>) = println(s<span class="string">"INFO: $message"</span>) 
+<span class="function"><span class="keyword">def</span> <span class="title">warning</span>(</span>message: <span class="type">String</span>) = println(s<span class="string">"WARNING: $message"</span>) 
+<span class="function"><span class="keyword">def</span> <span class="title">error</span> (</span>message: <span class="type">String</span>) = println(s<span class="string">"ERROR: $message"</span>)
+}
+</code></pre><p>Logging的代码与java中的interface实现基本一致.最后声明一个server实例并混入日志类:</p>
+<pre><code>val service2 = new <span class="type">ServiceImportante</span>(<span class="string">"dos"</span>) <span class="keyword">with</span> <span class="type">StdoutLogging</span> { 
+    override def work(i: <span class="type">Int</span>): <span class="type">Int</span> = {
+        info(<span class="string">s"Starting work: i = $i"</span>)
+        val <span class="literal">result</span> = super.work(i)
+        info(<span class="string">s"Ending work: i = $i, result = $result"</span>) <span class="literal">result</span>
+    } 
+}
+(<span class="number">1</span> to <span class="number">3</span>) foreach (i =&gt; println(<span class="string">s"Result: ${service2.work(i)}"</span>))
+</code></pre><p>使用”with”关键字混入StdoutLogging特质,然后就可以使用StdoutLogging特质中定义的所有方法.当然也可以在定义server类时直接混入,而不是在创建server实例时再混入.</p>
+</span>
       
     </div>
 
@@ -310,7 +529,7 @@
           <div class="post-toc">
             
             
-              <p class="post-toc-empty">此文章未包含目录</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#操作符重载"><span class="nav-number">1.</span> <span class="nav-text">操作符重载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#无参方法"><span class="nav-number">2.</span> <span class="nav-text">无参方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优先规则"><span class="nav-number">3.</span> <span class="nav-text">优先规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特定领域语言"><span class="nav-number">4.</span> <span class="nav-text">特定领域语言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IF语句"><span class="nav-number">5.</span> <span class="nav-text">IF语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FOR表达式"><span class="nav-number">6.</span> <span class="nav-text">FOR表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Yielding"><span class="nav-number">7.</span> <span class="nav-text">Yielding</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#while循环"><span class="nav-number">8.</span> <span class="nav-text">while循环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#do-while循环"><span class="nav-number">9.</span> <span class="nav-text">do-while循环</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#条件操作符"><span class="nav-number">10.</span> <span class="nav-text">条件操作符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常处理"><span class="nav-number">11.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#lazy_val"><span class="nav-number">12.</span> <span class="nav-text">lazy val</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#枚举"><span class="nav-number">13.</span> <span class="nav-text">枚举</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#格式化字符串"><span class="nav-number">14.</span> <span class="nav-text">格式化字符串</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特质:接口和混入"><span class="nav-number">15.</span> <span class="nav-text">特质:接口和混入</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
