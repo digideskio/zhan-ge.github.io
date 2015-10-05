@@ -1,0 +1,820 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Scala模式匹配.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: Pattern Matching">
+<meta property="og:url" content="http://yoursite.com/2015/10/05/Simple-Scala-Pattern-Matching/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Scala模式匹配.">
+<meta property="og:updated_time" content="2015-10-05T14:31:41.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: Pattern Matching">
+<meta name="twitter:description" content="Scala模式匹配.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: Pattern Matching | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: Pattern Matching
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2015-10-05T16:36:00+08:00" content="2015-10-05">
+            2015-10-05
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>咋一看,模式匹配表达式像是类C语言中的case语句,在典型的类C语言中的case语句局限于针对序列号类型值的匹配和触发琐碎的表达式的匹配.<br>而scala中的模式匹配,匹配值可以包括基本类型,通配符,序列,正则表达式等,甚至深度检查对象的状态.</p>
+<h2 id="简单匹配">简单匹配</h2><p>匹配简单的布尔值:</p>
+<pre><code>val bools = Seq(<span class="keyword">true</span>, <span class="keyword">false</span>)
+<span class="keyword">for</span> (<span class="built_in">bool</span> &lt;- bools) { 
+    <span class="built_in">bool</span> match {
+        <span class="keyword">case</span> <span class="keyword">true</span> =&gt; println(<span class="string">"Got heads"</span>)
+        <span class="keyword">case</span> <span class="keyword">false</span> =&gt; println(<span class="string">"Got tails"</span>) 
+    }
+}
+</code></pre><p>这很像C风格的case语句.这时注释掉第二个case,再次运行程序时编译器会给出警告,因为编译器直到在序列中有两种case,true和false,因此发出case不全面的警告,如果我们试图匹配一个没有对应case语句的值时,会抛出MatchError异常.</p>
+<h2 id="值,变量,类型">值,变量,类型</h2><p>下面举例匹配特定的值和特定类型,以及一个通配方法:</p>
+<pre><code><span class="keyword">for</span> {
+    x &lt;- <span class="type">Seq</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">2.7</span>, <span class="string">"one"</span>, <span class="string">"two"</span>, <span class="symbol">'four</span>)                        <span class="comment">//遍历序列中的值</span>
+} {
+    <span class="function"><span class="keyword">val</span> <span class="title">str=x</span> <span class="title">match</span>{</span>                                                <span class="comment">//此时x的类型为Any</span>
+        <span class="keyword">case</span> <span class="number">1</span>          =&gt; <span class="string">"int 1"</span>                                  <span class="comment">//匹配一个整数1 </span>
+        <span class="keyword">case</span> i: <span class="type">Int</span>     =&gt; <span class="string">"other int: "</span>+i                          <span class="comment">//匹配任意整数</span>
+        <span class="keyword">case</span> d: <span class="type">Double</span>  =&gt; <span class="string">"a double: "</span>+x                           <span class="comment">//匹配任意Double</span>
+        <span class="keyword">case</span> <span class="string">"one"</span>      =&gt; <span class="string">"string one"</span>                             <span class="comment">//匹配字符串"one"</span>
+        <span class="keyword">case</span> s: <span class="type">String</span>  =&gt; <span class="string">"other string: "</span>+s                       <span class="comment">//匹配任意字符串</span>
+        <span class="keyword">case</span> unexpected =&gt; <span class="string">"unexpected value: "</span> + unexpected        <span class="comment">//匹配所有上面未能匹配到的值</span>
+    }
+    println(str)                                                    <span class="comment">//整个模式匹配的结果赋值给变量str</span>
+}
+</code></pre><p>下面是一个升级版:</p>
+<pre><code>for {
+    x &lt;- <span class="type">Seq</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">2.7</span>, <span class="string">"one"</span>, <span class="string">"two"</span>, <span class="symbol">'four</span>)
+}{ <span class="keyword">val</span> str=x match{
+    <span class="keyword">case</span> <span class="number">1</span>          =&gt; <span class="string">"int 1"</span>
+    <span class="keyword">case</span> _: <span class="type">Int</span>     =&gt; <span class="string">"other int: "</span>+x
+    <span class="keyword">case</span> _: <span class="type">Double</span>  =&gt; <span class="string">"a double: "</span>+x
+    <span class="keyword">case</span> <span class="string">"one"</span>      =&gt; <span class="string">"string one"</span>
+    <span class="keyword">case</span> _: <span class="type">String</span>  =&gt; <span class="string">"other string: "</span>+x
+    <span class="keyword">case</span> _          =&gt; <span class="string">"unexpected value: "</span> + x
+    }
+    println(str)
+}
+</code></pre><p>本例中将一些变量名替换为字符”_”,因为此处并不关心变量名,而只需要该变量的类型即可.</p>
+<p>如果我们需要去匹配一个给定的值,实例:</p>
+<pre><code><span class="function">def <span class="title">checkY</span><span class="params">(y: Int)</span> </span>= { 
+    <span class="keyword">for</span> {
+        x &lt;- Seq(<span class="number">99</span>, <span class="number">100</span>, <span class="number">101</span>) 
+    }{
+        val str=x match{
+            <span class="keyword">case</span> y =&gt; <span class="string">"found y!"</span> 
+            <span class="keyword">case</span> i: Int =&gt; <span class="string">"int: "</span>+i
+        }
+        println(str)
+    }
+}
+checkY(<span class="number">100</span>)
+</code></pre><p>这里我们定义了一个方法,接受一个整形参数,然后对该参数进行匹配,如果在固定的序列中匹配到了传入的参数,则打印”found y!”,但是调用checkY并不会出现预期的结果.<br>在match表达式中的变量”y”真正的意义是:匹配所有类型值然后把这个值赋给名为y的新变量,此处的y并不是传入参数变量y的引用,因此实质上我们只是编写了一个名称为y的通配符,当然不能达到预期的目标.<br>要解决这个问题,只需要将模式匹配中的变量与外部的常量进行区分即可,使用`y`则说明要匹配的时y的值而不是一个通配模式(这个”`”是ESC键下面的键):</p>
+<pre><code><span class="function">def <span class="title">checkY</span><span class="params">(y: Int)</span> </span>= { 
+    <span class="keyword">for</span> {
+        x &lt;- Seq(<span class="number">99</span>, <span class="number">100</span>, <span class="number">101</span>) 
+    }{
+        val str=x match{
+            <span class="keyword">case</span> `y` =&gt; <span class="string">"found y!"</span> 
+            <span class="keyword">case</span> i: Int =&gt; <span class="string">"int: "</span>+i
+        }
+        println(str)
+    }
+}
+checkY(<span class="number">100</span>)
+</code></pre><p>或者有时需要同样的处理方式来处理多种类型的值,case中支持”or”的语法”|”:</p>
+<pre><code><span class="keyword">for</span> {
+    x &lt;- <span class="type">Seq</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">2.7</span>, <span class="string">"one"</span>, <span class="string">"two"</span>, <span class="symbol">'four</span>)
+}{ <span class="function"><span class="keyword">val</span> <span class="title">str=x</span> <span class="title">match</span>{</span>
+    <span class="keyword">case</span> _: <span class="type">Int</span> | _: <span class="type">Double</span> =&gt; <span class="string">"a number: "</span>+x       <span class="comment">// 同时处理Int和Double类型.</span>
+    <span class="keyword">case</span> <span class="string">"one"</span> 
+    <span class="keyword">case</span> _: <span class="type">String</span> <span class="keyword">case</span> _
+  }
+  println(str)
+}
+</code></pre><h2 id="匹配序列">匹配序列</h2><p>Seq是所有可迭代集合的父类,比如List或Vector,以下举例说明如何匹配不同类型的序列:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">nonEmptySeq</span> <span class="title">=Seq</span>(</span><span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>)                                 <span class="comment">// 非空序列</span>
+<span class="function"><span class="keyword">val</span> <span class="title">emptySeq</span> =</span> <span class="type">Seq</span>.empty[<span class="type">Int</span>]                                   <span class="comment">// 空序列</span>
+<span class="function"><span class="keyword">val</span> <span class="title">nonEmptyList</span> =</span> <span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>)                          <span class="comment">// 非空List</span>
+<span class="function"><span class="keyword">val</span> <span class="title">emptyList</span> =</span> <span class="type">Nil</span>                                             <span class="comment">// 空List</span>
+<span class="function"><span class="keyword">val</span> <span class="title">nonEmptyVector</span> =</span> <span class="type">Vector</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>)                      <span class="comment">// 非空Vector</span>
+<span class="function"><span class="keyword">val</span> <span class="title">emptyVector</span> =</span> <span class="type">Vector</span>.empty[<span class="type">Int</span>]                             <span class="comment">// 空Vector</span>
+<span class="function"><span class="keyword">val</span> <span class="title">nonEmptyMap</span> =</span> <span class="type">Map</span>(<span class="string">"one"</span> -&gt; <span class="number">1</span>, <span class="string">"two"</span> -&gt; <span class="number">2</span>, <span class="string">"three"</span> -&gt; <span class="number">3</span>)     <span class="comment">// 非空Map</span>
+<span class="function"><span class="keyword">val</span> <span class="title">emptyMap</span> =</span> <span class="type">Map</span>.empty[<span class="type">String</span>,<span class="type">Int</span>]                            <span class="comment">// 空Map</span>
+<span class="function"><span class="keyword">def</span> <span class="title">seqToString</span>[</span><span class="type">T</span>](seq: <span class="type">Seq</span>[<span class="type">T</span>]): <span class="type">String</span> = seq <span class="keyword">match</span> {           <span class="comment">// </span>
+    <span class="keyword">case</span> head +: tail =&gt; s<span class="string">"$head +: "</span> + seqToString(tail)       <span class="comment">// 匹配任意非空序列,非空序列都有head和tail方法</span>
+    <span class="keyword">case</span> <span class="type">Nil</span> =&gt; <span class="string">"Nil"</span>                                           <span class="comment">// 匹配空序列</span>
+}
+<span class="keyword">for</span> (seq &lt;- <span class="type">Seq</span>( 
+        nonEmptySeq, emptySeq, nonEmptyList, emptyList,
+        nonEmptyVector, emptyVector, nonEmptyMap.toSeq, emptyMap.toSeq)) {
+    println(seqToString(seq))
+}
+</code></pre><h2 id="匹配元祖">匹配元祖</h2><p>元祖的模式匹配也很简单:</p>
+<pre><code>val langs = Se<span class="string">q(
+    ("Scala", "Martin","Odersky")</span>, 
+    (<span class="string">"Clojure"</span>,<span class="string">"Rich"</span>, <span class="string">"Hickey"</span>), 
+    (<span class="string">"Lisp"</span>, <span class="string">"John"</span>, <span class="string">"McCarthy"</span>))
+
+<span class="keyword">for</span> (tuple &lt;- langs) { 
+    tuple match {
+        case (<span class="string">"Scala"</span>, <span class="number">_</span>, <span class="number">_</span>) =&gt; println(<span class="string">"Found Scala"</span>)              // 解包元祖,匹配第一个值为<span class="string">"Scala"</span>的元祖
+        case (lang, first, <span class="keyword">last</span>) =&gt;                                 <span class="regexp">//</span> 匹配所有其他包含三个元素的元祖并解包元素
+          println(<span class="keyword">s</span><span class="string">"Found other language: <span class="variable">$lang</span> (<span class="variable">$first</span>, <span class="variable">$last</span>)"</span>)
+      }
+}
+</code></pre><h2 id="匹配中的守卫">匹配中的守卫</h2><p>每个匹配项都可以使用多个守卫:</p>
+<pre><code><span class="keyword">for</span> (i &lt;- Seq(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>)) { 
+    i match {
+        <span class="keyword">case</span> _ <span class="keyword">if</span> i%<span class="number">2</span> == <span class="number">0</span> =&gt; println(s<span class="string">"even: $i"</span>)  
+        <span class="keyword">case</span> _ =&gt; println(s<span class="string">"odd: $i"</span>) 
+    }
+}
+</code></pre><h2 id="匹配样本类">匹配样本类</h2><p>让我们看一些”深匹配”的实例:</p>
+<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Address</span>(</span>street:<span class="type">String</span>, city:<span class="type">String</span>, country:<span class="type">String</span>)
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span>(</span>name:<span class="type">String</span>, age:<span class="type">Int</span>, address:<span class="type">Address</span>)
+
+<span class="function"><span class="keyword">val</span> <span class="title">alice</span> =</span> <span class="type">Person</span>(<span class="string">"Alice"</span>, <span class="number">25</span>, <span class="type">Address</span>(<span class="string">"1 Scala Lane"</span>, <span class="string">"Chicago"</span>, <span class="string">"USA"</span>)) 
+<span class="function"><span class="keyword">val</span> <span class="title">bob</span> =</span> <span class="type">Person</span>(<span class="string">"Bob"</span>, <span class="number">29</span>, <span class="type">Address</span>(<span class="string">"2 Java Ave."</span>, <span class="string">"Miami"</span>, <span class="string">"USA"</span>)) 
+<span class="function"><span class="keyword">val</span> <span class="title">charlie</span> =</span> <span class="type">Person</span>(<span class="string">"Charlie"</span>, <span class="number">32</span>, <span class="type">Address</span>(<span class="string">"3 Python Ct."</span>, <span class="string">"Boston"</span>, <span class="string">"USA"</span>))
+
+<span class="keyword">for</span> (person &lt;- <span class="type">Seq</span>(alice, bob, charlie)) { 
+    person <span class="keyword">match</span> {
+        <span class="keyword">case</span> <span class="type">Person</span>(<span class="string">"Alice"</span>, <span class="number">25</span>, <span class="type">Address</span>(_, <span class="string">"Chicago"</span>, _) =&gt; println(<span class="string">"Hi Alice!"</span>)   <span class="comment">// 解包匹配嵌套类型</span>
+        <span class="keyword">case</span> <span class="type">Person</span>(<span class="string">"Bob"</span>, <span class="number">29</span>, <span class="type">Address</span>(<span class="string">"2 Java Ave."</span>, <span class="string">"Miami"</span>, <span class="string">"USA"</span>)) =&gt; println(<span class="string">"Hi Bob!"</span>)
+        <span class="keyword">case</span> <span class="type">Person</span>(name, age, _) =&gt;
+            println(s<span class="string">"Who are you, $age year-old person named $name?"</span>)
+    }
+}
+</code></pre><h2 id="unapply方法">unapply方法</h2><p>除了scala本身的标准库类型,自己定义的样本类包括多重嵌套类型,同样可以匹配和解析.<br>每个样本类都有一个伴生对象,其拥有一个用于构造的apply方法,因此我们推断其肯定拥有另一种叫做unapply的方法来用于析构或解析.当遇到这种匹配表达式时的确有一种提取方法:</p>
+<pre><code>person <span class="keyword">match</span> {
+    <span class="keyword">case</span> Person(<span class="string">"Alice"</span>, <span class="number">25</span>, Address(_, <span class="string">"Chicago"</span>, _)) =&gt; <span class="attribute">...</span>
+    <span class="attribute">...</span>
+}
+</code></pre><p>scala会寻找Person.unapply(..)和Address.unapply(..)然后进行调用,所有的unapply方法返回一个Option[TupleN[…]]对象,其中的N表示从对象中解析值的个数,此处的Person有3个值,同时每个值的类型也会被提取,这里是String,Int,Address.因此Person的伴生对象在编译器中生成类似于这样的方法:</p>
+<pre><code>object Person {
+    <span class="keyword">def</span> apply(<span class="string">name:</span> String, <span class="string">age:</span> Int, <span class="string">address:</span> Address) =
+        <span class="keyword">new</span> Person(name, age, address)
+    <span class="keyword">def</span> unapply(<span class="string">p:</span> Person): Option[Tuple3[String,Int,Address]] =
+        Some((p.name, p.age, p.address)) ...
+}
+</code></pre><h2 id="匹配变量参数列表">匹配变量参数列表</h2><pre><code><span class="class"><span class="keyword">object</span> <span class="title">Op</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Enumeration</span> {</span>         <span class="comment">//定义一个枚举实例</span>
+    <span class="class"><span class="keyword">type</span> <span class="title">Op</span> =</span> <span class="type">Value</span>
+    valEQ =<span class="type">Value</span>(<span class="string">"="</span>) 
+    valNE =<span class="type">Value</span>(<span class="string">"!="</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">LTGT</span> =</span> <span class="type">Value</span>(<span class="string">"&lt;&gt;"</span>) 
+    valLT =<span class="type">Value</span>(<span class="string">"&lt;"</span>) 
+    valLE =<span class="type">Value</span>(<span class="string">"&lt;="</span>) 
+    valGT =<span class="type">Value</span>(<span class="string">"&gt;"</span>) 
+    valGE =<span class="type">Value</span>(<span class="string">"&gt;="</span>)
+}
+<span class="keyword">import</span> <span class="type">Op</span>._
+
+<span class="comment">// Represent a SQL "WHERE x op value" clause, where +op+ is a</span>
+<span class="comment">// comparison operator: =, !=, &lt;&gt;, &lt;, &lt;=, &gt;, or &gt;=.</span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">WhereOp</span>[</span><span class="type">T</span>](columnName: <span class="type">String</span>, op: <span class="type">Op</span>, value: <span class="type">T</span>)
+
+<span class="comment">// Represent a SQL "WHERE x IN (a, b, c, ...)" clause.</span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">WhereIn</span>[</span><span class="type">T</span>](columnName: <span class="type">String</span>, val1: <span class="type">T</span>, vals: <span class="type">T</span>*)
+
+<span class="function"><span class="keyword">val</span> <span class="title">wheres</span> =</span> <span class="type">Seq</span>( <span class="comment">// </span>
+    <span class="type">WhereIn</span>(<span class="string">"state"</span>, <span class="string">"IL"</span>, <span class="string">"CA"</span>, <span class="string">"VA"</span>),
+    <span class="type">WhereOp</span>(<span class="string">"state"</span>, <span class="type">EQ</span>, <span class="string">"IL"</span>),
+    <span class="type">WhereOp</span>(<span class="string">"name"</span>, <span class="type">EQ</span>, <span class="string">"Buck Trends"</span>),
+    <span class="type">WhereOp</span>(<span class="string">"age"</span>, <span class="type">GT</span>, <span class="number">29</span>)
+)
+
+<span class="keyword">for</span> (where &lt;- wheres) { 
+    where <span class="keyword">match</span> {
+        <span class="keyword">case</span> <span class="type">WhereIn</span>(col, val1, vals @ _*) =&gt; <span class="comment">// </span>
+            <span class="function"><span class="keyword">val</span> <span class="title">valStr</span> =</span> (val1 +: vals).mkString(<span class="string">", "</span>)
+            println (s<span class="string">"WHERE $col IN ($valStr)"</span>)
+        <span class="keyword">case</span> <span class="type">WhereOp</span>(col, op, value) =&gt; println (s<span class="string">"WHERE $col $op $value"</span>)
+        <span class="keyword">case</span> _ =&gt; println (s<span class="string">"ERROR: Unknown expression: $where"</span>) 
+    }
+}
+</code></pre><h2 id="匹配正则表达式">匹配正则表达式</h2><pre><code><span class="function"><span class="keyword">val</span> <span class="title">BookExtractorRE</span> =</span> <span class="string">"""Book: title=([^,]+),\s+author=(.+)"""</span>.r
+<span class="function"><span class="keyword">val</span> <span class="title">MagazineExtractorRE</span> =</span> <span class="string">"""Magazine: title=([^,]+),\s+issue=(.+)"""</span>.r
+
+<span class="function"><span class="keyword">val</span> <span class="title">catalog</span> =</span> <span class="type">Seq</span>(
+    <span class="string">"Book: title=Programming Scala Second Edition, author=Dean Wampler"</span>, 
+    <span class="string">"Magazine: title=The New Yorker, issue=January 2014"</span>,
+    <span class="string">"Unknown: text=Who put this here??"</span>
+)
+<span class="keyword">for</span> (item &lt;- catalog) { 
+    item <span class="keyword">match</span> {
+        <span class="keyword">case</span> <span class="type">BookExtractorRE</span>(title, author) =&gt;  println(s<span class="string">"""Book "$title", written by $author"""</span>)
+        <span class="keyword">case</span> <span class="type">MagazineExtractorRE</span>(title, issue) =&gt; println(s<span class="string">"""Magazine "title", issue $issue"""</span>)
+        <span class="keyword">case</span> entry =&gt; println(s<span class="string">"Unrecognized entry: $entry"</span>) }
+}
+</code></pre><h2 id="样本类中的变量绑定">样本类中的变量绑定</h2><p>如果想匹配一个样本类,但同时又想把这个样本类对象作为一个单独的变量:</p>
+<pre><code><span class="tag">case</span> <span class="tag">class</span> <span class="tag">Address</span>(<span class="rule"><span class="attribute">street</span>:<span class="value"> String, city: String, country: String) 
+case class <span class="function">Person</span>(name: String, age: Int, address: Address)
+
+valalice =<span class="function">Person</span>(<span class="string">"Alice"</span>, <span class="number">25</span>, <span class="function">Address</span>(<span class="string">"1 Scala Lane"</span>, <span class="string">"Chicago"</span>, <span class="string">"USA"</span>)) 
+val bob = <span class="function">Person</span>(<span class="string">"Bob"</span>, <span class="number">29</span>, <span class="function">Address</span>(<span class="string">"2 Java Ave."</span>, <span class="string">"Miami"</span>, <span class="string">"USA"</span>)) 
+val charlie = <span class="function">Person</span>(<span class="string">"Charlie"</span>, <span class="number">32</span>, <span class="function">Address</span>(<span class="string">"3 Python Ct."</span>, <span class="string">"Boston"</span>, <span class="string">"USA"</span>))
+
+for (person &lt;- <span class="function">Seq</span>(alice, bob, charlie)) { 
+    person match {
+        case p @ <span class="function">Person</span>(<span class="string">"Alice"</span>, <span class="number">25</span>, address) =&gt; <span class="function">println</span>(s<span class="string">"Hi Alice! $p"</span>) 
+        case p @ <span class="function">Person</span>(<span class="string">"Bob"</span>, <span class="number">29</span>, a @ <span class="function">Address</span>(street, city, country)) =&gt;
+            <span class="function">println</span>(s<span class="string">"Hi ${p.name}! age ${p.age}, in ${a.city}"</span>) 
+        case p @ <span class="function">Person</span>(name, age, _) =&gt;
+            <span class="function">println</span>(s<span class="string">"Who are you, $age year-old person named $name? $p"</span>)
+      }
+}</span></span>
+</code></pre><p>case语句中的@符号,将符号后面的整个对象最为一个值赋给符号前的变量名,方便后续进行引用.</p>
+<h2 id="密闭结构和全面匹配">密闭结构和全面匹配</h2><pre><code>sealed <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">HttpMethod</span>() { </span>
+    def body: String 
+    def bodyLength = body.length
+}
+
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Connect</span>(<span class="title">body</span>: <span class="title">String</span>) <span class="keyword">extends</span> <span class="title">HttpMethod</span> // </span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Delete</span>(<span class="title">body</span>: <span class="title">String</span>) <span class="keyword">extends</span> <span class="title">HttpMethod</span></span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Get</span>(<span class="title">body</span>: <span class="title">String</span>) <span class="keyword">extends</span> <span class="title">HttpMethod</span></span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Head</span>(<span class="title">body</span>:<span class="title">String</span>)<span class="title">extendsHttpMethod</span></span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Options</span>(<span class="title">body</span>: <span class="title">String</span>) <span class="keyword">extends</span> <span class="title">HttpMethod</span> </span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Post</span>(<span class="title">body</span>:<span class="title">String</span>) <span class="keyword">extends</span> <span class="title">HttpMethod</span> </span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Put</span>(<span class="title">body</span>: <span class="title">String</span>) <span class="keyword">extends</span> <span class="title">HttpMethod</span> </span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Trace</span>(<span class="title">body</span>: <span class="title">String</span>) <span class="keyword">extends</span> <span class="title">HttpMethod</span></span>
+
+def handle (<span class="function"><span class="keyword">method</span>:</span> HttpMethod) = <span class="function"><span class="keyword">method</span> <span class="title">match</span> { // </span>
+    <span class="keyword">case</span> Connect (body) =&gt; s<span class="string">"connect: (length: ${method.bodyLength}) $body"</span> 
+    <span class="keyword">case</span> Delete (body) =&gt; s<span class="string">"delete: (length: ${method.bodyLength}) $body"</span> 
+    <span class="keyword">case</span> Get (body) =&gt; s<span class="string">"get: (length: ${method.bodyLength}) $body"</span> 
+    <span class="keyword">case</span> Head (body) =&gt; s<span class="string">"head: (length: ${method.bodyLength}) $body"</span> 
+    <span class="keyword">case</span> Options (body) =&gt; s<span class="string">"options: (length: ${method.bodyLength}) $body"</span>
+    <span class="keyword">case</span> Post(body) =&gt; s<span class="string">"post:(length: ${method.bodyLength}) $body"</span>
+    <span class="keyword">case</span> Put(body) =&gt; s<span class="string">"put:(length: ${method.bodyLength}) $body"</span>
+    <span class="keyword">case</span> Trace(body) =&gt; s<span class="string">"trace:(length: ${method.bodyLength}) $body"</span>
+}
+
+val methods = Seq( 
+    Connect(<span class="string">"connect body..."</span>),
+    Delete (<span class="string">"delete body..."</span>), 
+    Get (<span class="string">"get body..."</span>), 
+    Head (<span class="string">"head body..."</span>), 
+    Options(<span class="string">"options body..."</span>), 
+    Post (<span class="string">"post body..."</span>), 
+    Put (<span class="string">"put body..."</span>), 
+    Trace (<span class="string">"trace body..."</span>)
+)
+
+methods foreach (<span class="function"><span class="keyword">method</span> =</span>&gt; println(handle(<span class="function"><span class="keyword">method</span>)))</span>
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/scala/" rel="tag">#scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/05/Simple-Scala-Implicits/" rel="prev">Simple Scala: Implicits</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/04/Simple-Scala-Rounding-Out-the-Basics/" rel="next">Simple Scala: Rounding Out the Basics</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">17</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#简单匹配"><span class="nav-number">2.</span> <span class="nav-text">简单匹配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#值,变量,类型"><span class="nav-number">3.</span> <span class="nav-text">值,变量,类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配序列"><span class="nav-number">4.</span> <span class="nav-text">匹配序列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配元祖"><span class="nav-number">5.</span> <span class="nav-text">匹配元祖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配中的守卫"><span class="nav-number">6.</span> <span class="nav-text">匹配中的守卫</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配样本类"><span class="nav-number">7.</span> <span class="nav-text">匹配样本类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#unapply方法"><span class="nav-number">8.</span> <span class="nav-text">unapply方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配变量参数列表"><span class="nav-number">9.</span> <span class="nav-text">匹配变量参数列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配正则表达式"><span class="nav-number">10.</span> <span class="nav-text">匹配正则表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#样本类中的变量绑定"><span class="nav-number">11.</span> <span class="nav-text">样本类中的变量绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#密闭结构和全面匹配"><span class="nav-number">12.</span> <span class="nav-text">密闭结构和全面匹配</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

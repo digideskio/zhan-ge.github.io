@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="pandas,python," />
+  <meta name="keywords" content="scala," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="python的数据分析包pandas。">
+<meta name="description" content="Scala隐式转换.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Python: How to use Pandas">
-<meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Python-How-to-use-Pandas/index.html">
+<meta property="og:title" content="Simple Scala: Implicits">
+<meta property="og:url" content="http://yoursite.com/2015/10/05/Simple-Scala-Implicits/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="python的数据分析包pandas。">
-<meta property="og:updated_time" content="2015-09-29T08:31:44.000Z">
+<meta property="og:description" content="Scala隐式转换.">
+<meta property="og:updated_time" content="2015-10-05T14:51:06.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Python: How to use Pandas">
-<meta name="twitter:description" content="python的数据分析包pandas。">
+<meta name="twitter:title" content="Simple Scala: Implicits">
+<meta name="twitter:description" content="Scala隐式转换.">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Python: How to use Pandas | Hexo </title>
+  <title> Simple Scala: Implicits | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Python: How to use Pandas
+              Simple Scala: Implicits
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-29T16:30:46+08:00" content="2015-09-29">
-            2015-09-29
+          <time itemprop="dateCreated" datetime="2015-10-05T22:35:30+08:00" content="2015-10-05">
+            2015-10-05
           </time>
         </span>
 
@@ -185,117 +185,44 @@
       
 
       
-        <span itemprop="articleBody"><pre><code><span class="comment"># load data from csv</span>
-<span class="keyword">import</span> pandas <span class="keyword">as</span> pd
-df = pd.read_csv(<span class="string">"test.scv"</span>)
+        <span itemprop="articleBody"><h2 id="参数隐式转换">参数隐式转换</h2><p>加入我们我们有一个方法用于计算销售税,但是比率是隐式转换的:</p>
+<pre><code>def calcTax(amount: <span class="built_in">Float</span>)(<span class="type">implicit</span> rate: <span class="built_in">Float</span>): <span class="built_in">Float</span> = amount * rate
+</code></pre><p>如果调用该方法,当前作用域内的隐式转换值会被使用:</p>
+<pre><code><span class="type">implicit</span> val currentTaxRate = <span class="number">0.</span>8F 
+...
+val tax = calcTax(0000F)               // <span class="number">4000.0</span>
+</code></pre><p>对于简单的情况,可能一个固定的浮点值作为缴税比率就足够了.但是,程序可能需要知道在哪交易,添加城市税等等.同时有些地方有时又会实行免税期以促进消费.<br>这些同样可以使用隐式转换,下面是一个实例:</p>
+<pre><code>// Never <span class="keyword">use</span> Floats for money:
+def calcTax(amount: <span class="built_in">Float</span>)(<span class="type">implicit</span> rate: <span class="built_in">Float</span>): <span class="built_in">Float</span> = amount * rate
 
-<span class="comment"># get the front 3 lines</span>
-df.tail(<span class="number">3</span>)
+object SimpleStateSalesTax { 
+    <span class="type">implicit</span> val rate: <span class="built_in">Float</span> = <span class="number">0.</span>5F
+}
 
-<span class="comment"># Converting column names to lowercase</span>
-df.columns = [c.lower() <span class="keyword">for</span> c <span class="keyword">in</span> df.columns]
+<span class="keyword">case</span> <span class="keyword">class</span> ComplicatedSalesTaxData( baseRate: <span class="built_in">Float</span>, isTaxHoliday: Boolean, storeId: <span class="built_in">Int</span>)
 
-<span class="comment"># or</span>
-<span class="comment"># df.rename(columns=lambda x : x.lower())</span>
+object ComplicatedSalesTax {
+    <span class="keyword">private</span> def extraTaxRateForStore(id: <span class="built_in">Int</span>): <span class="built_in">Float</span> = {
+        // From id, determine location, <span class="keyword">then</span> extra taxes...
+        <span class="number">0.</span>F
+    }
+    <span class="type">implicit</span> def rate(<span class="type">implicit</span> cstd: ComplicatedSalesTaxData): <span class="built_in">Float</span> = 
+        <span class="keyword">if</span> (cstd.isTaxHoliday) <span class="number">0.</span>F
+        <span class="keyword">else</span> cstd.baseRate + extraTaxRateForStore(cstd.storeId)
+}
 
-<span class="comment"># Renaming Particular Columns</span>
-df = df.rename(columns={<span class="string">'p'</span>: <span class="string">'points'</span>, 
-                        <span class="string">'gp'</span>: <span class="string">'games'</span>,
-                        <span class="string">'sot'</span>: <span class="string">'shots_on_target'</span>,
-                        <span class="string">'g'</span>: <span class="string">'goals'</span>,
-                        <span class="string">'ppg'</span>: <span class="string">'points_per_game'</span>,
-                        <span class="string">'a'</span>: <span class="string">'assists'</span>,})
+{
+    <span class="keyword">import</span> SimpleStateSalesTax.rate
+    val amount = 00F
+    println(s<span class="string">"Tax on $amount = ${calcTax(amount)}"</span>)
+}
 
-<span class="comment"># Changing Values in a Column, salary just equal $14.0m, remome the char of '$' &amp; 'm'</span>
-df[<span class="string">'salary'</span>] = df[<span class="string">'salary'</span>].apply(<span class="keyword">lambda</span> x: x.strip(<span class="string">'$m'</span>))
-
-<span class="comment"># Adding a New Column, colunm name is team, colunm value is '', index is the df's index.</span>
-df[<span class="string">'team'</span>] = pd.Series(<span class="string">''</span>, index=df.index)
-<span class="comment"># or</span>
-df.insert(loc=<span class="number">8</span>, column=<span class="string">'position'</span>, value=<span class="string">''</span>)
-
-<span class="comment"># player colunm</span>
-<span class="comment"># Cesc Fàbregas\n Midfield — Chelsea</span>
-<span class="comment"># Saido Berahino\n Forward — West Brom</span>
-<span class="comment"># Steven Gerrard\n Midfield — Liverpool</span>
-<span class="comment"># &lt;-  name    -&gt; &lt;-position-&gt; &lt;-team-&gt;, split player to three part and add to the df as new colunm</span>
-<span class="function"><span class="keyword">def</span> <span class="title">process_player_col</span><span class="params">(text)</span>:</span>
-    name, rest = text.split(<span class="string">'\n'</span>)
-    position, team = [x.strip() <span class="keyword">for</span> x <span class="keyword">in</span> rest.split(<span class="string">' — '</span>)]
-    <span class="keyword">return</span> pd.Series([name, team, position])
-
-df[[<span class="string">'player'</span>, <span class="string">'team'</span>, <span class="string">'position'</span>]] = df.player.apply(process_player_col)
-
-<span class="comment"># or </span>
-<span class="keyword">for</span> idx,row <span class="keyword">in</span> df.iterrows():
-    name, position, team = process_player_col(row[<span class="string">'player'</span>])
-    df.ix[idx, <span class="string">'player'</span>], df.ix[idx, <span class="string">'position'</span>], df.ix[idx, <span class="string">'team'</span>] = name, position, team
-
-<span class="comment"># Applying Functions to Multiple Columns, convert the colunms to lower</span>
-cols = [<span class="string">'player'</span>, <span class="string">'position'</span>, <span class="string">'team'</span>]
-df[cols] = df[cols].applymap(<span class="keyword">lambda</span> x: x.lower())
-
-<span class="comment"># Counting Rows with NaNs, with the method called DataFrame.dropna()</span>
-nans = df.shape[<span class="number">0</span>] - df.dropna().shape[<span class="number">0</span>]
-print(<span class="string">'%d rows have missing values'</span> % nans)
-
-<span class="comment"># Selecting NaN Rows</span>
-<span class="comment"># Selecting all rows that have NaNs in the `assists` column</span>
-df[df[<span class="string">'assists'</span>].isnull()]
-
-<span class="comment"># Selecting non-NaN Rows</span>
-df[df[<span class="string">'assists'</span>].notnull()]
-
-<span class="comment"># Filling NaN Rows</span>
-<span class="comment"># Filling NaN cells with default value 0</span>
-df.fillna(value=<span class="number">0</span>, inplace=<span class="keyword">True</span>)
-
-<span class="comment"># Adding an "empty" row to the DataFrame</span>
-<span class="keyword">import</span> numpy <span class="keyword">as</span> np
-df = df.append(pd.Series(
-                [np.nan]*len(df.columns), <span class="comment"># Fill cells with NaNs</span>
-                index=df.columns),    
-                ignore_index=<span class="keyword">True</span>)
-
-<span class="comment"># Filling cells with data</span>
-df.loc[df.index[-<span class="number">1</span>], <span class="string">'player'</span>] = <span class="string">'new player'</span>
-df.loc[df.index[-<span class="number">1</span>], <span class="string">'salary'</span>] = <span class="number">12.3</span>
-
-<span class="comment"># Sorting the DataFrame by a certain column (from highest to lowest)</span>
-df.sort(<span class="string">'goals'</span>, ascending=<span class="keyword">False</span>, inplace=<span class="keyword">True</span>)
-
-<span class="comment"># Optional reindexing of the DataFrame after sorting</span>
-df.index = range(<span class="number">1</span>,len(df.index)+<span class="number">1</span>)
-
-<span class="comment"># Creating a dummy DataFrame with changes in the `salary` column</span>
-df_2 = df.copy()
-df_2.loc[<span class="number">0</span>:<span class="number">2</span>, <span class="string">'salary'</span>] = [<span class="number">20.0</span>, <span class="number">15.0</span>]
-
-<span class="comment"># Temporarily use the `player` columns as indices to </span>
-<span class="comment"># apply the update functions</span>
-df.set_index(<span class="string">'player'</span>, inplace=<span class="keyword">True</span>)
-df_2.set_index(<span class="string">'player'</span>, inplace=<span class="keyword">True</span>)
-
-<span class="comment"># Update the `salary` column</span>
-df.update(other=df_2[<span class="string">'salary'</span>], overwrite=<span class="keyword">True</span>)
-
-<span class="comment"># Reset the indices</span>
-df.reset_index(inplace=<span class="keyword">True</span>)
-
-<span class="comment"># Selecting only those players that either playing for Arsenal 'or' Chelsea</span>
-df[ (df[<span class="string">'team'</span>] == <span class="string">'arsenal'</span>) | (df[<span class="string">'team'</span>] == <span class="string">'chelsea'</span>) ]
-
-<span class="comment"># Selecting forwards from Arsenal only</span>
-df[ (df[<span class="string">'team'</span>] == <span class="string">'arsenal'</span>) &amp; (df[<span class="string">'position'</span>] == <span class="string">'forward'</span>) ]
-
-<span class="comment"># Printing Column Types</span>
-types = df.columns.to_series().groupby(df.dtypes).groups
-
-<span class="comment"># select string columns</span>
-df.loc[:, (df.dtypes == np.dtype(<span class="string">'O'</span>)).values].head()
-
-<span class="comment"># Converting Column Types</span>
-df[<span class="string">'salary'</span>] = df[<span class="string">'salary'</span>].astype(float)
+{
+    <span class="keyword">import</span> ComplicatedSalesTax.rate
+    <span class="type">implicit</span> val myStore = ComplicatedSalesTaxData(<span class="number">0.</span>6F, false, <span class="number">1010</span>)
+    val amount = 00F
+    println(s<span class="string">"Tax on $amount = ${calcTax(amount)}"</span>)
+}
 </code></pre></span>
       
     </div>
@@ -304,9 +231,7 @@ df[<span class="string">'salary'</span>] = df[<span class="string">'salary'</spa
       
         <div class="post-tags">
           
-            <a href="/tags/pandas/" rel="tag">#pandas</a>
-          
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/scala/" rel="tag">#scala</a>
           
         </div>
       
@@ -315,13 +240,11 @@ df[<span class="string">'salary'</span>] = df[<span class="string">'salary'</spa
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/09/29/Simple-Java-Setup-on-Mac/" rel="prev">Simple Java: Setup on Mac</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-How-to-use-Fabric/" rel="next">Simple Python: How to use Fabric</a>
+              <a href="/2015/10/05/Simple-Scala-Pattern-Matching/" rel="next">Simple Scala: Pattern Matching</a>
             
           </div>
         </div>
@@ -425,7 +348,7 @@ df[<span class="string">'salary'</span>] = df[<span class="string">'salary'</spa
           <div class="post-toc">
             
             
-              <p class="post-toc-empty">此文章未包含目录</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参数隐式转换"><span class="nav-number">1.</span> <span class="nav-text">参数隐式转换</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
