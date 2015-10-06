@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/10/05/Simple-Scala-Implicits/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Scala隐式转换.">
-<meta property="og:updated_time" content="2015-10-05T14:51:06.000Z">
+<meta property="og:updated_time" content="2015-10-06T03:00:15.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Scala: Implicits">
 <meta name="twitter:description" content="Scala隐式转换.">
@@ -185,7 +185,42 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="参数隐式转换">参数隐式转换</h2><p>加入我们我们有一个方法用于计算销售税,但是比率是隐式转换的:</p>
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>隐式转换是为现有的类库增加功能的一种方式，用java的话，只能用工具类或者继承的方式来实现，而在scala则采用隐式转化的方式来实现。</p>
+<ul>
+<li>scala隐式转换可以把一个类的实例当作另一个类的实例，这样一来，通过在facade里隐式封装实例，无需修改原来的类，就可以将方法附着于对象上。这种技巧可以用于创建DSL.</li>
+<li>在Predef对象里，scala定义了一些隐式转换，scala默认导入它们，这样的话，比如写1 to 3时，scala会隐式将1从Int转换为RichInt类型，然后调用to()方法.</li>
+<li>scala一次至多应用一个隐式转换，在当前范围内，如果发现通过类型转换有助于操作、方法调用或类型转换的成功完成，就会进行转换，不再继续往外找. <ul>
+<li>位于源或者目标类型的companion object中的隐式函数</li>
+<li>位于当前作⽤用域可以以单个标识符指代的隐式函数</li>
+</ul>
+</li>
+</ul>
+<p>说明:</p>
+<ul>
+<li>如果代码能在不使用隐式转换的前提下通过编译，则不会使用隐式转换</li>
+<li>编译器不会同时使用多个隐式转换</li>
+<li>存在二义性的隐式转换不被允许</li>
+<li>implicit关键字只能用来修饰方法、变量（参数)和伴随对象</li>
+<li>隐式转换的方法（变量和伴随对象）在当前范围内才有效。如果隐式转换不在当前范围内定义（比如定义在另一个类中或包含在某个对象中），那么必须通过import语句将其导入。</li>
+<li><p>定义函数时参数可以声明为implicit,但implicit关键字必须出现在首位,并且对所有的参数有效,不能给部分参数声明为implicit,比如:</p>
+<pre><code>def maxFunc(<span class="type">implicit</span> a: <span class="built_in">Int</span>, b: <span class="built_in">Int</span>) = i1 + i2
+</code></pre><p>  maxFunc的拥有两个隐式参数a和b,不能按下面这样写:</p>
+<pre><code>def maxFunc( a: <span class="built_in">Int</span>, <span class="type">implicit</span> b: <span class="built_in">Int</span>) = i1 + i2
+</code></pre><p>  也不能按下面这样写:</p>
+<pre><code>def maxFunc(<span class="type">implicit</span> a: <span class="built_in">Int</span>, <span class="type">implicit</span> b: <span class="built_in">Int</span>) = i1 + i2
+</code></pre><p>  如果只想声明一个参数为隐式参数,则需要使用curry,比如:</p>
+<pre><code>def maxFunc(<span class="type">implicit</span> a: <span class="built_in">Int</span>)(b: <span class="built_in">Int</span>) = i1 + i2
+</code></pre><p>  此时maxFunc只拥有一个隐式参数a.</p>
+</li>
+<li><p>匿名函数不能声明隐式参数,比如: </p>
+<pre><code>val f = (<span class="type">implicit</span> s: String) =&gt; s+<span class="number">1</span>
+</code></pre></li>
+<li><p>如果一个函数带有隐式参数,则不能通过 _ 获得该函数引用,这样做将会编译失败:</p>
+<pre><code>def maxFunc(<span class="type">implicit</span> i1: <span class="built_in">Int</span>, i2: <span class="built_in">Int</span>) = i1 + i2
+val f = maxFunc _     // 编译错误
+</code></pre></li>
+</ul>
+<h2 id="参数隐式转换">参数隐式转换</h2><p>加入我们我们有一个方法用于计算销售税,但是比率是隐式转换的:</p>
 <pre><code>def calcTax(amount: <span class="built_in">Float</span>)(<span class="type">implicit</span> rate: <span class="built_in">Float</span>): <span class="built_in">Float</span> = amount * rate
 </code></pre><p>如果调用该方法,当前作用域内的隐式转换值会被使用:</p>
 <pre><code><span class="type">implicit</span> val currentTaxRate = <span class="number">0.</span>8F 
@@ -223,7 +258,35 @@ object ComplicatedSalesTax {
     val amount = 00F
     println(s<span class="string">"Tax on $amount = ${calcTax(amount)}"</span>)
 }
-</code></pre></span>
+</code></pre><h3 id="使用implicitly">使用implicitly</h3><p>Predef定义了一个implicitly方法,它结合类型签名另外提供有用的简写方法定义接受一个单一的隐式参数,该参数是参数化的类型情况的方法签名.<br>考虑下面的实例,是谁包装了List的sortBy方法:</p>
+<pre><code>import math.<span class="constant">Ordering</span>
+
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">MyList</span>[<span class="title">A</span>](<span class="title">list</span>:<span class="title">List</span>[<span class="title">A</span>]){</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">sortBy1</span>[<span class="title">B</span>]<span class="params">(<span class="symbol">f:</span><span class="constant">A</span> =&gt; <span class="constant">B</span>)</span><span class="params">(implicit <span class="symbol">ord:</span> <span class="constant">Ordering</span>[<span class="constant">B</span>])</span>:<span class="title">List</span>[<span class="title">A</span>] = <span class="title">list</span>.<span class="title">sortBy</span><span class="params">(f)</span><span class="params">(ord)</span></span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">sortBy2</span>[<span class="title">B</span> : <span class="title">Ordering</span>]<span class="params">(<span class="symbol">f:</span> <span class="constant">A</span> =&gt; <span class="constant">B</span>)</span>: <span class="title">List</span>[<span class="title">A</span>] = <span class="title">list</span>.<span class="title">sortBy</span><span class="params">(f)</span><span class="params">(implicitly[<span class="constant">Ordering</span>[<span class="constant">B</span>]])</span></span>
+}
+
+val list = <span class="constant">MyList</span>(<span class="constant">List</span>(<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>,<span class="number">2</span>,<span class="number">4</span>))
+list sortBy1 (i =&gt; -i) 
+list sortBy2 (i =&gt; -i)
+</code></pre><p>List.sortBy是很多集合排序方法中的一个,它接受一个函数,然后将参数转换成满足math.Ordering要求的类型,类似于java的Comparable抽象.必须提供一个隐式参数以知道如何排序B类型的实例.<br>MyList展示了两种不同的思路用于编写类似于sortBy的方法.第一个sortBy1使用了我们已经知道的语法,该方法额外接收一个Ordering[B]类型的隐式参数值.因此为了使用sortBy1,当前作用域内必须有一个实例以知道如何排序B类型的实例.我们说B绑定了一个上下文,这个例子中是排序实例的能力.<br>这种习惯用法非常普遍,scala提供了一种简写语法,即第二种sortBy2的实现.参数类型 B : Ordering被称为上下文绑定.</p>
+<h2 id="隐式参数方案">隐式参数方案</h2><p>明智谨慎的使用隐式转换很重要,过度的使用则使人难以理解代码的真正意图.<br>隐式参数的使用基本有两种好处:第一类是样板消除,隐式提供上下文信息.第二类是约束,限制允许的类型以减少错误.</p>
+<h3 id="执行上下文">执行上下文</h3><p>在关于Future的实例介绍中,隐式参数列表用于向 Future.apply方法传送一个ExecutionContext:</p>
+<pre><code>apply[<span class="link_label">T</span>](<span class="link_url">body: =&gt; T</span>)(implicit executor: ExecutionContext): Future[T]
+</code></pre><p>一些其他方法也有这样的隐式参数.<br>当我们调用这些方法时并不需要指定ExecutionContex,但是编译器会使用我们已经引入的一个ExecutionContex:</p>
+<pre><code>import scala<span class="class">.concurrent</span><span class="class">.ExecutionContext</span><span class="class">.Implicits</span><span class="class">.global</span>
+</code></pre><p>传送一个执行上下文是隐式参数的推荐用法,其他的一些上下文实例包括事务,数据库连接,线程池,用户会话等.合理使用隐式参数可以创建清晰的API.</p>
+<h3 id="权力控制">权力控制</h3><p>除了传送上下文环境,隐式参数还可以用于控制capabilities.<br>比如一个隐式用户会话可能会包含一些API或数据对于该用户的可见性授权令牌.假设你正在构建一个用户登录菜单,已登录用户显示某些选项而未登录用户只显示登录选项:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">createMenu</span><span class="params">(implicit session: Session)</span>:</span> Menu = { 
+    val defaultItems = List(helpItem, searchItem) 
+    val accountItems =
+        <span class="keyword">if</span> (session.loggedin()) List(viewAccountItem, editAccountItem)
+        <span class="keyword">else</span> List(loginItem) 
+    Menu(defaultItems ++ accountItems)
+}
+</code></pre><h3 id="Constraining_Allowed_Instances">Constraining Allowed Instances</h3><p>…</p>
+</span>
       
     </div>
 
@@ -239,6 +302,8 @@ object ComplicatedSalesTax {
       
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/10/06/Simple-Scala-Functional-Programming/" rel="prev">Simple Scala: Functional Programming</a>
             
           </div>
 
@@ -306,7 +371,7 @@ object ComplicatedSalesTax {
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-count">27</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -348,7 +413,7 @@ object ComplicatedSalesTax {
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#参数隐式转换"><span class="nav-number">1.</span> <span class="nav-text">参数隐式转换</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数隐式转换"><span class="nav-number">2.</span> <span class="nav-text">参数隐式转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用implicitly"><span class="nav-number">2.1.</span> <span class="nav-text">使用implicitly</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#隐式参数方案"><span class="nav-number">3.</span> <span class="nav-text">隐式参数方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#执行上下文"><span class="nav-number">3.1.</span> <span class="nav-text">执行上下文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#权力控制"><span class="nav-number">3.2.</span> <span class="nav-text">权力控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Constraining_Allowed_Instances"><span class="nav-number">3.3.</span> <span class="nav-text">Constraining Allowed Instances</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
