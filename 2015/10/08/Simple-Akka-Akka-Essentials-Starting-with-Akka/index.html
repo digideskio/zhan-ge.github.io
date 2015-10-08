@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="fabric,python," />
+  <meta name="keywords" content="akka,scala," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="python远程部署工具fabric。">
+<meta name="description" content="Akka精要-开始使用Akka.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Python: How to use Fabric">
-<meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Python-How-to-use-Fabric/index.html">
+<meta property="og:title" content="Simple Akka: Akka Essentials - Starting with Akka">
+<meta property="og:url" content="http://yoursite.com/2015/10/08/Simple-Akka-Akka-Essentials-Starting-with-Akka/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="python远程部署工具fabric。">
-<meta property="og:updated_time" content="2015-09-29T08:21:44.000Z">
+<meta property="og:description" content="Akka精要-开始使用Akka.">
+<meta property="og:updated_time" content="2015-10-08T08:46:20.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Python: How to use Fabric">
-<meta name="twitter:description" content="python远程部署工具fabric。">
+<meta name="twitter:title" content="Simple Akka: Akka Essentials - Starting with Akka">
+<meta name="twitter:description" content="Akka精要-开始使用Akka.">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Python: How to use Fabric | Hexo </title>
+  <title> Simple Akka: Akka Essentials - Starting with Akka | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Python: How to use Fabric
+              Simple Akka: Akka Essentials - Starting with Akka
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-29T16:16:27+08:00" content="2015-09-29">
-            2015-09-29
+          <time itemprop="dateCreated" datetime="2015-10-08T15:53:45+08:00" content="2015-10-08">
+            2015-10-08
           </time>
         </span>
 
@@ -185,97 +185,126 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="安装Fabric">安装Fabric</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install fabric</span><br></pre></td></tr></table></figure>
-<h2 id="命令">命令</h2><pre><code>run     (fabric<span class="class">.operations</span><span class="class">.run</span>)
-sudo    (fabric<span class="class">.operations</span><span class="class">.sudo</span>)
-local   (fabric<span class="class">.operations</span><span class="class">.local</span>)
-get     (fabric<span class="class">.operations</span><span class="class">.get</span>)
-put     (fabric<span class="class">.operations</span><span class="class">.put</span>)
-prompt  (fabric<span class="class">.operations</span><span class="class">.prompt</span>)
-reboot  (fabric<span class="class">.operations</span><span class="class">.reboot</span>)
-</code></pre><h2 id="Example">Example</h2><pre><code>DateFormat.py
-// 根据时间获取上个小时log文件名中的时间，单独处理<span class="number">0</span>点时刻
-<span class="comment"># coding=utf8</span>
-<span class="keyword">import</span> datetime
-
-<span class="function"><span class="keyword">def</span> <span class="title">date_format</span><span class="params">(flag=<span class="string">''</span>)</span>:</span>
-    fm = <span class="string">'%Y-%m-%d'</span> <span class="keyword">if</span> flag <span class="keyword">else</span> <span class="string">'%Y%m%d'</span>
-    h = datetime.datetime.now().hour
-    <span class="keyword">if</span> h == <span class="number">0</span>:
-        dt = datetime.date.today() - datetime.timedelta(days=<span class="number">1</span>)
-        dt = dt.strftime(fm)
-        h = <span class="number">23</span>
-    <span class="keyword">else</span>:
-        dt = datetime.date.today()
-        dt = dt.strftime(fm)
-        h = datetime.datetime.now().hour - <span class="number">1</span>
-    <span class="keyword">if</span> h &lt; <span class="number">10</span>:
-        h = <span class="string">''</span>.join([<span class="string">'0'</span>, str(h)])
-    <span class="keyword">else</span>:
-        h = str(h)
-    <span class="keyword">if</span> flag:
-        <span class="keyword">return</span> <span class="string">'-'</span>.join([dt, h])
-    <span class="keyword">else</span>:
-        <span class="keyword">return</span> dt + h
-
-LogFileLoad.py
-// Fabric执行文件
-
-<span class="comment">#coding=utf8</span>
-<span class="keyword">import</span> os, sys
-<span class="keyword">import</span> random
-<span class="keyword">import</span> datetime
-<span class="keyword">from</span> fabric.api <span class="keyword">import</span> *
-<span class="keyword">from</span> fabric.colors <span class="keyword">import</span> red, green, yellow
-<span class="keyword">from</span> fabric.operations <span class="keyword">import</span> *
-
-// 远程主机设置
-env.hosts = [<span class="string">'root@192.168.0.1:22'</span>, <span class="string">'root@192.168.0.1:22'</span>,
-             <span class="string">'root@192.168.0.1:22'</span>]
-// 远程主机设置密码设置
-env.passwords = {
-    <span class="string">'root@192.168.0.1:22'</span>:<span class="string">'123abc'</span>,
-    <span class="string">'root@192.168.0.1:22'</span>:<span class="string">'123abc'</span>,
-    <span class="string">'root@192.168.0.1:22'</span>:<span class="string">'123abc'</span>
-    }
-
-// Test <span class="keyword">for</span> connection
-<span class="function"><span class="keyword">def</span> <span class="title">test</span><span class="params">()</span>:</span>
-    run(<span class="string">'uname -s'</span>)
-
-<span class="function"><span class="keyword">def</span> <span class="title">format_log_file_name_by_time</span><span class="params">()</span>:</span>
-    <span class="comment"># Format log file name by datetime like access_2015031204.log .</span>
-    dt = date_format()
-    file_name = [<span class="string">'access_'</span>, dt, <span class="string">'.log'</span>]
-    file_name = <span class="string">''</span>.join(file_name)
-
-    <span class="keyword">return</span> file_name
-
-
-<span class="function"><span class="keyword">def</span> <span class="title">load</span><span class="params">()</span>:</span>
-    remote_log_path = <span class="string">"/nginx/www/logs/log/"</span>
-    remote_log_full_path = <span class="string">''</span>.join(
-        [remote_log_path, format_log_file_name_by_time()])
-
-    <span class="comment"># Need change to absolute path equal the script's path.</span>
-    local_path = os.getcwd()
-    local_path = <span class="string">'/'</span>.join([local_path, date_format(<span class="string">'-'</span>)])
-    <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(local_path):
-        os.mkdir(local_path)
-
-    local_log_file_name = <span class="string">'.'</span>.join(                                 //随机生成本地文件名
-        [str(int(time.time())) + str(random.randint(<span class="number">1000</span>, <span class="number">9999</span>)), <span class="string">'log'</span>])
-    local_full_path = <span class="string">'/'</span>.join([local_path, local_log_file_name])
-
-    <span class="keyword">print</span> <span class="string">"%s -&gt; %s ..."</span> % (remote_log_full_path, local_full_path)
-    get(remote_log_full_path, local_full_path)                      //下载文件
-
-<span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:
-    load()
-
-fab -f LogFileLoad.py load
-</code></pre><p>测试通过后即可通过crontab部署，注意，在crontab时需将脚本中的相对路径全部改为绝对路径。<br>更多使用方法可以参考<a href="http://paperplane.ruhoh.com/fabric/fabric-api/" title="链接" target="_blank" rel="external">链接</a>。</p>
+        <span itemprop="articleBody"><h2 id="创建一个应用">创建一个应用</h2><p>第一个akka应用中将使用Mapreduce方法创建一个简单的单词计数器,接收一个简单的字符串格式的句子然后对单词进行计数.<br>么个句子将会经历如下处理流程:</p>
+<ul>
+<li>Map task:这部分被定义为从句子到单词的映射,并且过滤掉一些比如”is”,”a”的停用词,然后对实际剩下的单词进行计数,每个词的每次出现记为1,然后将整个列表传送给Reduce task;</li>
+<li>Reduce task:这部分被定义为对每个句子的单词列表进行归纳,检查每个单词,返现重复的单词则对该单词的计数递增1,然后传送给Aggregate task;</li>
+<li>Aggregate task:这部分被定义为将所有列表归纳为一个整体的列表.</li>
+</ul>
+<h2 id="应用设计">应用设计</h2><p>整个应用将创建三个不同的actor:Map actor,Reduce actor,Aggregate actor,为了管理这些actor的声明周期,我们额外创建一个Master actor,actor之间消息的通行流程将按如下方式进行:</p>
+<ul>
+<li>Master actor发送一个句子给Map actor;</li>
+<li>Map actor映射句子中的单词然后返回MapData给Master actor,Master actor将MapData发送给Reduce actor;</li>
+<li>Reduce actor处理MapData对单词进行归纳,归纳后的单词列表作为ReduceData通过Master actor发送给Aggregate actor;</li>
+<li>Aggregate actor接收到ReduceData后更新包含已完成数据的内部状态;</li>
+<li>Master actor发送一个Result给Aggregate actor,Aggregate actor则返回一个聚合后的列表作为响应消息.</li>
+</ul>
+<p>整个开发流程:</p>
+<ul>
+<li>定义消息的数据结构</li>
+<li>定义四个actor并定义每个的计算逻辑</li>
+<li>定义一个actor系统,创建actor并提供一些数据进行运算</li>
+</ul>
+<h2 id="实例">实例</h2><pre><code><span class="comment">// 定义消息类</span>
+<span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">MapReduceMessage</span>
+</span><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">WordCount</span>(</span>word: <span class="type">String</span>, count: <span class="type">Int</span>) <span class="keyword">extends</span> <span class="type">MapReduceMessage</span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">MapData</span>(</span>dataList: <span class="type">ArrayBuffer</span>[<span class="type">WordCount</span>]) <span class="keyword">extends</span> <span class="type">MapReduceMessage</span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">ReduceData</span>(</span>reduceDataMap: <span class="type">Map</span>[<span class="type">String</span>, <span class="type">Int</span>]) <span class="keyword">extends</span> <span class="type">MapReduceMessage</span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Result</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">MapReduceMessage</span>
 </span>
+<span class="comment">// MapActor.scala</span>
+<span class="class"><span class="keyword">class</span> <span class="title">MapActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span> 
+
+  <span class="function"><span class="keyword">val</span> <span class="title">STOP_WORDS_LIST</span> =</span> <span class="type">List</span>(<span class="string">"a"</span>, <span class="string">"am"</span>, <span class="string">"an"</span>, <span class="string">"and"</span>, <span class="string">"are"</span>, <span class="string">"as"</span>,
+    <span class="string">"at"</span>, <span class="string">"be"</span>, <span class="string">"do"</span>, <span class="string">"go"</span>, <span class="string">"if"</span>, <span class="string">"in"</span>, <span class="string">"is"</span>, <span class="string">"it"</span>, <span class="string">"of"</span>, <span class="string">"on"</span>, <span class="string">"the"</span>, <span class="string">"to"</span>)
+
+  <span class="function"><span class="keyword">val</span> <span class="title">defaultCount</span>:</span> <span class="type">Int</span> = <span class="number">1</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span>:</span> <span class="type">Receive</span> = {
+    <span class="keyword">case</span> message: <span class="type">String</span> =&gt;
+      reduceActor ! evaluateExpression(message)
+  }
+  <span class="function"><span class="keyword">def</span> <span class="title">evaluateExpression</span>(</span>line: <span class="type">String</span>): <span class="type">MapData</span> = <span class="type">MapData</span> {
+    <span class="comment">// logic to map the words in the sentences </span>
+    line.split(<span class="string">"""\s+"""</span>).foldLeft(<span class="type">ArrayBuffer</span>.empty[<span class="type">WordCount</span>]) {
+      (index, word) =&gt; 
+        <span class="keyword">if</span>(!<span class="type">STOP_WORDS_LIST</span>.contains(word. toLowerCase)) 
+          index += <span class="type">WordCount</span>(word.toLowerCase, <span class="number">1</span>) 
+        <span class="keyword">else</span> 
+          index 
+    }
+  }
+}
+
+<span class="comment">// ReduceActor.scala</span>
+<span class="class"><span class="keyword">class</span> <span class="title">ReduceActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span> 
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span>:</span> <span class="type">Receive</span> = {
+    <span class="keyword">case</span> <span class="type">MapData</span>(dataList) =&gt; sender ! reduce(dataList)
+  }
+
+  <span class="function"><span class="keyword">def</span> <span class="title">reduce</span>(</span>words: <span class="type">IndexedSeq</span>[<span class="type">WordCount</span>]): <span class="type">ReduceData</span> = <span class="type">ReduceData</span> {
+    words.foldLeft(<span class="type">Map</span>.empty[<span class="type">String</span>, <span class="type">Int</span>]) { 
+      (index, words) =&gt; 
+        <span class="keyword">if</span> (index contains words.word)
+          index + (words.word -&gt; (index.get(words.word).get + <span class="number">1</span>)) 
+        <span class="keyword">else</span>
+          index + (words.word -&gt; <span class="number">1</span>)
+￼   } 
+  }
+}
+
+<span class="comment">// AggregateActor.scala</span>
+<span class="class"><span class="keyword">class</span> <span class="title">AggregateActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">finalReducedMap</span> =</span> <span class="keyword">new</span> <span class="type">HashMap</span>[<span class="type">String</span>, <span class="type">Int</span>] 
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span>:</span> <span class="type">Receive</span> = {
+    <span class="keyword">case</span> <span class="type">ReduceData</span>(reduceDataMap) =&gt;
+      aggregateInMemoryReduce(reduceDataMap)
+    <span class="keyword">case</span> <span class="type">Result</span> =&gt;
+        sender ! finalReducedMap.toString()
+  }
+
+  <span class="function"><span class="keyword">def</span> <span class="title">aggregateInMemoryReduce</span>(</span>reducedList: <span class="type">Map</span>[<span class="type">String</span>, <span class="type">Int</span>]): <span class="type">Unit</span> = {
+    <span class="keyword">for</span> ((key,value) &lt;- reducedList) { 
+      <span class="keyword">if</span> (finalReducedMap contains key)
+        finalReducedMap(key) = (value + finalReducedMap.get(key).get) 
+      <span class="keyword">else</span>
+        finalReducedMap += (key -&gt; value) 
+    }
+￼ } 
+}
+
+<span class="comment">// MasterActor.scala</span>
+<span class="class"><span class="keyword">class</span> <span class="title">MasterActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">mapActor</span> =</span> context.actorOf(<span class="type">Props</span>[<span class="type">MapActor</span>].withRouter(
+    <span class="type">RoundRobinRouter</span>(nrOfInstances = <span class="number">5</span>)) , name = <span class="string">"map"</span>)
+  <span class="function"><span class="keyword">val</span> <span class="title">reduceActor</span> =</span> context.actorOf(<span class="type">Props</span>[<span class="type">ReduceActor</span>].withRouter(
+    <span class="type">RoundRobinRouter</span>(nrOfInstances = <span class="number">5</span>)) , name = <span class="string">"reduce"</span>) 
+  <span class="function"><span class="keyword">val</span> <span class="title">aggregateActor</span> =</span> context.actorOf(<span class="type">Props</span>[<span class="type">AggregateActor</span>], name = <span class="string">"aggregate"</span>)
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span>:</span> <span class="type">Receive</span> = {
+    <span class="keyword">case</span> line: <span class="type">String</span> =&gt; mapActor ! line
+    <span class="keyword">case</span> mapData: <span class="type">MapData</span> =&gt; reduceActor ! mapData
+    <span class="keyword">case</span> reduceData: <span class="type">ReduceData</span> =&gt;
+￼ }
+}
+
+<span class="comment">// MapReduceApplication.scala</span>
+<span class="class"><span class="keyword">object</span> <span class="title">MapReduceApplication</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">App</span> {</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">_system</span> =</span> <span class="type">ActorSystem</span>(<span class="string">"MapReduceApp"</span>)
+  <span class="function"><span class="keyword">val</span> <span class="title">master</span> =</span> _system.actorOf(<span class="type">Props</span>[<span class="type">MasterActor</span>], name = <span class="string">"master"</span>) 
+  <span class="keyword">implicit</span> <span class="function"><span class="keyword">val</span> <span class="title">timeout</span> =</span> <span class="type">Timeout</span>(<span class="number">5</span> seconds)
+
+  master ! <span class="string">"The quick brown fox tried to jump over the lazy dog and fell on the dog"</span>
+  master ! <span class="string">"Dog is man's best friend"</span>
+  master ! <span class="string">"Dog and Fox belong to the same family"</span>
+
+  <span class="type">Thread</span>.sleep(<span class="number">500</span>)
+  <span class="function"><span class="keyword">val</span> <span class="title">future</span> =</span> (master ? <span class="type">Result</span>).mapTo[<span class="type">String</span>]
+  <span class="function"><span class="keyword">val</span> <span class="title">result</span> =</span> <span class="type">Await</span>.result(future, timeout.duration) println(result)
+  _system.shutdown
+}
+</code></pre></span>
       
     </div>
 
@@ -283,9 +312,9 @@ fab -f LogFileLoad.py load
       
         <div class="post-tags">
           
-            <a href="/tags/fabric/" rel="tag">#fabric</a>
+            <a href="/tags/akka/" rel="tag">#akka</a>
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/scala/" rel="tag">#scala</a>
           
         </div>
       
@@ -294,13 +323,11 @@ fab -f LogFileLoad.py load
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-How-to-use-Pandas/" rel="prev">Simple Python: How to use Pandas</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Reading-List/" rel="next">Reading List</a>
+              <a href="/2015/10/08/Simple-Akka-Akka-Essentials-Introduction-to-Akka/" rel="next">Simple Akka: Akka Essentials - Introduction to Akka</a>
             
           </div>
         </div>
@@ -404,7 +431,7 @@ fab -f LogFileLoad.py load
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Fabric"><span class="nav-number">1.</span> <span class="nav-text">安装Fabric</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#命令"><span class="nav-number">2.</span> <span class="nav-text">命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Example"><span class="nav-number">3.</span> <span class="nav-text">Example</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#创建一个应用"><span class="nav-number">1.</span> <span class="nav-text">创建一个应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#应用设计"><span class="nav-number">2.</span> <span class="nav-text">应用设计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实例"><span class="nav-number">3.</span> <span class="nav-text">实例</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

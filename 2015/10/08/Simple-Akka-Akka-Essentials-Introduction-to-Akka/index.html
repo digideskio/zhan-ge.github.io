@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="fabric,python," />
+  <meta name="keywords" content="akka,scala," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="python远程部署工具fabric。">
+<meta name="description" content="Akka精要-Akka简介.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Python: How to use Fabric">
-<meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Python-How-to-use-Fabric/index.html">
+<meta property="og:title" content="Simple Akka: Akka Essentials - Introduction to Akka">
+<meta property="og:url" content="http://yoursite.com/2015/10/08/Simple-Akka-Akka-Essentials-Introduction-to-Akka/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="python远程部署工具fabric。">
-<meta property="og:updated_time" content="2015-09-29T08:21:44.000Z">
+<meta property="og:description" content="Akka精要-Akka简介.">
+<meta property="og:updated_time" content="2015-10-08T07:47:45.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Python: How to use Fabric">
-<meta name="twitter:description" content="python远程部署工具fabric。">
+<meta name="twitter:title" content="Simple Akka: Akka Essentials - Introduction to Akka">
+<meta name="twitter:description" content="Akka精要-Akka简介.">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Python: How to use Fabric | Hexo </title>
+  <title> Simple Akka: Akka Essentials - Introduction to Akka | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Python: How to use Fabric
+              Simple Akka: Akka Essentials - Introduction to Akka
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-29T16:16:27+08:00" content="2015-09-29">
-            2015-09-29
+          <time itemprop="dateCreated" datetime="2015-10-08T14:07:41+08:00" content="2015-10-08">
+            2015-10-08
           </time>
         </span>
 
@@ -185,97 +185,32 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="安装Fabric">安装Fabric</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install fabric</span><br></pre></td></tr></table></figure>
-<h2 id="命令">命令</h2><pre><code>run     (fabric<span class="class">.operations</span><span class="class">.run</span>)
-sudo    (fabric<span class="class">.operations</span><span class="class">.sudo</span>)
-local   (fabric<span class="class">.operations</span><span class="class">.local</span>)
-get     (fabric<span class="class">.operations</span><span class="class">.get</span>)
-put     (fabric<span class="class">.operations</span><span class="class">.put</span>)
-prompt  (fabric<span class="class">.operations</span><span class="class">.prompt</span>)
-reboot  (fabric<span class="class">.operations</span><span class="class">.reboot</span>)
-</code></pre><h2 id="Example">Example</h2><pre><code>DateFormat.py
-// 根据时间获取上个小时log文件名中的时间，单独处理<span class="number">0</span>点时刻
-<span class="comment"># coding=utf8</span>
-<span class="keyword">import</span> datetime
-
-<span class="function"><span class="keyword">def</span> <span class="title">date_format</span><span class="params">(flag=<span class="string">''</span>)</span>:</span>
-    fm = <span class="string">'%Y-%m-%d'</span> <span class="keyword">if</span> flag <span class="keyword">else</span> <span class="string">'%Y%m%d'</span>
-    h = datetime.datetime.now().hour
-    <span class="keyword">if</span> h == <span class="number">0</span>:
-        dt = datetime.date.today() - datetime.timedelta(days=<span class="number">1</span>)
-        dt = dt.strftime(fm)
-        h = <span class="number">23</span>
-    <span class="keyword">else</span>:
-        dt = datetime.date.today()
-        dt = dt.strftime(fm)
-        h = datetime.datetime.now().hour - <span class="number">1</span>
-    <span class="keyword">if</span> h &lt; <span class="number">10</span>:
-        h = <span class="string">''</span>.join([<span class="string">'0'</span>, str(h)])
-    <span class="keyword">else</span>:
-        h = str(h)
-    <span class="keyword">if</span> flag:
-        <span class="keyword">return</span> <span class="string">'-'</span>.join([dt, h])
-    <span class="keyword">else</span>:
-        <span class="keyword">return</span> dt + h
-
-LogFileLoad.py
-// Fabric执行文件
-
-<span class="comment">#coding=utf8</span>
-<span class="keyword">import</span> os, sys
-<span class="keyword">import</span> random
-<span class="keyword">import</span> datetime
-<span class="keyword">from</span> fabric.api <span class="keyword">import</span> *
-<span class="keyword">from</span> fabric.colors <span class="keyword">import</span> red, green, yellow
-<span class="keyword">from</span> fabric.operations <span class="keyword">import</span> *
-
-// 远程主机设置
-env.hosts = [<span class="string">'root@192.168.0.1:22'</span>, <span class="string">'root@192.168.0.1:22'</span>,
-             <span class="string">'root@192.168.0.1:22'</span>]
-// 远程主机设置密码设置
-env.passwords = {
-    <span class="string">'root@192.168.0.1:22'</span>:<span class="string">'123abc'</span>,
-    <span class="string">'root@192.168.0.1:22'</span>:<span class="string">'123abc'</span>,
-    <span class="string">'root@192.168.0.1:22'</span>:<span class="string">'123abc'</span>
-    }
-
-// Test <span class="keyword">for</span> connection
-<span class="function"><span class="keyword">def</span> <span class="title">test</span><span class="params">()</span>:</span>
-    run(<span class="string">'uname -s'</span>)
-
-<span class="function"><span class="keyword">def</span> <span class="title">format_log_file_name_by_time</span><span class="params">()</span>:</span>
-    <span class="comment"># Format log file name by datetime like access_2015031204.log .</span>
-    dt = date_format()
-    file_name = [<span class="string">'access_'</span>, dt, <span class="string">'.log'</span>]
-    file_name = <span class="string">''</span>.join(file_name)
-
-    <span class="keyword">return</span> file_name
-
-
-<span class="function"><span class="keyword">def</span> <span class="title">load</span><span class="params">()</span>:</span>
-    remote_log_path = <span class="string">"/nginx/www/logs/log/"</span>
-    remote_log_full_path = <span class="string">''</span>.join(
-        [remote_log_path, format_log_file_name_by_time()])
-
-    <span class="comment"># Need change to absolute path equal the script's path.</span>
-    local_path = os.getcwd()
-    local_path = <span class="string">'/'</span>.join([local_path, date_format(<span class="string">'-'</span>)])
-    <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(local_path):
-        os.mkdir(local_path)
-
-    local_log_file_name = <span class="string">'.'</span>.join(                                 //随机生成本地文件名
-        [str(int(time.time())) + str(random.randint(<span class="number">1000</span>, <span class="number">9999</span>)), <span class="string">'log'</span>])
-    local_full_path = <span class="string">'/'</span>.join([local_path, local_log_file_name])
-
-    <span class="keyword">print</span> <span class="string">"%s -&gt; %s ..."</span> % (remote_log_full_path, local_full_path)
-    get(remote_log_full_path, local_full_path)                      //下载文件
-
-<span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:
-    load()
-
-fab -f LogFileLoad.py load
-</code></pre><p>测试通过后即可通过crontab部署，注意，在crontab时需将脚本中的相对路径全部改为绝对路径。<br>更多使用方法可以参考<a href="http://paperplane.ruhoh.com/fabric/fabric-api/" title="链接" target="_blank" rel="external">链接</a>。</p>
-</span>
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Akka是一个非常著名的角色模型框架(Actor Model),它提供一个完整基于JVM的工具和运行时用于设计运行高并发,分布式,高容错,事件驱动的应用.</p>
+<h2 id="背景">背景</h2><p>在我们深入Akka之前,让我们回头了解一下并发的概念在应用开发世界时如何演变的.应用总是被底层硬件资源的能力所限制.构建大型的,可扩展的,分布式的应用程序需要从应用所运行的硬件资源和编程语言所提供的并发支持来看.</p>
+<h2 id="微处理器演化">微处理器演化</h2><h2 id="并发系统">并发系统</h2><h2 id="基于容器的应用程序">基于容器的应用程序</h2><h2 id="Actor模型">Actor模型</h2><p>Actor模型最早基于Erlang实现.从不同的方法解决并发,避免引起线程和锁的问题.在Actor模型中,所有的对象作为独立的计算进行建模,响应接收到的消息,各个对象之间没有共享状态.整个Actor模型基于如下原则:</p>
+<ul>
+<li>不变的消息用于actor之间的通信.actor之间不共享状态,即便是有共享也只能是关于消息的.actor控制了对状态的访问,没有其他对象可以访问到状态,这意味着没有共享的可变的状态.</li>
+<li>actor有一个消息队列用于接收进来的消息.只有一个消息在同一时间通过队列接收然后通过actor处理.一个actor可以通过响应一个不可变的消息给其他actor或者创建一个新的actor集合或者更新自己的状态再或者指定下次接到消息时的计算逻辑来响应接收到的消息.</li>
+<li>消息通过异步的方式进行传送.发送者并不会等待消息被接收,发送动作会立即完成.任何一个actor可以给另一个actor发送消息,但不保证消息的到达和消息的处理顺序.</li>
+<li>消息的发送者和接收者是异步和解耦的,允许他们在不同的线程中执行.通过不同的线程执行,再加上没有共享状态,让actor能够提供并发且可伸缩的模型.</li>
+</ul>
+<h2 id="Akka框架">Akka框架</h2><p>Akka框架使用actor模型的概念构建了一个事件驱动,支持并发,分布式可扩展的中间件系统框架.Akka框架提供了一系列特性:</p>
+<ul>
+<li>并发性,抽象了并发处理,支持程序员专注于业务逻辑.</li>
+<li>可扩展,异步消息传送支持应用构建于多核服务器.</li>
+<li>容错性,借用Erlang的概念构建了一个”let it crash”的容错模型,让程序能够尽快从错误中恢复.</li>
+<li>事件驱动的体系结构,异步的消息处理支持akka构建完美的事件驱动系统结构.</li>
+<li>事务支持,结合actor和软件事务内存实现事务,支持自动重试和回滚的原子消息.</li>
+<li>位置透明,对远程的actor和本地的actor处理方式一样,提供一个统一的编程模型和和多核分布式的计算需求.</li>
+<li>APIs,同时支持java和scala.</li>
+</ul>
+<h2 id="Actor系统">Actor系统</h2><p>Actor是一个响应消息的独立的并行的计算实体.在深入actor之前,我们需要了解整个系统中actor所起的作用.actor在一个巨大的设计方案中是一个最小的单元.并发程序根据各自不同的子任务拆分为单独的实体,每个参与者执行各自的不同任务,当所有执行者完成各自的任务后整体任务完成.</p>
+<h2 id="什么是Actor">什么是Actor</h2><p>Actor被建模为对一个对象的状态和行为的封装,actor中的消息存储在队列中然后actor从队列中取消息进行处理.<br>Actor可以通过消息的传送来改变状态和行为,这允许他们能过对传入的消息进行响应.</p>
+<h3 id="状态">状态</h3><p>actor对象保存了实例变量,一些状态值或者单纯的计算实体.这些状态可以是计数器,监听器,资源引用或状态机.演员改变状态用于响应消息.</p>
+<h3 id="行为">行为</h3><p>行为是响应接收到的消息后执行的计算逻辑.actor的行为可以包含对自身状态的修改,也可以对行文自身进行改变.</p>
+<h3 id="邮箱">邮箱</h3><p>每个actor都有一个邮箱,actor之间通过邮箱这个导线进行连接,接收方邮箱中消息的顺序基于发送方的发送顺序进行排列.Akka同时提供了多种邮箱的实现,可以基于业务进行选择.<br>Akka使用dispatchers来管理消息从邮箱到actors的处理,支持多种不同实现的dispatcher.</p>
+<h3 id="生命周期">生命周期</h3><p>每个actor的定义和创建都有一个完整的生命周期.Akka提供了preStart用于actor状态和行为的初始化.当actor停止的时候,akka会再PostStop调用之前禁用其消息队列,在postStop时可以做任何持续性或清理资源状态.</p>
+<h3 id="容错">容错</h3><h3 id="位置透明">位置透明</h3><h3 id="事务处理器">事务处理器</h3></span>
       
     </div>
 
@@ -283,9 +218,9 @@ fab -f LogFileLoad.py load
       
         <div class="post-tags">
           
-            <a href="/tags/fabric/" rel="tag">#fabric</a>
+            <a href="/tags/akka/" rel="tag">#akka</a>
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/scala/" rel="tag">#scala</a>
           
         </div>
       
@@ -294,13 +229,13 @@ fab -f LogFileLoad.py load
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-How-to-use-Pandas/" rel="prev">Simple Python: How to use Pandas</a>
+              <a href="/2015/10/08/Simple-Akka-Akka-Essentials-Starting-with-Akka/" rel="prev">Simple Akka: Akka Essentials - Starting with Akka</a>
             
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Reading-List/" rel="next">Reading List</a>
+              <a href="/2015/10/06/Simple-Scala-Functional-Programming/" rel="next">Simple Scala: Functional Programming</a>
             
           </div>
         </div>
@@ -404,7 +339,7 @@ fab -f LogFileLoad.py load
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Fabric"><span class="nav-number">1.</span> <span class="nav-text">安装Fabric</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#命令"><span class="nav-number">2.</span> <span class="nav-text">命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Example"><span class="nav-number">3.</span> <span class="nav-text">Example</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#背景"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#微处理器演化"><span class="nav-number">3.</span> <span class="nav-text">微处理器演化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#并发系统"><span class="nav-number">4.</span> <span class="nav-text">并发系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于容器的应用程序"><span class="nav-number">5.</span> <span class="nav-text">基于容器的应用程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Actor模型"><span class="nav-number">6.</span> <span class="nav-text">Actor模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Akka框架"><span class="nav-number">7.</span> <span class="nav-text">Akka框架</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Actor系统"><span class="nav-number">8.</span> <span class="nav-text">Actor系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是Actor"><span class="nav-number">9.</span> <span class="nav-text">什么是Actor</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#状态"><span class="nav-number">9.1.</span> <span class="nav-text">状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#行为"><span class="nav-number">9.2.</span> <span class="nav-text">行为</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#邮箱"><span class="nav-number">9.3.</span> <span class="nav-text">邮箱</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#生命周期"><span class="nav-number">9.4.</span> <span class="nav-text">生命周期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#容错"><span class="nav-number">9.5.</span> <span class="nav-text">容错</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#位置透明"><span class="nav-number">9.6.</span> <span class="nav-text">位置透明</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事务处理器"><span class="nav-number">9.7.</span> <span class="nav-text">事务处理器</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
