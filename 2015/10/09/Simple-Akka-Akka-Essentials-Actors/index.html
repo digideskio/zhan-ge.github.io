@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="python,supervisor," />
+  <meta name="keywords" content="akka,scala," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="程序守护监控Supervisor。">
+<meta name="description" content="Akka精要-Actors.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Python: How to use Supervisor">
-<meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Python-How-to-use-Supervisor/index.html">
+<meta property="og:title" content="Simple Akka: Akka Essentials - Actors">
+<meta property="og:url" content="http://yoursite.com/2015/10/09/Simple-Akka-Akka-Essentials-Actors/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="程序守护监控Supervisor。">
-<meta property="og:updated_time" content="2015-09-29T07:40:18.000Z">
+<meta property="og:description" content="Akka精要-Actors.">
+<meta property="og:updated_time" content="2015-10-09T04:25:50.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Python: How to use Supervisor">
-<meta name="twitter:description" content="程序守护监控Supervisor。">
+<meta name="twitter:title" content="Simple Akka: Akka Essentials - Actors">
+<meta name="twitter:description" content="Akka精要-Actors.">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Python: How to use Supervisor | Hexo </title>
+  <title> Simple Akka: Akka Essentials - Actors | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Python: How to use Supervisor
+              Simple Akka: Akka Essentials - Actors
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-29T15:33:35+08:00" content="2015-09-29">
-            2015-09-29
+          <time itemprop="dateCreated" datetime="2015-10-09T10:23:19+08:00" content="2015-10-09">
+            2015-10-09
           </time>
         </span>
 
@@ -185,62 +185,83 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Supervisor 是由python语言编写、基于linux操作系统的一款服务器管理工具，用以监控服务器的运行，发现问题能立即自动预警及自动重启等功能。<br>运行环境：*nix，Python2.7</p>
-<h2 id="安装supervisor">安装supervisor</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ pip install supervisor</span><br><span class="line">$ python</span><br><span class="line">&gt;&gt;&gt; import supervisor</span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
-<p>安装成功后Supervisor会提供一个命令行来生成配置文件：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span>_supervisord_conf &gt; /etc/supervisord.conf</span><br></pre></td></tr></table></figure>
-<p>然后编辑配置文件：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi /etc/supervisord.conf</span><br></pre></td></tr></table></figure>
-<p>查看配置提示：</p>
-<pre><code>;[program:theprogramname]      ; 冒号后为自定义的进程名，为Supervisor使用
-;command=/bin/cat              ; 执行程序路径，可带参数
-;process_name=%(program_name)s ; 进程名，默认为 %(program_name)s
-;numprocs=<span class="number">1</span>                    ; 进程数，默认 <span class="number">1</span>
-;directory=/tmp                ; 执行前的路径，默认为 无
-;umask=<span class="number">022</span>                     ; <span class="function">umask <span class="keyword">for</span> <span class="title">process</span> <span class="params">(<span class="keyword">default</span> None)</span>
-</span>;priority=<span class="number">999</span>                  ; 执行权限，默认 <span class="number">999</span>
-;autostart=<span class="literal">true</span>                ; 在supervisord启动时启动，默认 是
-;autorestart=unexpected        ; 重启的条件，默认 unexpected（意外关闭时）
-;startsecs=<span class="number">1</span>                   ; 等待启动的秒数，默认 <span class="number">1</span>
-;startretries=<span class="number">3</span>                ; 最大启动失败次数，默认 <span class="number">3</span>
-;exitcodes=<span class="number">0</span>,<span class="number">2</span>                 ; 意外退出码，默认 <span class="number">0</span>,<span class="number">2</span>
-;stopsignal=QUIT               ; 杀死进程的信号，默认 TERM
-;stopwaitsecs=<span class="number">10</span>               ; 杀死进程最大等待秒数，默认 <span class="number">10</span>
-;stopasgroup=<span class="literal">false</span>             ; 向UNIX进程组发送停止信号，默认 否
-;killasgroup=<span class="literal">false</span>             ; 向UNIX进程组发送杀死信号，默认 否
-;user=chrism                   ; 启动时向UNIX设置setuid
-;redirect_stderr=<span class="literal">true</span>          ; 重定向标准错误到标准输出，默认 否
-;stdout_logfile=/a/path        ; 标准输出路径, NONE 为无; 默认 AUTO
-;stdout_logfile_maxbytes=<span class="number">1</span>MB   ; 日志文件最大值，默认 <span class="number">50</span>MB
-;stdout_logfile_backups=<span class="number">10</span>     ; 日志文件备份时间，默认 <span class="number">10</span>
-;stdout_capture_maxbytes=<span class="number">1</span>MB   ; capturemode大小，默认 <span class="number">0</span>
-;stdout_events_enabled=<span class="literal">false</span>   ; <span class="function">emit events on <span class="built_in">stdout</span> <span class="title">writes</span> <span class="params">(<span class="keyword">default</span> <span class="literal">false</span>)</span>
-</span>;stderr_logfile=/a/path        ; 标准输出路径, NONE 为无; 默认 AUTO
-;stderr_logfile_maxbytes=<span class="number">1</span>MB   ; 错误日志文件最大值，默认 <span class="number">50</span>MB
-;stderr_logfile_backups=<span class="number">10</span>     ; 错误日志文件备份时间，默认 <span class="number">10</span>
-;stderr_capture_maxbytes=<span class="number">1</span>MB   ; capturemode大小，默认 <span class="number">0</span>
-;stderr_events_enabled=<span class="literal">false</span>   ; <span class="function">emit events on <span class="built_in">stderr</span> <span class="title">writes</span> <span class="params">(<span class="keyword">default</span> <span class="literal">false</span>)</span>
-</span>;environment=A=<span class="string">"1"</span>,B=<span class="string">"2"</span>       ; <span class="function">process environment <span class="title">additions</span> <span class="params">(def no adds)</span>
-</span>;serverurl=AUTO                ; <span class="function">override serverurl <span class="title">computation</span> <span class="params">(childutils)</span>
-
-</span>;配置样例
-[program:crop]
-command=python /alidata/python/CropUp.py    
-process_name=%(program_name)s
-stdout_logfile=/alidata/python/crop.<span class="built_in">log</span>
-stderr_logfile=/alidata/python/crop.<span class="built_in">log</span>
-stdout_logfile_maxbytes=<span class="number">1</span>MB
-stdout_logfile_backups=<span class="number">10</span>
-stderr_logfile_maxbytes=<span class="number">1</span>MB
-stderr_logfile_backups=<span class="number">10</span>
-</code></pre><h2 id="开始使用">开始使用</h2><p>确认上面的配置无误后启动：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ supervisord -c /etc/supervisord.conf</span><br></pre></td></tr></table></figure>
-<p>几种控制命令：</p>
-<pre><code>supervisorctl <span class="keyword">status</span> crop   任务状态
-supervisorctl <span class="keyword">stop</span> crop     停止任务
-supervisorctl start crop    开启任务
-supervisorctl reload        重载
-</code></pre></span>
+        <span itemprop="articleBody"><h2 id="Actors">Actors</h2><p>Actors是为构建Akka应用提供的最基本结构.Actors提供了构建位置透明,分布式,高容错应用的高级抽象.具体提供了以下资料:</p>
+<ul>
+<li>为并发和并行提供了简单高级的的抽象工具</li>
+<li>异步/无阻塞/事件驱动的编程模型(使用消息)</li>
+<li>轻量级事件驱动进程</li>
+</ul>
+<p>Actors是封装状态和行为的对象.一个actor可以通过发送消息来改变其他actor的状态,从actor模型看,actor是一个响应接收到的消息的计算单元,然后回复消息或发送消息给其他actor.Actors之间通过各自邮箱的地址进行通信,并且通信是异步无阻塞的,并且只响应发送给他们的消息.<br>一个actor的生命周期大致可以由以下几部分组成:</p>
+<ul>
+<li>Actor初始化并启动</li>
+<li>Actor接收并使用特定的行为处理消息</li>
+<li>Actor接收到一个终止消息时关闭自己</li>
+</ul>
+<p>Akka提供额外的hook来对生命周期进行管理:</p>
+<ul>
+<li>preStart()和postStop()用于执行初始化或清理actor处理消息时所使用的资源</li>
+<li>preRestart()和postRestart()用于管理异常发生时actor的状态或者作为actor的守护进程对actor进行监控</li>
+</ul>
+<h3 id="定义一个actor">定义一个actor</h3><p>定义一个actor只需要继承自Actor然后实现用于处理消息的必要抽象方法:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">MyActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span> 
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="comment">// behaviors</span>
+  }
+}
+</code></pre><h3 id="创建actor">创建actor</h3><p>一旦一个actor定义完成,就可以创建并启动它.所有的actor都创建于一个actor系统的上下文或其他actor中,创建后会立即启动,在接收和处理消息之前,actor会执行一个preStart()方法用于actor所有必要的初始化动作.<br>Akka提供了一个Props结构用于创建actor,Props是一个配置类,以应用于各种他所需要的配置和actor.</p>
+<h3 id="actor默认结构">actor默认结构</h3><pre><code>val system = <span class="function"><span class="title">ActorSystem</span><span class="params">(<span class="string">"MyActorSystem"</span>)</span></span>
+val myActor = system.<span class="function"><span class="title">actorOf</span><span class="params">(Props[MyActor], name = <span class="string">"myActor"</span>)</span></span>
+</code></pre><p>为了创建一个actor,我们创建了一个actor系统然后调用actorOf()方法.actorOf()方法接收两个参数,第一是Props对象,第二和是一个字符串类型的actor名称,这个名称需要全局唯一,Props对象接收了一个用于初始化和启动的Actor类对象,actor被实例化后会立即启动.<br>实例化的Actor使用ActorRef保持,ActorRef提供一个不可变且可串行的底层actor句柄.本质上说,ActorRef是对actor的封装,只能支持到actor的消息传递.每个actor可以通过self字段访问自身实例的引用.</p>
+<h3 id="actor非默认结构">actor非默认结构</h3><p>首先定义一个简单的actor:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">MyActor</span>(</span>initialise:<span class="type">Int</span>) <span class="keyword">extends</span> <span class="type">Actor</span> { 
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+  }
+}
+</code></pre><p>然后使用非默认结构的方式创建actor:</p>
+<pre><code>val system = <span class="function"><span class="title">ActorSystem</span><span class="params">(<span class="string">"MyActorSystem"</span>)</span></span>
+val myActor = system.<span class="function"><span class="title">actorOf</span><span class="params">(Props(new MyActor(<span class="number">10</span>)</span></span>), name = <span class="string">"myActor"</span>)
+</code></pre><h3 id="使用分层结构创建actor">使用分层结构创建actor</h3><p>在一个actor对象内部使用parent context创建一个子actor.</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">SupervisorActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">myWorkerActor</span> =</span> context.actorOf(<span class="type">Props</span>[<span class="type">MyWorkerActor</span>], <span class="string">"myWorkerActor"</span> )
+}
+</code></pre><h3 id="消息模型">消息模型</h3><p>actor模型的前提是关于消息通信,actor的状态响应或回复基于传递给他的消息.所有的消息传递都是不可变的,如果你发送可变的消息给actor,actor可能行为怪异,因为他们共享了可变的消息.</p>
+<h2 id="发送消息">发送消息</h2><p>一旦actor的引用可用,消息就可以按如下方式在两个actor之间传递:</p>
+<ul>
+<li>Fire and forget:这是一个单向的消息模型,发送者不会等待接收者的回复,消息以异步方式发送,发送方法调用后会立即返回,使用tell()方法实现这种消息模式</li>
+<li>Send and receive:这种模式下发送者会等待接收者的回复,消息被异步的发送然后返回一个Future,一个可能的回复.使用ask()方法实现.</li>
+</ul>
+<h3 id="tell">tell</h3><pre><code>actor ! msg
+actor.<span class="function"><span class="title">tell</span><span class="params">(msg)</span></span>
+actor tell msg
+</code></pre><h3 id="ask">ask</h3><h2 id="接收消息">接收消息</h2><pre><code><span class="class"><span class="keyword">class</span> <span class="title">DemoActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">ActorLogging</span> {</span> 
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> message:<span class="type">String</span> =&gt;
+      log. info(<span class="string">"Message Received by Actor -&gt; {}"</span>,message)
+    <span class="keyword">case</span> _ =&gt; log.info(<span class="string">"unknown message"</span>) 
+  }
+}
+</code></pre><h2 id="回复消息">回复消息</h2><pre><code>def receive = {
+  case <span class="keyword">message</span>:<span class="keyword">String</span> =&gt;
+    sender ! (<span class="keyword">message</span> + <span class="string">"world"</span>)
+}
+</code></pre><h2 id="将来的消息">将来的消息</h2><p>有时,actor会被当做一个forwarding agent,如果一个actor被实现为提供路由/负载均衡/分片时,传入的actor会被转发给目标actor.这种情况下非常重要的是原始sender的引用维持和对目标actor的消息发送,以确保消息回复给原始sender引用而不是转发者.</p>
+<pre><code>actor.<span class="function"><span class="title">forward</span><span class="params">(message)</span></span>
+</code></pre><h2 id="停止Actor">停止Actor</h2><p>Actor的停止过程:</p>
+<ul>
+<li>停止处理邮箱中的消息</li>
+<li>向所哟子actor发送STOP信号</li>
+<li>等待所有子actor的终止消息</li>
+<li>调用自身终止进程<ul>
+<li>调用postStop()方法</li>
+<li>dump附属的邮箱</li>
+<li>向DeathWatch发布终止消息</li>
+<li>向监管者通报终止信息</li>
+</ul>
+</li>
+</ul>
+<h2 id="杀死Actor">杀死Actor</h2><pre><code>actor ! <span class="built_in">kill</span>
+</code></pre><h2 id="热插拔">热插拔</h2><p>become()和unbecome()</p>
+</span>
       
     </div>
 
@@ -248,9 +269,9 @@ supervisorctl reload        重载
       
         <div class="post-tags">
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/akka/" rel="tag">#akka</a>
           
-            <a href="/tags/supervisor/" rel="tag">#supervisor</a>
+            <a href="/tags/scala/" rel="tag">#scala</a>
           
         </div>
       
@@ -259,13 +280,13 @@ supervisorctl reload        重载
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/09/29/Reading-List/" rel="prev">Reading List</a>
+              <a href="/2015/10/09/Simple-Akka-Akka-Essentials-Dispatchers-and-Routers/" rel="prev">Simple Akka: Akka Essentials - Dispatchers and Routers</a>
             
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-Setup-on-centos/" rel="next">Simple Python: Setup on centos</a>
+              <a href="/2015/10/08/Simple-Akka-Akka-Essentials-Starting-with-Akka/" rel="next">Simple Akka: Akka Essentials - Starting with Akka</a>
             
           </div>
         </div>
@@ -369,7 +390,7 @@ supervisorctl reload        重载
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装supervisor"><span class="nav-number">2.</span> <span class="nav-text">安装supervisor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开始使用"><span class="nav-number">3.</span> <span class="nav-text">开始使用</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Actors"><span class="nav-number">1.</span> <span class="nav-text">Actors</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定义一个actor"><span class="nav-number">1.1.</span> <span class="nav-text">定义一个actor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建actor"><span class="nav-number">1.2.</span> <span class="nav-text">创建actor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#actor默认结构"><span class="nav-number">1.3.</span> <span class="nav-text">actor默认结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#actor非默认结构"><span class="nav-number">1.4.</span> <span class="nav-text">actor非默认结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用分层结构创建actor"><span class="nav-number">1.5.</span> <span class="nav-text">使用分层结构创建actor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#消息模型"><span class="nav-number">1.6.</span> <span class="nav-text">消息模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发送消息"><span class="nav-number">2.</span> <span class="nav-text">发送消息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#tell"><span class="nav-number">2.1.</span> <span class="nav-text">tell</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ask"><span class="nav-number">2.2.</span> <span class="nav-text">ask</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接收消息"><span class="nav-number">3.</span> <span class="nav-text">接收消息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#回复消息"><span class="nav-number">4.</span> <span class="nav-text">回复消息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#将来的消息"><span class="nav-number">5.</span> <span class="nav-text">将来的消息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#停止Actor"><span class="nav-number">6.</span> <span class="nav-text">停止Actor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#杀死Actor"><span class="nav-number">7.</span> <span class="nav-text">杀死Actor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#热插拔"><span class="nav-number">8.</span> <span class="nav-text">热插拔</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

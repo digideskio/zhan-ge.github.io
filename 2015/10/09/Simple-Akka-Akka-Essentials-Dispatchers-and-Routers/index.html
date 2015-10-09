@@ -1,0 +1,765 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="akka,scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Akka精要-Dispatchers and Routers.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Akka: Akka Essentials - Dispatchers and Routers">
+<meta property="og:url" content="http://yoursite.com/2015/10/09/Simple-Akka-Akka-Essentials-Dispatchers-and-Routers/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Akka精要-Dispatchers and Routers.">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/airport.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/akka-dis1.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Dispatcher.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Pinned-dispatcher.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Balancing-dispatcher.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/MailBoxType.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/router-actor.png">
+<meta property="og:updated_time" content="2015-10-09T08:15:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Akka: Akka Essentials - Dispatchers and Routers">
+<meta name="twitter:description" content="Akka精要-Dispatchers and Routers.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Akka: Akka Essentials - Dispatchers and Routers | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Akka: Akka Essentials - Dispatchers and Routers
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2015-10-09T12:29:21+08:00" content="2015-10-09">
+            2015-10-09
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="Dispatchers(调度器)">Dispatchers(调度器)</h2><p>真实世界中,调度器是负责消息收发的沟通协调员,在紧急服务中,调度员负责在调度中将消息传递给其他部门(医疗/警察/消费/其他)的人,调度员负责协调所有这些部门的路线和活动,以确保帮助能够尽快正确的到达目的地.</p>
+<h3 id="调度器作为一种模式">调度器作为一种模式</h3><p>调度程序是java程序中公认和使用的的模式.调度程序用于控制执行流.调度器基于调度策略将传入的消息或请求路由给业务流程.作为一种模式的调度器有如下优点:</p>
+<ul>
+<li>Centralized control(集中控制):调度器提供一个消息/请求集中处理的中心.这个”集中”是指代码的重复使用,提高可维护性并减少代码重复.</li>
+<li>Application partitioning(应用程序分区):使业务逻辑和显式逻辑清晰分离.</li>
+<li>Reduced inter-dependencies(减少依赖关系):显式逻辑与业务逻辑分离意味着两者的依赖关系减少,这意味着更少的争用相同资源,从而构建一种可扩展模型.</li>
+</ul>
+<p>调度员作为一种概念在程序中提供集中的控制机制,减少相互间的依赖关系从而将不同的处理逻辑分离.</p>
+<h2 id="Java中的Executor">Java中的Executor</h2><p>在Akka中,dispatchers基于java的执行框架(一部分是java.util.concurrent),Executor提供了用于执行异步任务的框架,它基于生产者-消费者模型,这意味着被分为任务提交行为和任务执行行为.提交和执行任务是不同的线程.</p>
+<p>两种非常重要的执行器框架:</p>
+<ul>
+<li>ThreadPoolExecutor: 使用根据配置预定义的线程池中的线程执行每个提交的任务.</li>
+<li>ForkJoinPool: 使用同样的线程池模型但是辅以work-stealing模式.所有在池中的线程尝试去执行其他线程创建的子任务,这样就很少有线程处于空闲状态,非常高效。</li>
+</ul>
+<p>Executor被构造成可以自定义和控制任务的执行方式.使用Executor的控制结构:</p>
+<ul>
+<li>线程池大小</li>
+<li>如何在处理该任务前将任务列队</li>
+<li>多少个任务可以同时执行</li>
+<li>如果系统过载,被选中的任务被拒绝怎么办</li>
+<li>什么样的任务执行顺序(LIFO/FIFO/other)</li>
+<li>可以运行什么样的pre-和post-任务</li>
+</ul>
+<h2 id="Akka中的Dispatchers">Akka中的Dispatchers</h2><p>在Akka中,调度器负责消息与映射到底层线程的Actor之间的调度.他们要确保资源进行优化，并尽可能快地处理消息.阿卡提供多个可以根据底层硬件资源(核心或可用内存的大小)和应用程序工作负载类型定制的调度策略.</p>
+<p>如果我们把机场的例子映射到Akka,则机场跑道被映射为线程,不同组的航线被映射为包含消息的各个邮箱,控制塔则被映射为调度器.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/airport.png" alt="airport" title="airport"></p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/akka-dis1.png" alt="akka-dis1" title="akka-dis1"></p>
+<p>调度器运行于线程中,将actor和来自附加邮箱的邮件和向执行者线程堆上分配。执行器线程配置和调到底层的处理器内核,用于处理消息。</p>
+<h3 id="Dispatchers类型">Dispatchers类型</h3><p>Akka中提供四种调度器框架:</p>
+<ul>
+<li>Dispatcher</li>
+<li>Pinned dispatcher</li>
+<li>Balancing dispatcher</li>
+<li>Calling thread dispatcher</li>
+</ul>
+<p>同时提供四种邮箱:</p>
+<ul>
+<li>Unbounded mailbox</li>
+<li>Bounded mailbox</li>
+<li>Unbounded priority mailbox</li>
+<li>Bounded priority mailbox</li>
+</ul>
+<p>Akka支持用户自己实现不同的调度器和邮箱类型.</p>
+<h2 id="Dispatcher">Dispatcher</h2><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Dispatcher.png" alt="Dispatcher" title="Dispatcher"></p>
+<p>如果没有任何配置选项时,akka将使用Dispatcher作为默认的调度器.这是一种基于事件的调度器,通过BlockingQueue方法将一组actor绑定到线程池.<br>Dispatcher提供的特性:</p>
+<ul>
+<li>每个actor都有自己的邮箱</li>
+<li>调度器可以被任意数量的actor共享</li>
+<li>同时支持thread-pool/fork-join-pool</li>
+<li>针对非阻塞代码进行了优化</li>
+</ul>
+<h2 id="Pinned_dispatcher">Pinned dispatcher</h2><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Pinned-dispatcher.png" alt="Pinned-dispatcher" title="Pinned-dispatcher"></p>
+<p>这种调度器为每个actor创建一个单一专用的线程.这种调度器适用于actor执行IO操作或长时间的运行计算.当线程处于一段时间的非活动状态后将解除与actor的绑定.<br>特性:</p>
+<ul>
+<li>每个actor都有自己的邮箱</li>
+<li>每个actor都有单独的线程意味着该调度器不能与其他actor共享</li>
+<li>支持thread pool executor</li>
+<li>调度程序为阻塞操作进行额优化,例如.如果代码使用I/O调用或数据库调用,此类行为者将等待直到完成任务.对于这种阻塞的操作，固定的调度性能优于默认调度。</li>
+</ul>
+<h2 id="Balancing_dispatcher">Balancing dispatcher</h2><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Balancing-dispatcher.png" alt="Balancing-dispatcher" title="Balancing-dispatcher"></p>
+<p>负载均衡调度器,基于事件的将消息在繁忙和空闲的actor之间平衡调度.只能用于所有的actor都是相同类型的.这种任务的重新分配类似于ForkJoinPool中的work-stealing技术,这种调度器寻找空闲的actor然后把任务分配给他进行处理.<br>特性:</p>
+<ul>
+<li>所有actor公用一个邮箱</li>
+<li>这种调度器只能被同一种actor共享</li>
+<li>同时支持thread-pool/fork-join-pool</li>
+</ul>
+<h2 id="Calling_thread_dispatcher">Calling thread dispatcher</h2><p>这种调度器主要用于测试.调度器只在当前线程上执行任务.它不会创建任何新的线程并且提供确定性的执行顺序.<br>特性:</p>
+<ul>
+<li>每个actor都有各自的邮箱</li>
+<li>可以被任意数量的actor共享</li>
+<li>支持calling thread</li>
+</ul>
+<h2 id="邮箱类型">邮箱类型</h2><p>邮箱是根据java并发包种的queue实现的.队列特征有如下两种:</p>
+<ul>
+<li>Blocking queue:阻塞队列意味着在向队列中填充元素时等待空间可用,同时从队列检索元素时会等待队列变成非空.</li>
+<li>Bounded queue:界限队列意味着队列有一个最小值,添加的元素数量不能超过预期的设置值.</li>
+</ul>
+<p>Akka中的队列实现都基于下面的blocking/bounded代理:<br><img src="http://7xiwca.com1.z0.glb.clouddn.com/MailBoxType.png" alt="MailBoxType" title="MailBoxType"></p>
+<h2 id="Dispatcher用法">Dispatcher用法</h2><ul>
+<li>Thread pool executor:首先创建一个工作线程池,任务通过队列分配到线程池.如果任务数量超过线程数量,任务将会被排队直到线程池中出现可用线程,工作线程最小化分配/解锁线程的开销.</li>
+<li>Fork join executor:这种思路基于分治的思想,把一项大任务分解成更小的任务,让后将结果组合成最终的答案,所有的任务需要能够独立并行运行.</li>
+</ul>
+<p>对于每种执行唤醒,akka都提供自定义配置以定义和构造底层资源:</p>
+<ul>
+<li>可分配的最小线程数</li>
+<li>可分配的最大线程数</li>
+<li>将要使用的乘数因子(取决于CPU核心数)</li>
+</ul>
+<p>比如最小线程数是3因子是2,则调度器启动6个线程,最大线程数定义了线程数上限,如果最大线程数是8,则最多可创建8 * 2 = 16个线程.</p>
+<h2 id="Thread_pool_executor">Thread pool executor</h2><p>下面是Thread pool需要配置的参数:</p>
+<pre><code><span class="preprocessor"># Configuration for the thread pool</span>
+thread-pool-executor {
+<span class="preprocessor"># minimum number of threads</span>
+core-pool-size-min = <span class="number">2</span>
+<span class="preprocessor"># available processors * factor</span>
+core-pool-size-factor = <span class="number">2.0</span>
+<span class="preprocessor"># maximum number of threads</span>
+core-pool-size-max = <span class="number">10</span>
+}
+</code></pre><h2 id="Fork_join_executor">Fork join executor</h2><p>下面是Fork join需要配置的参数:</p>
+<pre><code><span class="preprocessor"># Configuration for the fork join pool</span>
+fork-join-executor {
+<span class="preprocessor"># Min number of threads</span>
+parallelism-min = <span class="number">2</span>
+<span class="preprocessor"># available processors * factor</span>
+parallelism-factor = <span class="number">2.0</span>
+<span class="preprocessor"># Max number of threads</span>
+parallelism-max = <span class="number">10</span>
+}
+</code></pre><p>根据调度器和支持的执行器的不同,还有一些其他的参数与前面的参数同时进行配置:</p>
+<table border="1"><br><tr><br>    <td>Parameter name</td><br>    <td>Description</td><br>    <td>Potential values</td><br></tr><br><tr><br>    <td>type</td><br>    <td>标识事件类型调度程序正在使用的名称</td><br>    <td>Dispatcher/PinnedDispatcher/BalancingDispatcher/FQCN of a class extending MessageDispatcherConfigurato</td><br></tr><br><tr><br>    <td>executor</td><br>    <td>使用何种executor服务</td><br>    <td>fork-join-executor/thread-pool-executor/FQCN of a class extending ExecutorServiceConfigurator</td><br></tr><br><tr><br>    <td>fork-joinexecutor</td><br>    <td>fork-join-executor parameters</td><br>    <td></td><br></tr><br><tr><br>    <td>thread-poolexecutor</td><br>    <td>Rthread-pool-executor parameters</td><br>    <td></td><br></tr><br><tr><br>    <td>throughput</td><br>    <td>线程在跳到下个线程之前当前actor能够处理的消息的最大数量</td><br>    <td>1</td><br></tr> <tr><br>    <td>Rmailboxcapacity(可选)</td><br>    <td>actor队列的邮箱容量</td><br>    <td>Negative (or zero) implies usage of an unbounded mailbox (default). A positive number implies bounded mailbox and with the specified size.</td><br></tr> <tr><br>    <td>mailbox-type</td><br>    <td>要使用的邮箱类型</td><br>    <td>Bounded or unbounded mailbox used if nothing is specified (dependent on mailbox capacity) or FQCN of the mailbox implementation</td><br></tr><br></table>
+
+<p>application.conf文件中关于Dispatcher的配置样例:</p>
+<pre><code>my-dispatcher {
+type = Dispatcher
+executor = <span class="string">"fork-join-executor"</span>
+fork-join-executor {
+parallelism-min = <span class="number">2</span>
+parallelism-factor = <span class="number">2.0</span>
+parallelism-max = <span class="number">10</span>
+}
+throughput = <span class="number">100</span>
+mailbox-capacity = -<span class="number">1</span>
+mailbox-type =<span class="string">""</span>
+}
+</code></pre><p>或者PinnedDispatcher的样例:</p>
+<pre><code>my-dispatcher {
+type = PinnedDispatcher 
+
+executor = <span class="string">"thread-pool-executor"</span>
+thread-pool-executor {
+core-pool-size-min = <span class="number">2</span>
+core-pool-size-factor = <span class="number">2.0</span>
+core-pool-size-max = <span class="number">10</span>
+}
+throughput = <span class="number">100</span>
+mailbox-capacity = -<span class="number">1</span>
+mailbox-type =<span class="string">""</span>
+}
+</code></pre><p>下面是应用性能的关键参数:</p>
+<ul>
+<li>Choice of dispatcher:基于actor执行的活动类型选择正确的调度器.根据阻塞或非阻塞操作,同质或不同质的actor类型,选择合适的调度器.</li>
+<li>Choice of executor:thread pool和fork join的选择取决于应用程序的逻辑特点,通常是伴随着默认调度器或者负载均衡调度器的选择.通常来说fork join是比较常用的,因为可以有大量的任务被同时执行.</li>
+<li>Number of threads (min/max) factored to the CPU cores:调度器的最大最小线程数映射到底层CPU核心数以确定应用的处理能力,定义太高的话线程会做大量的上下文切换,太少的话处理能力不能充分优化.</li>
+<li>Throughput factor:用于设置一个actor一次处理邮件的数量.比如是50,actor则会处理50的消息之后返回线程池.同时其他actor将会等待线程可用以开始处理他们各自的消息.这个选项的设置取决于每种消息的处理时长.</li>
+</ul>
+<p>一旦完成 application.conf中的调度器配置,应用程序需要只能哪个actor用哪种调度策略.使用正确的调度器和执行器组合构建调度策略,可以定义不同组的actor然后给不同的actor分配不同的调度策略.</p>
+<pre><code>val _system = <span class="function"><span class="title">ActorSystem</span><span class="params">(<span class="string">"dispatcher"</span>, ConfigFactory.load()</span></span><span class="class">.getConfig</span> (<span class="string">"MyDispatcherExample"</span>))
+val actor = _system.<span class="function"><span class="title">actorOf</span><span class="params">(Props[MsgEchoActor].withDispatcher (<span class="string">"my-dispatcher"</span>)</span></span>)
+</code></pre><p>当定义actor的时候,Props提供了withDispatcher()方法,通过提供一个application.conf中定义的调度器名进行调用.<br>可以通过一个调度器配置创建一个actor的多个实例.调度器通常使用akka提供的路由功能进行连接.</p>
+<h2 id="Routers">Routers</h2><p>当巨大数量的actor并行运行以处理进入的消息流,需要一种实体将消息从源导向目标actor,这种实体称为路由器.<br>在Akka中,router是一种将消息路由到其他actor的的actor,对于router来说,这些外部的actor被称为routees,router使用不同的算法集将消息路由到routees.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/router-actor.png" alt="router-actor" title="router-actor"></p>
+<p>Akka默认支持一下集中路由机制:</p>
+<ul>
+<li>Round robin router:将传入消息按循环顺序路由到所有路径</li>
+<li>Random router:将传入消息按随机选择路由到路径</li>
+<li>Smallest mailbox router:将消息路由到邮箱中消息数量最少的路径</li>
+<li>Broadcast router:将同一个消息发给所有actor</li>
+<li>Scatter gather first completed router:将消息forward给所有路径成一个Future,无论哪个路径响应,立即将结果返回给调用者</li>
+</ul>
+<h2 id="Router用法">Router用法</h2><pre><code><span class="variable"><span class="keyword">val</span> router</span> = system.actorOf(Props[MyActor].withRouter
+  (RoundRobinRouter
+  (nrOfInstances = <span class="number">5</span>)) , name = <span class="string">"myRouterActor"</span>)
+</code></pre><p>在定义actor的时候提供一个router实例,此处是RoundRobinRouter,结构中包含了一个实例数量用于创建路由的routees.其他router类型也会以这样的方式创建.</p>
+<p>多种不同router的创建方式:</p>
+<table border="1"><br><tr><br>    <td>Router type</td><br>    <td>Usage</td><br></tr><br><tr><br>    <td>RoundRobinRouter</td><br>    <td>val router = system.actorOf(Props[MyActor].withRouter(RoundRobinRouter(nrOfInstances = 5)))</td><br></tr> <tr><br>    <td>RandomRouter</td><br>    <td>val router = system.actorOf(Props[MyActor].withRouter(RandomRouter(nrOfInstances = 5)))</td><br></tr> <tr><br>    <td>SmallestMailbox Router</td><br>    <td>val router = system.actorOf(Props[MyActor].withRouter(SmallestMailboxRouter(nrOfInstances = 5)))</td><br></tr> <tr><br>    <td>BroadcastRouter</td><br>    <td>val router = system.actorOf(Props[MyActor].withRouter(BroadcastRouter(nrOfInstances = 5)))</td><br></tr> <tr><br>    <td>ScatterGatherFirst CompletedRouter</td><br>    <td>val router = system.actorOf(Props[MyActor].withRouter(ScatterGatherFirstCompletedRouter(nrOfInstances = 5, within = 5 seconds)))</td><br></tr><br></table>
+
+<h2 id="Router的application-conf配置">Router的application.conf配置</h2><p>首先在application.conf进行配置:</p>
+<pre><code>MyRouterExample{
+akka.actor.deployment {
+/myRandomRouterActor {
+router = random
+nr-of-instances = <span class="number">5</span>
+}
+}
+}
+</code></pre><p>然后再ActorSystem中加载:</p>
+<pre><code>val _system = ActorSystem.<span class="function"><span class="title">create</span><span class="params">(<span class="string">"RandomRouterExample"</span>,ConfigFactory.load()</span></span>
+  .<span class="function"><span class="title">getConfig</span><span class="params">(<span class="string">"MyRouterExample"</span>)</span></span>)
+
+val randomRouter = _system.actorOf(Props[MsgEchoActor].
+  <span class="function"><span class="title">withRouter</span><span class="params">(FromConfig()</span></span>), name = <span class="string">"myRandomRouterActor"</span>)
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/akka/" rel="tag">#akka</a>
+          
+            <a href="/tags/scala/" rel="tag">#scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/09/Simple-Akka-Akka-Essentials-Actors/" rel="next">Simple Akka: Akka Essentials - Actors</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">31</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">17</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Dispatchers(调度器)"><span class="nav-number">1.</span> <span class="nav-text">Dispatchers(调度器)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#调度器作为一种模式"><span class="nav-number">1.1.</span> <span class="nav-text">调度器作为一种模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java中的Executor"><span class="nav-number">2.</span> <span class="nav-text">Java中的Executor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Akka中的Dispatchers"><span class="nav-number">3.</span> <span class="nav-text">Akka中的Dispatchers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Dispatchers类型"><span class="nav-number">3.1.</span> <span class="nav-text">Dispatchers类型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dispatcher"><span class="nav-number">4.</span> <span class="nav-text">Dispatcher</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pinned_dispatcher"><span class="nav-number">5.</span> <span class="nav-text">Pinned dispatcher</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Balancing_dispatcher"><span class="nav-number">6.</span> <span class="nav-text">Balancing dispatcher</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Calling_thread_dispatcher"><span class="nav-number">7.</span> <span class="nav-text">Calling thread dispatcher</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#邮箱类型"><span class="nav-number">8.</span> <span class="nav-text">邮箱类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dispatcher用法"><span class="nav-number">9.</span> <span class="nav-text">Dispatcher用法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Thread_pool_executor"><span class="nav-number">10.</span> <span class="nav-text">Thread pool executor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fork_join_executor"><span class="nav-number">11.</span> <span class="nav-text">Fork join executor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Routers"><span class="nav-number">12.</span> <span class="nav-text">Routers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Router用法"><span class="nav-number">13.</span> <span class="nav-text">Router用法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Router的application-conf配置"><span class="nav-number">14.</span> <span class="nav-text">Router的application.conf配置</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
