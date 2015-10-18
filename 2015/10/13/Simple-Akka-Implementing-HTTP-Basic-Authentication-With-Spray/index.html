@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="python," />
+  <meta name="keywords" content="akka,scala,spray," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="python人脸识别与图片裁剪。">
+<meta name="description" content="使用Spray实现用户验证.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Python: Face-aware image crop">
-<meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Python-Face-aware-image-crop/index.html">
+<meta property="og:title" content="Simple Akka: Implementing HTTP Basic Authentication With Spray">
+<meta property="og:url" content="http://yoursite.com/2015/10/13/Simple-Akka-Implementing-HTTP-Basic-Authentication-With-Spray/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="python人脸识别与图片裁剪。">
-<meta property="og:updated_time" content="2015-09-29T08:48:26.000Z">
+<meta property="og:description" content="使用Spray实现用户验证.">
+<meta property="og:updated_time" content="2015-10-18T13:43:21.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Python: Face-aware image crop">
-<meta name="twitter:description" content="python人脸识别与图片裁剪。">
+<meta name="twitter:title" content="Simple Akka: Implementing HTTP Basic Authentication With Spray">
+<meta name="twitter:description" content="使用Spray实现用户验证.">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Python: Face-aware image crop | Hexo </title>
+  <title> Simple Akka: Implementing HTTP Basic Authentication With Spray | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Python: Face-aware image crop
+              Simple Akka: Implementing HTTP Basic Authentication With Spray
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-29T16:45:07+08:00" content="2015-09-29">
-            2015-09-29
+          <time itemprop="dateCreated" datetime="2015-10-13T17:11:27+08:00" content="2015-10-13">
+            2015-10-13
           </time>
         </span>
 
@@ -185,73 +185,62 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Cropman是Github上一个开源的项目，基于opencv2，提供对图片的识别和裁剪的Python接口，<a href="https://github.com/ufoym/cropman" title="info" target="_blank" rel="external">项目地址</a>.</p>
-<p>项目主页给出了简单的使用方法，通过命令行接收需要处理的图片、裁剪的尺寸、需要保存的图片名，cropper.py为主文件。源程序首先识别图片检测图片中的人脸坐标，如果没有识别到人脸则返回原图片的中心点，如果检测到人脸，则根据返回的人脸坐标值(上左下右4个值)计算中心点，得到中心点后根据已提供的需要裁剪的尺寸计算实际的裁剪尺寸(以上一步得到中心点为中心点，给出的宽高为宽高，同时校验有效宽高)，返回相对于原图的裁剪坐标。</p>
-<h2 id="hack">hack</h2><p>稍作修改如下：</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">crop</span><span class="params">(self, img, target_width, target_height)</span>:</span>
-    original_height,  original_width = img.shape[:<span class="number">2</span>]
-    faces = self.detector.detect_faces(img)
-    <span class="keyword">if</span> len(faces) == <span class="number">0</span>:                         <span class="comment"># 未识别到人脸</span>
-        <span class="comment">#print 'No face'</span>
-        <span class="keyword">return</span> <span class="keyword">None</span>, <span class="keyword">None</span>, <span class="keyword">None</span>, <span class="keyword">None</span>
-    <span class="keyword">else</span>:                                       <span class="comment"># 识别到人脸</span>
-        top, left, bottom, right = self._bounding_rect(faces)
-        <span class="comment">#print 'Get face:', top, left, bottom, right</span>
-        <span class="keyword">return</span> top, left, bottom, right
-</code></pre><p>后续的程序中直接调用此方法来获取人脸识别后的坐标，因为人脸识别现阶段也没有100%有效的实现，此程序也只是对系统中图片处理中不足的一个补充，并不能完全依赖，需要结合实际的业务需求实现逻辑：</p>
-<pre><code>....
-<span class="decorator">@classmethod</span>
-<span class="function"><span class="keyword">def</span> <span class="title">crop</span><span class="params">(cls, size, scale, localname)</span>:</span>
-    original_width, original_height = size
-    <span class="keyword">if</span> scale == <span class="string">'4:3'</span>:
-        sx, sy, sx_max, sy_max = <span class="number">4</span>, <span class="number">3</span>, <span class="number">640</span>, <span class="number">480</span>
-    <span class="keyword">else</span>:
-        sx, sy, sx_max, sy_max = <span class="number">16</span>, <span class="number">9</span>, <span class="number">640</span>, <span class="number">360</span>
-    cropper = Cropper()
-    <span class="keyword">try</span>:
-        localname = cls.convert_img_to_jpg(localname)
-        input_image = cv2.imread(localname)
-    <span class="keyword">except</span> IOError:
-        input_image = <span class="keyword">None</span>
-    <span class="keyword">if</span> input_image <span class="keyword">is</span> <span class="keyword">None</span>:
-        <span class="keyword">return</span> <span class="keyword">None</span>
-    top, left, bottom, right = cropper.crop(input_image, original_width, original_height)
-    <span class="keyword">if</span> top:
-        <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1000</span>):
-            suit_x, suit_y = i * sx, i * sy
-            <span class="keyword">if</span> suit_x &gt; original_width <span class="keyword">or</span> suit_y &gt; original_height:
-                suit_x, suit_y = suit_x - <span class="number">4</span>, suit_y - <span class="number">3</span>
-                <span class="keyword">break</span>
-        bottom -= top/<span class="number">2</span>
-        x1 = int((original_width - suit_x)/<span class="number">2.0</span>)
-        y1 = int((bottom - suit_y)/<span class="number">2.0</span>) <span class="keyword">if</span> bottom &gt; suit_y <span class="keyword">else</span> <span class="number">0</span>
-        x2 = original_width - x1
-        y2 = (bottom - y1) <span class="keyword">if</span> bottom &gt; suit_y <span class="keyword">else</span> suit_y
-        input_image = input_image[y1:y2, x1:x2]
-        new_localname = RandomName.randomname()
-        <span class="keyword">try</span>:
-            cv2.imwrite(new_localname, input_image)
-            <span class="keyword">return</span> new_localname
-        <span class="keyword">except</span> IOError:
-            <span class="keyword">return</span> <span class="keyword">None</span>
-    <span class="keyword">else</span>:
-        <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1000</span>):
-            suit_x, suit_y = i * sx, i * sy
-            <span class="keyword">if</span> suit_x &gt; original_width <span class="keyword">or</span> suit_y &gt; original_height:
-                suit_x, suit_y = suit_x - <span class="number">4</span>, suit_y - <span class="number">3</span>
-                <span class="keyword">break</span>
-        x1 = int((original_width - suit_x)/<span class="number">2.0</span>) <span class="keyword">if</span> original_width &gt; suit_x <span class="keyword">else</span> <span class="number">0</span>
-        y1 = <span class="number">0</span>
-        x2 = original_width - x1 <span class="keyword">if</span> original_width &gt; suit_x <span class="keyword">else</span> suit_x
-        y2 = suit_y
-        input_image = input_image[y1:y2, x1:x2]
-        new_localname = RandomName.randomname()
-        <span class="keyword">try</span>:
-            cv2.imwrite(new_localname, input_image)
-            <span class="keyword">return</span> new_localname
-        <span class="keyword">except</span> IOError:
-            <span class="keyword">return</span> <span class="keyword">None</span>
-</code></pre></span>
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>本文介绍使用Spray实现基本的Http用户验证.</p>
+<h2 id="实现方式">实现方式</h2><p>实现用户验证的两个处理部分:</p>
+<ul>
+<li>Authentication:对用户的凭据进行验证(账号密码或SSL客户端证书),并创建一些类似的对象携带用户的信息.</li>
+<li>Authorization:使用该对象中包含的数据验证用户的操作权限.</li>
+</ul>
+<p>首先,使用一个ApiUser类来存储用户的登录账号和密码,或者另外存储一些类似用户名和Email的数据.然后使用scala-bcrypt来hash用户的密码,然后添加一个withPassword方法用于设置密码,一个passwordMatches方法用于检查给出的密码是否与用户密码匹配.hashedPassword是一个Option[String],因此可以设置为None来表示未登录的用户.</p>
+<pre><code><span class="tag">import</span> <span class="tag">com</span><span class="class">.github</span><span class="class">.t3hnar</span><span class="class">.bcrypt</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">org</span><span class="class">.mindrot</span><span class="class">.jbcrypt</span><span class="class">.BCrypt</span>
+
+<span class="tag">case</span> <span class="tag">class</span> <span class="tag">ApiUser</span>(<span class="rule"><span class="attribute">login</span>:<span class="value"> String, hashedPassword: Option[String] = None) {
+  def <span class="function">withPassword</span>(password: String) = copy (hashedPassword = <span class="function">Some</span>(password.<span class="function">bcrypt</span>(generateSalt)))
+
+  def <span class="function">passwordMatches</span>(password: String): Boolean = hashedPassword.<span class="function">exists</span>(hp =&gt; BCrypt.<span class="function">checkpw</span>(password, hp))
+}</span></span>
+</code></pre><p>另外创建一个类用于存储已登录用户的信息,以便验证用户执行操作的权限.使用一个case class从用户授权中存储用户的信息:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">AuthInfo</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">user</span>:</span> <span class="type">ApiUser</span>) {
+  <span class="function"><span class="keyword">def</span> <span class="title">hasPermission</span>(</span>permission: <span class="type">String</span>) = {
+      <span class="comment">// Code to verify whether user has the given permission      }</span>
+}
+</code></pre><p>现在只是用一个字符串来定义用户权限,当然实际上并不推荐这么做.<br>然后继续身份验证步骤.根据RFC 2617,当使用HTTP基本身份验证时客户端必须发送一个授权标头，如下:</p>
+<pre><code><span class="attribute">Authorization</span>: <span class="string">Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==</span>
+</code></pre><p>Basic后面跟的是userId和password,使用冒号分割并且使用base64编码.如果不提供Authorization头或者给出的userId和password不正确,服务器会返回一个401 Unauthorized状态吗.Spray提供了BasicAuth类来处理所有的自动身份验证指令结合.<br>在Spray文档中,authenticate指令可以接收一个Future[Authentication[T]]或者ContextAuthenticator[T].一个ContextAuthenticator方法用于接收一个RequestContext(其中包含所有请求信息)然后返回一个Future[Authentication[T]].由于我们需要请求数据进行用户验证,所以需要使用第二种方式.</p>
+<p>Spray提供一个继承自Authentication[T]的类BasicAuth,同时从Authorization头中解析账户和密码,但是我们需要提供一个功能用于自动用户验证然后返回一个Future[Option[T]].在我们的用例中,T是AuthInfo类,因此当账户密码有效时它需要返回一个包含Some(authInfo)的Future,无效则返回None.<br>创建一个特质来实现这样的功能,在路由或运行路由的Actor中使用会非常灵活:</p>
+<pre><code>trait Authenticator {
+  <span class="function"><span class="keyword">def</span> <span class="title">basicUserAuthenticator</span><span class="params">(implicit ec: ExecutionContext)</span>:</span> AuthMagnet[AuthInfo] = {
+    <span class="function"><span class="keyword">def</span> <span class="title">validateUser</span><span class="params">(userPass: Option[UserPass])</span>:</span> Option[AuthInfo] = {
+      <span class="keyword">for</span> {
+        p &lt;- userPass
+        user &lt;- Repository.apiUsers(p.user)
+        <span class="keyword">if</span> user.passwordMatches(p.<span class="keyword">pass</span>)
+      } <span class="keyword">yield</span> new AuthInfo(user)
+    }
+
+    <span class="function"><span class="keyword">def</span> <span class="title">authenticator</span><span class="params">(userPass: Option[UserPass])</span>:</span> Future[Option[AuthInfo]] = future { validateUser(userPass) }
+
+    BasicAuth(authenticator _, realm = <span class="string">"Private API"</span>)
+  }
+}
+</code></pre><p>在我程序中,Repository.apiUsers对象包含一个apply方法用于接收用户的登录信息然后返回一个Option[ApiUser],你可以根据你应用的需要替换为一个Slick查询或者请求一个LDAP服务.Spray中一个比较好的特性是所有事物都是Future,这些请求都会以异步的方式进行.</p>
+<p>这时,就可以在运行路由的Actor中混入这个特质,然后在需要用户登录的地方使用authenticator命令,authenticator会将一个由validateUser方法生成的AuthInfo对象当做参数发送到它自己的闭包,然后你就可以在路由中需要的地方进行使用.</p>
+<p>假如你需要更细粒度的用户权限验证有怎么办呢? 比如允许所有的用户GET一个特别的URI,但是只允许部分用户使用PUT和POST,这就是authorize命令的用途了.authorize命令接收一个名称,如果有对应动作的权限则返回true,否则为false,可以使用authInfo进行验证.</p>
+<pre><code>authenticate(basicUserAuthenticator) { authInfo =&gt;
+    path(<span class="string">"private"</span>) {
+        <span class="literal">get</span> {
+        <span class="comment">// All authenticated users can enter here</span>
+            complete(s<span class="string">"Hi, <span class="subst">${authInfo.user.login}</span>"</span>)}
+        post {
+            authorize(authInfo.hasPermission(<span class="string">"post"</span>) {
+            <span class="comment">// Only those users that have the "post" permission will be allowed in here}</span>
+        }
+    }
+}
+</code></pre><p>如果用户验证失败,Spray会自动返回”403 Forbidden”状态码.</p>
+<h2 id="参考文档">参考文档</h2><p><a href="http://www.tecnoguru.com/blog/2014/07/07/implementing-http-basic-authentication-with-spray/" title="info" target="_blank" rel="external">Mario Camou - Implementing HTTP Basic Authentication With Spray</a></p>
+</span>
       
     </div>
 
@@ -259,7 +248,11 @@
       
         <div class="post-tags">
           
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/akka/" rel="tag">#akka</a>
+          
+            <a href="/tags/scala/" rel="tag">#scala</a>
+          
+            <a href="/tags/spray/" rel="tag">#spray</a>
           
         </div>
       
@@ -268,13 +261,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-How-to-use-Redis-in-python/" rel="prev">Simple Python: How to use Redis in python</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Simple-Scala-Setup-on-CentOs/" rel="next">Simple Scala: Setup on CentOs</a>
+              <a href="/2015/10/09/Simple-Akka-Akka-Essentials-Dispatchers-and-Routers/" rel="next">Simple Akka: Akka Essentials - Dispatchers and Routers</a>
             
           </div>
         </div>
@@ -378,7 +369,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hack"><span class="nav-number">2.</span> <span class="nav-text">hack</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现方式"><span class="nav-number">2.</span> <span class="nav-text">实现方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文档"><span class="nav-number">3.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
