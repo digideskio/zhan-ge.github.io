@@ -1,0 +1,683 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Scala中的提取器.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: Extractor">
+<meta property="og:url" content="http://yoursite.com/2015/10/28/Simple-Scala-Extractor/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Scala中的提取器.">
+<meta property="og:updated_time" content="2015-10-28T00:48:52.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: Extractor">
+<meta name="twitter:description" content="Scala中的提取器.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: Extractor | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: Extractor
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2015-10-28T08:03:06+08:00" content="2015-10-28">
+            2015-10-28
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>模式匹配中经常结构各种数据结构,包括列表/流/样例类等,这种结构数据结构功能的实现,都要归功于提取器.</p>
+<p>提取器使用很广泛,具有与构造器相反的效果:构造器从给定的参数列表创建一个对象,而提取器却是从传递给他的对象中提取出构造该对象的参数.同时Scala标准库中包含了一些预定义的提取器.</p>
+<p>样例类比较特殊,Scala会为其创建一个半生对象:一个包含了apply和unapply方法的单例对象.apply用来创建样例类的实例,unapply需要被半生对象实现,以使其成为提取器.</p>
+<h2 id="第一个提取器">第一个提取器</h2><p>unapply方法可能不止有一种方法签名,不过,我们还是从最简单的开始,毕竟使用更广泛的还是只有一种方法签名的unapply.假设要创建一个User特质,还有两个类包含他,并带有一个字段:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">User</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">name</span>:</span> <span class="type">String</span>
+}
+<span class="class"><span class="keyword">class</span> <span class="title">FreeUser</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">name</span>:</span> <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">User</span>
+<span class="class"><span class="keyword">class</span> <span class="title">PremiumUser</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">name</span>:</span> <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">User</span>
+</code></pre><p>我们想再各自的伴生对象中实现FreeUser和PremiumUser类的提取器,就像Scala为样例类做得一样.如果想让样例类只支持从给定对象中提取单个参数,那unapply的方法签名看起来像这个样子:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">unapply</span><span class="params">(object: S)</span>:</span> Option[T]
+</code></pre><p>这个方法接受一个类型为S的对象,返回类型T的Option,T就是要提取的参数类型.</p>
+<p>下面实现为两个类实现提取器:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">User</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">name</span>:</span> <span class="type">String</span>
+}
+<span class="class"><span class="keyword">class</span> <span class="title">FreeUser</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">name</span>:</span> <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">User</span>
+<span class="class"><span class="keyword">class</span> <span class="title">PremiumUser</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">name</span>:</span> <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">User</span>
+<span class="class"><span class="keyword">object</span> <span class="title">FreeUser</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">unapply</span>(</span>user: <span class="type">FreeUser</span>): <span class="type">Option</span>[<span class="type">String</span>] = <span class="type">Some</span>(user.name)
+}
+<span class="class"><span class="keyword">object</span> <span class="title">PremiumUser</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">unapply</span>(</span>user: <span class="type">PremiumUser</span>): <span class="type">Option</span>[<span class="type">String</span>] = <span class="type">Some</span>(user.name)
+}
+</code></pre><p>现在就可以在REPL中调用他们了:</p>
+<pre><code>scala&gt; FreeUser.<span class="function"><span class="title">unapply</span><span class="params">(new FreeUser(<span class="string">"Daniel"</span>)</span></span>)
+res0: Option[String] = <span class="function"><span class="title">Some</span><span class="params">(Daniel)</span></span>
+</code></pre><p>如果调用返回的结果是 Some[T],说明提取模式匹配成功，如果是None,说明模式不匹配.<br>一般不会直接调用它,因为用于提取器模式时,Scala会隐式的调用提取器的apply方法:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">user</span>:</span> <span class="type">User</span> = <span class="keyword">new</span> <span class="type">PremiumUser</span>(<span class="string">"Daniel"</span>)
+user <span class="keyword">match</span> {
+    <span class="keyword">case</span> <span class="type">FreeUser</span>(name) =&gt; <span class="string">"Hello"</span> + name
+    <span class="keyword">case</span> <span class="type">PremiumUser</span>(name) =&gt; <span class="string">"Welcome back, dear"</span> + name
+}
+</code></pre><p>你会发现,两个提取器绝对不会返回None,这个例子展示的提取器比之前更有意义,如果你有一个类型不确定的对象,你可以同时检查其类型并解构.<br>上面的例子中,FreeUser并不会匹配,因为它接受的类型跟我们传递给他得不一样,这样,user对象就会被传递给第二个模式,也就是PremiumUser半生对象的unapply方法,而这个模式就会匹配成功,从而返回值就被绑定在name上了.</p>
+<h2 id="提取多个值">提取多个值</h2><p>现在,假设类有多个字段:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">User</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">name</span>:</span> <span class="type">String</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">score</span>:</span> <span class="type">Int</span>
+}
+<span class="class"><span class="keyword">class</span> <span class="title">FreeUser</span>(</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">name</span>:</span> <span class="type">String</span>,
+  <span class="function"><span class="keyword">val</span> <span class="title">score</span>:</span> <span class="type">Int</span>,
+  <span class="function"><span class="keyword">val</span> <span class="title">upgradeProbability</span>:</span> <span class="type">Double</span>
+) <span class="keyword">extends</span> <span class="type">User</span>
+<span class="class"><span class="keyword">class</span> <span class="title">PremiumUser</span>(</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">name</span>:</span> <span class="type">String</span>,
+  <span class="function"><span class="keyword">val</span> <span class="title">score</span>:</span> <span class="type">Int</span>
+) <span class="keyword">extends</span> <span class="type">User</span>
+</code></pre><p>如果想要结构出多个参数,那它的unapply方法就应该有这样的方法签名:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">unapply</span><span class="params">(object: S)</span>:</span> Option[(T1, ..., T2)]
+</code></pre><p>这个方法接受S类型的对象,返回类型参数为TupleN的Option实例,TupleN中的N是要提取的参数个数.</p>
+<p>修改类之后,提取器也要做对应的修改:</p>
+<pre><code>object FreeUser {
+  <span class="function"><span class="keyword">def</span> <span class="title">unapply</span><span class="params">(user: FreeUser)</span>:</span> Option[(String, Int, Double)] =
+    Some((user.name, user.score, user.upgradeProbability))
+}
+object PremiumUser {
+  <span class="function"><span class="keyword">def</span> <span class="title">unapply</span><span class="params">(user: PremiumUser)</span>:</span> Option[(String, Int)] =
+    Some((user.name, user.score))
+}
+</code></pre><p>现在就可以拿来做模式匹配了:</p>
+<pre><code>val user: User = <span class="keyword">new</span> FreeUser(<span class="string">"Daniel"</span>, <span class="number">3000</span>, <span class="number">0.7</span>d)
+user match {
+  <span class="function"><span class="keyword">case</span> <span class="title">FreeUser</span><span class="params">(name, _, p)</span> </span>=&gt;
+    <span class="keyword">if</span> (p &gt; <span class="number">0.75</span>) <span class="string">"$name, what can we do for you today?"</span>
+    <span class="keyword">else</span> <span class="string">"Hello $name"</span>
+  <span class="function"><span class="keyword">case</span> <span class="title">PremiumUser</span><span class="params">(name, _)</span> </span>=&gt;
+    <span class="string">"Welcome back, dear $name"</span>
+}
+</code></pre><h2 id="布尔提取器">布尔提取器</h2><p>有些时候,进行模式匹配并不是为了提取参数,而是为了检查是否匹配.这种情况下,第三种unapply方法签名就有用了.这个方法接受一个S类型的对象,返回一个布尔值:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">unapply</span><span class="params">(object: S)</span>:</span> Boolean
+</code></pre><p>使用的时候,如果这个提取器返回true,模式会匹配成功,否则,Scala会尝试那Object匹配下一个模式.</p>
+<p>上个例子存在一些代码逻辑,用来检查一个免费用户有没有可能被说服去升级他得账户.可以把这个逻辑放在一个单独的提取器中:</p>
+<pre><code>object premiumCandidate {
+  <span class="function"><span class="keyword">def</span> <span class="title">unapply</span><span class="params">(user: FreeUser)</span>:</span> Boolean = user.upgradeProbability &gt; <span class="number">0.75</span>
+}    
+</code></pre><p>你会发现,提取器不一定要在这个类的半生对象中定义.正如其定义一样,这个提取器的使用方法也很简单:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">user</span>:</span> <span class="type">User</span> = <span class="keyword">new</span> <span class="type">FreeUser</span>(<span class="string">"Daniel"</span>, <span class="number">2500</span>, <span class="number">0.8</span>d)
+user <span class="keyword">match</span> {
+  <span class="keyword">case</span> freeUser @ premiumCandidate() =&gt; initiateSpamProgram(freeUser)
+  <span class="keyword">case</span> _ =&gt; sendRegularNewsletter(user)
+}
+</code></pre><p>使用的时候,只需要把一个空的参数列表传递给提取器,因为它并不是真的需要提取数据,自然也就没有必要绑定变量.</p>
+<p>这个例子有一个看起来比较奇怪的地方： 我假设存在一个空想的 initiateSpamProgram 函数，其接受一个 FreeUser 对象作为参数。 模式可以与任何一种 User 类型的实例进行匹配，但 initiateSpamProgram 不行， 只有将实例强制转换为 FreeUser 类型， initiateSpamProgram 才能接受。</p>
+<p>因为如此，Scala 的模式匹配也允许将提取器匹配成功的实例绑定到一个变量上， 这个变量有着与提取器所接受的对象相同的类型。这通过 @ 操作符实现。 premiumCandidate 接受 FreeUser 对象，因此，变量 freeUser 的类型也就是 FreeUser 。</p>
+<p>布尔提取器的使用并没有那么频繁（就我自己的情况来说），但知道它存在也是很好的， 或迟或早，你会遇到一个使用布尔提取器的场景.</p>
+<h2 id="中缀表达方式">中缀表达方式</h2><p>解构列表、流的方法与创建它们的方法类似，都是使用 cons 操作符： :: 、 #:: ，比如：</p>
+<pre><code>val xs = <span class="number">58</span> <span class="preprocessor">#:: <span class="number">43</span> #:: <span class="number">93</span> #:: Stream.empty</span>
+xs match {
+  <span class="keyword">case</span> first <span class="preprocessor">#:: second #:: _ =&gt; first - second</span>
+  <span class="keyword">case</span> _ =&gt; -<span class="number">1</span>
+}
+</code></pre><p>你可能会对这种做法产生困惑。 除了我们已经见过的提取器用法，Scala 还允许以中缀方式来使用提取器。 所以，我们可以写成 e(p1, p2) ，也可以写成 p1 e p2 ， 其中 e 是提取器， p1 、 p2 是要提取的参数。</p>
+<p>同样，中缀操作方式的 head #:: tail 可以被写成 #::(head, tail) ， 提取器 PremiumUser 可以这样使用： name PremiumUser score 。 当然，这样做并没有什么实践意义。 一般来说，只有当一个提取器看起来真的像操作符，才推荐以中缀操作方式来使用它。 所以，列表和流的 cons 操作符一般使用中缀表达，而 PreimumUser 则不用。</p>
+<h2 id="进一步看流提取器">进一步看流提取器</h2><p>尽管 #:: 提取器在模式匹配中的使用并没有什么特殊的， 但是，为了更好的理解上面的代码，还是进一步来分析一下。 而且，这是一个很好的例子，根据要匹配的数据结构的状态，提取器很可能返回 None 。<br>如下是 Scala 2.9.2 源代码中完整的 #:: 提取器代码：</p>
+<pre><code>object <span class="comment">#:: {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">unapply</span>[<span class="title">A</span>]<span class="params">(xs: Stream[A])</span>:</span> Option[(A, Stream[A]) =
+    <span class="keyword">if</span> (xs.isEmpty) <span class="keyword">None</span>
+    <span class="keyword">else</span> Some((xs.head, xs.tail))
+}
+</code></pre><p>如果给定的流是空的，提取器就直接返回 None 。 因此， case head #:: tail 就不会匹配任何空的流。 否则，就会返回一个 Tuple2 ，其第一个元素是流的头，第二个元素是流的尾，尾本身又是一个流。 这样， case head #:: tail 就会匹配有一个或多个元素的流。 如果只有一个元素， tail 就会被绑定成空流。</p>
+<p>为了理解流提取器是怎么在模式匹配中工作的，重写上面的例子，把它从中缀写法转成普通的提取器模式写法：</p>
+<pre><code>val xs = <span class="number">58</span> <span class="preprocessor">#:: <span class="number">43</span> #:: <span class="number">93</span> #:: Stream.empty</span>
+xs match {
+  <span class="keyword">case</span> <span class="preprocessor">#::(first, #::(second, _)) =&gt; first - second</span>
+  <span class="keyword">case</span> _ =&gt; -<span class="number">1</span>
+}
+</code></pre><p>首先为传递给模式匹配的初始流 xs 调用提取器。 由于提取器返回 Some(xs.head, xs.tail) ，从而 first 会绑定成 58， xs 的尾会继续传递给提取器，提取器再一次被调用，返回首和尾， second 就被绑定成 43 ， 而尾就绑定到通配符 _ ，被直接扔掉了。</p>
+<h2 id="参考">参考</h2><p><a href="https://windor.gitbooks.io/beginners-guide-to-scala/content/chp1-extractors.html" title="info" target="_blank" rel="external">参考链接</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/scala/" rel="tag">#scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/10/25/Best-practice-for-Java/" rel="next">Best practice for Java</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">36</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">19</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一个提取器"><span class="nav-number">2.</span> <span class="nav-text">第一个提取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提取多个值"><span class="nav-number">3.</span> <span class="nav-text">提取多个值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#布尔提取器"><span class="nav-number">4.</span> <span class="nav-text">布尔提取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中缀表达方式"><span class="nav-number">5.</span> <span class="nav-text">中缀表达方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进一步看流提取器"><span class="nav-number">6.</span> <span class="nav-text">进一步看流提取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
