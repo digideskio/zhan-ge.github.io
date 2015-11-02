@@ -1,0 +1,996 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="PostgreSQL,scala,slick," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="使用Slick与PostgreSQL数据库交互.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: Slick with PostgreSQL">
+<meta property="og:url" content="http://yoursite.com/2015/11/02/Simple-Scala-Slick-with-PostgreSQL/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="使用Slick与PostgreSQL数据库交互.">
+<meta property="og:updated_time" content="2015-11-02T08:27:19.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: Slick with PostgreSQL">
+<meta name="twitter:description" content="使用Slick与PostgreSQL数据库交互.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: Slick with PostgreSQL | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: Slick with PostgreSQL
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2015-11-02T10:12:38+08:00" content="2015-11-02">
+            2015-11-02
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Slick意思是“Scala Language-Integrated Connection Kit”,支持与多个数据库的交互:</p>
+<pre><code>DB2 <span class="list">(<span class="keyword">via</span> slick-extensions)</span>
+Derby/JavaDB
+H2
+HSQLDB/HyperSQL
+Microsoft SQL Server <span class="list">(<span class="keyword">via</span> slick-extensions)</span>
+MySQL
+Oracle <span class="list">(<span class="keyword">via</span> slick-extensions)</span>
+PostgreSQL
+SQLite
+</code></pre><h2 id="配置">配置</h2><p>要在SBT项目中使用Slick,首先需要添加包依赖,这里主要介绍PostgreSQL的使用:</p>
+<pre><code><span class="string">"com.typesafe.slick"</span> <span class="preprocessor">%</span><span class="preprocessor">%</span> <span class="string">"slick"</span> <span class="preprocessor">%</span> <span class="number">3.1.</span><span class="number">0</span>
+</code></pre><p>然后在配置文件src/main/resources/application.conf中配置数据库的连接属性:</p>
+<pre><code><span class="title">postgres</span> = {
+  <span class="title">url</span> = <span class="string">"jdbc:postgresql://localhost/akka-http-rest"</span>
+  url = <span class="variable">${?PSQL_URL}</span>
+  user = <span class="string">"postgres"</span>
+  user = <span class="variable">${?PSQL_USER}</span>
+  password = <span class="string">"password"</span>
+  password = <span class="variable">${?PSQL_PASSWORD}</span>
+  driver = org.postgresql.Driver
+  connectionPool = disabled
+  keepAliveConnection = <span class="built_in">true</span>
+}
+</code></pre><p>并将对应的选项修改为自己的配置.</p>
+<h2 id="开始使用">开始使用</h2><p>添加完依赖和基本配置后,编写特质提供数据库连接的创建:</p>
+<pre><code><span class="comment">// utils/PostgresConfig.scala</span>
+
+<span class="class"><span class="keyword">trait</span> <span class="title">PostgresConfig</span> {</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">driver</span> =</span> slick.driver.<span class="type">PostgresDriver</span>              <span class="comment">// 确认数据库驱动</span>
+
+  <span class="keyword">import</span> driver.api._                                   <span class="comment">// 引入该驱动所有API</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">db</span> =</span> <span class="type">Database</span>.forConfig(<span class="string">"postgres"</span>)               <span class="comment">// 加载数据库配置文件</span>
+  <span class="keyword">implicit</span> <span class="function"><span class="keyword">val</span> <span class="title">session</span>:</span><span class="type">Session</span> = db.createSession()     <span class="comment">// 创建数据库连接的隐式变量</span>
+}
+</code></pre><p>在需要交互数据库的类中,只需要混入该特质,即可使用隐式变量session的数据库连接.</p>
+<h2 id="数据结构">数据结构</h2><h3 id="业务数据结构定义">业务数据结构定义</h3><p>然后定义我们的业务数据结构:</p>
+<pre><code><span class="comment">// models/UserEntity.scala</span>
+import org<span class="class">.mindrot</span><span class="class">.jbcrypt</span><span class="class">.BCrypt</span>
+
+case class <span class="function">UserEntity</span>(id<span class="value">: Option[Long] = None, username: String, password: String) {
+  <span class="function">require</span>(!username.isEmpty, <span class="string">"username.empty"</span>)
+  <span class="function">require</span>(!password.isEmpty, <span class="string">"password.empty"</span>)
+
+  def <span class="function">withHashedPassword</span>(): UserEntity = this.<span class="function">copy</span>(password = BCrypt.<span class="function">hashpw</span>(password, BCrypt.<span class="function">gensalt</span>()))
+}
+
+case class <span class="function">UserEntityUpdate</span>(username: Option[String] = None, password: Option[String] = None) {
+  def <span class="function">merge</span>(user: UserEntity): UserEntity = {
+    <span class="function">UserEntity</span>(user.id, username.<span class="function">getOrElse</span>(user.username), password.<span class="function">map</span>(ps =&gt; BCrypt.<span class="function">hashpw</span>(ps, BCrypt.<span class="function">gensalt</span>())).<span class="function">getOrElse</span>(user.password))
+  }
+}
+
+// models/TokenEntity.scala
+import java.util.UUID
+
+case class <span class="function">TokenEntity</span>(id: Option[Long] = None, userId: Option[Long], token: String = UUID.<span class="function">randomUUID</span>().toString.<span class="function">replaceAll</span>(<span class="string">"-"</span>, <span class="string">""</span>))</span>
+</code></pre><p>UserEntity类包含一个Option[Long]类型的的id参数并默认为None,String类型的username和password在初始化时会进行非空检查,同时提供withHashedPassword方法对密码进行加密.</p>
+<p>TokenEntity类同样包含一个Option[Long]类型的的id参数并默认为None,userId类型为Option[Long],token为String类型,由java.util.UUID库自动生成.</p>
+<h3 id="数据库表结构定义">数据库表结构定义</h3><p>最后定义业务case类与数据库表的交互特质:</p>
+<pre><code><span class="comment">// models/db/UserEntityTable.scala</span>
+<span class="keyword">import</span> models.<span class="type">UserEntity</span>                            <span class="comment">// 引入之前定义的业务case类和数据库连接特质</span>
+<span class="keyword">import</span> utils.<span class="type">DatabaseConfig</span>
+
+<span class="class"><span class="keyword">trait</span> <span class="title">UserEntityTable</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">DatabaseConfig</span> {</span>
+
+  <span class="keyword">import</span> driver.api._
+
+  <span class="class"><span class="keyword">class</span> <span class="title">Users</span>(</span>tag: <span class="type">Tag</span>) <span class="keyword">extends</span> <span class="type">Table</span>[<span class="type">UserEntity</span>](tag, <span class="string">"users"</span>) {
+    <span class="function"><span class="keyword">def</span> <span class="title">id</span> =</span> column[<span class="type">Option</span>[<span class="type">Long</span>]](<span class="string">"id"</span>, <span class="type">O</span>.<span class="type">PrimaryKey</span>, <span class="type">O</span>.<span class="type">AutoInc</span>)
+    <span class="function"><span class="keyword">def</span> <span class="title">username</span> =</span> column[<span class="type">String</span>](<span class="string">"username"</span>)
+    <span class="function"><span class="keyword">def</span> <span class="title">password</span> =</span> column[<span class="type">String</span>](<span class="string">"password"</span>)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">*</span> =</span> (id, username, password) &lt;&gt; ((<span class="type">UserEntity</span>.apply _).tupled, <span class="type">UserEntity</span>.unapply)
+  }
+
+  <span class="keyword">protected</span> <span class="function"><span class="keyword">val</span> <span class="title">users</span> =</span> <span class="type">TableQuery</span>[<span class="type">Users</span>]
+
+}
+
+<span class="keyword">import</span> models.<span class="type">TokenEntity</span>
+<span class="keyword">import</span> utils.<span class="type">DatabaseConfig</span>
+
+<span class="class"><span class="keyword">trait</span> <span class="title">TokenEntityTable</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">UserEntityTable</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">DatabaseConfig</span> {</span>
+
+  <span class="keyword">import</span> driver.api._
+
+  <span class="class"><span class="keyword">class</span> <span class="title">Tokens</span>(</span>tag: <span class="type">Tag</span>) <span class="keyword">extends</span> <span class="type">Table</span>[<span class="type">TokenEntity</span>](tag, <span class="string">"tokens"</span>) {
+    <span class="function"><span class="keyword">def</span> <span class="title">id</span> =</span> column[<span class="type">Option</span>[<span class="type">Long</span>]](<span class="string">"id"</span>, <span class="type">O</span>.<span class="type">PrimaryKey</span>, <span class="type">O</span>.<span class="type">AutoInc</span>)
+    <span class="function"><span class="keyword">def</span> <span class="title">userId</span> =</span> column[<span class="type">Option</span>[<span class="type">Long</span>]](<span class="string">"user_id"</span>)
+    <span class="function"><span class="keyword">def</span> <span class="title">token</span> =</span> column[<span class="type">String</span>](<span class="string">"token"</span>)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">userFk</span> =</span> foreignKey(<span class="string">"USER_FK"</span>, userId, users)(_.id, onUpdate = <span class="type">ForeignKeyAction</span>.<span class="type">Restrict</span>, onDelete = <span class="type">ForeignKeyAction</span>.<span class="type">Cascade</span>)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">*</span> =</span> (id, userId, token) &lt;&gt; ((<span class="type">TokenEntity</span>.apply _).tupled, <span class="type">TokenEntity</span>.unapply)
+  }
+
+  <span class="keyword">protected</span> <span class="function"><span class="keyword">val</span> <span class="title">tokens</span> =</span> <span class="type">TableQuery</span>[<span class="type">Tokens</span>]
+
+}
+</code></pre><h3 id="字段类型">字段类型</h3><p>“class Users(tag: Tag) extends Table[UserEntity](tag, “users”)”,本行中定义该数据表所映射的case类和数据库中的表名.</p>
+<p>所有的字段都使用column方法定义,同时每个字段都包含一个Scala类型和一个数据库中的字段名.基于JDBC的数据库在JdbcProfile中支持以下的原始类型:</p>
+<pre><code>Numeric types: Byte, Short, Int, Long, BigDecimal, Float, Double
+LOB types: java<span class="class">.sql</span><span class="class">.Blob</span>, java<span class="class">.sql</span><span class="class">.Clob</span>, Array[Byte]
+Date types: java<span class="class">.sql</span><span class="class">.Date</span>, java<span class="class">.sql</span><span class="class">.Time</span>, java<span class="class">.sql</span><span class="class">.Timestamp</span>
+Boolean
+String
+Unit
+java<span class="class">.util</span><span class="class">.UUID</span>
+</code></pre><p>同时在字段名后面可以跟一个可选配置用于字段的定义,这些选项通过”O”对象实现:</p>
+<pre><code>PrimaryKey:定义该字段为主键
+Default[<span class="link_label">T</span>](<span class="link_url">defaultValue: T</span>):为该列提供一个默认值
+DBType(dbType: String):使用基于数据库的非标准类型,比如使用String时添加DBType("VARCHAR(20)")
+AutoInc:定义该字段为自增
+NotNull, Nullable:定义该字段为非空或可为空
+</code></pre><p>所有的表定义都需要提供一个”*”方法,用于描述进行数据库查询时每行返回的数据结构.该定义不需要与数据库中的表完全一致,可以根据需要增加或省略一些字段.</p>
+<p>除了表字段定义,还需要一个TableQuery值,用于表示真正的数据表:</p>
+<pre><code><span class="keyword">protected</span> <span class="variable"><span class="keyword">val</span> tokens</span> = TableQuery[Tokens]
+</code></pre><p>同时在”*”方法中,可以使用”&lt;&gt;”操作符对数据结构进行映射:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">*</span> = <span class="params">(id.?, first, last)</span> <span class="title">&lt;</span><span class="title">&gt;</span> <span class="params">(<span class="constant">User</span>.tupled, <span class="constant">User</span>.unapply)</span></span>
+</code></pre><h3 id="约束">约束</h3><p>通过Table的foreignKey方法定义数据表的外键约束,同时定义外键的关联动作:</p>
+<pre><code>class Suppliers(tag: Tag) extends Table[<span class="link_label">(Int, String, String, String, String, String)</span>](<span class="link_url">tag, "SUPPLIERS"</span>) {
+  def id = column[<span class="link_label">Int</span>](<span class="link_url">"SUP_ID", O.PrimaryKey</span>)
+  //...
+}
+val suppliers = TableQuery[Suppliers]
+
+class Coffees(tag: Tag) extends Table[<span class="link_label">(String, Int, Double, Int, Int)</span>](<span class="link_url">tag, "COFFEES"</span>) {
+  def supID = column[<span class="link_label">Int</span>](<span class="link_url">"SUP_ID"</span>)
+  //...
+  def supplier = foreignKey("SUP<span class="emphasis">_FK", supID, suppliers)(_</span>.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+  // compiles to SQL:
+  //   alter table "COFFEES" add constraint "SUP<span class="emphasis">_FK" foreign key("SUP_</span>ID")
+  //     references "SUPPLIERS"("SUP_ID")
+  //     on update RESTRICT on delete CASCADE
+}
+val coffees = TableQuery[Coffees]
+</code></pre><p>如上所示:在foreignKey方法中,定义字段”supID”引用表”suppliers”中的”id”字段,同时,当被引用表的”id”字段改变,更新时不进行处理,删除时进行同步.</p>
+<h2 id="查询">查询</h2><p>在使用Slick进行查询时,并不是对标准的Scala类型操作,而是将各种数据类型包装称为”Rep”类型的结构,简单的对比:</p>
+<pre><code>// 使用Scala基本类型
+case class Coffee(name: String, price: Double)
+val coffees: List[Coffee] = //...
+
+val l = coffees.filter(<span class="emphasis">_.price &gt; 8.0).map(_</span>.name)
+//                       ^       ^          ^
+//                       Double  Double     String
+
+// Slick查询中的类型
+class Coffees(tag: Tag) extends Table[<span class="link_label">(String, Double)</span>](<span class="link_url">tag, "COFFEES"</span>) {
+  def name = column[<span class="link_label">String</span>](<span class="link_url">"COF_NAME"</span>)
+  def price = column[<span class="link_label">Double</span>](<span class="link_url">"PRICE"</span>)
+  def * = (name, price)
+}
+val coffees = TableQuery[Coffees]
+
+val q = coffees.filter(<span class="emphasis">_.price &gt; 8.0).map(_</span>.name)
+//                       ^       ^          ^
+//               Rep[Double]  Rep[Double]  Rep[String]
+</code></pre><h3 id="排序和过滤">排序和过滤</h3><pre><code>// 过滤
+val q1 = coffees.filter(_.supID === 101)
+// compiles to SQL (simplified):
+//   <span class="operator"><span class="keyword">select</span> <span class="string">"COF_NAME"</span>, <span class="string">"SUP_ID"</span>, <span class="string">"PRICE"</span>, <span class="string">"SALES"</span>, <span class="string">"TOTAL"</span>
+//     <span class="keyword">from</span> <span class="string">"COFFEES"</span>
+//     <span class="keyword">where</span> <span class="string">"SUP_ID"</span> = <span class="number">101</span>
+
+// 分页
+val q2 = coffees.<span class="keyword">drop</span>(<span class="number">10</span>).take(<span class="number">5</span>)
+// compiles <span class="keyword">to</span> <span class="keyword">SQL</span> (simplified):
+//   <span class="keyword">select</span> <span class="string">"COF_NAME"</span>, <span class="string">"SUP_ID"</span>, <span class="string">"PRICE"</span>, <span class="string">"SALES"</span>, <span class="string">"TOTAL"</span>
+//     <span class="keyword">from</span> <span class="string">"COFFEES"</span>
+//     <span class="keyword">limit</span> <span class="number">5</span> <span class="keyword">offset</span> <span class="number">10</span>    // 忽略掉前<span class="number">10</span>行,返回<span class="number">5</span>行数据
+
+// 排序
+val q3 = coffees.sortBy(_.<span class="keyword">name</span>.<span class="keyword">desc</span>.nullsFirst)
+// compiles <span class="keyword">to</span> <span class="keyword">SQL</span> (simplified):
+//   <span class="keyword">select</span> <span class="string">"COF_NAME"</span>, <span class="string">"SUP_ID"</span>, <span class="string">"PRICE"</span>, <span class="string">"SALES"</span>, <span class="string">"TOTAL"</span>
+//     <span class="keyword">from</span> <span class="string">"COFFEES"</span>
+//     <span class="keyword">order</span> <span class="keyword">by</span> <span class="string">"COF_NAME"</span> <span class="keyword">desc</span> <span class="keyword">nulls</span> <span class="keyword">first</span>
+
+// 类似根据一个web表单创建一个动态过滤条件
+val criteriaColombian = <span class="keyword">Option</span>(<span class="string">"Colombian"</span>)
+val criteriaEspresso = <span class="keyword">Option</span>(<span class="string">"Espresso"</span>)
+val criteriaRoast:<span class="keyword">Option</span>[<span class="keyword">String</span>] = <span class="keyword">None</span>
+
+val q4 = coffees.filter { coffee =&gt;
+  <span class="keyword">List</span>(
+      criteriaColombian.<span class="keyword">map</span>(coffee.<span class="keyword">name</span> === _),
+      criteriaEspresso.<span class="keyword">map</span>(coffee.<span class="keyword">name</span> === _),
+      criteriaRoast.<span class="keyword">map</span>(coffee.<span class="keyword">name</span> === _) // <span class="keyword">not</span> a condition <span class="keyword">as</span> <span class="string">`criteriaRoast`</span> evaluates <span class="keyword">to</span> <span class="string">`None`</span>
+  ).<span class="keyword">collect</span>({<span class="keyword">case</span> <span class="keyword">Some</span>(criteria)  =&gt; criteria}).reduceLeftOption(_ || _).getOrElse(<span class="literal">true</span>: Rep[<span class="built_in">Boolean</span>])
+}
+// compiles <span class="keyword">to</span> <span class="keyword">SQL</span> (simplified):
+//   <span class="keyword">select</span> <span class="string">"COF_NAME"</span>, <span class="string">"SUP_ID"</span>, <span class="string">"PRICE"</span>, <span class="string">"SALES"</span>, <span class="string">"TOTAL"</span>
+//     <span class="keyword">from</span> <span class="string">"COFFEES"</span>
+//     <span class="keyword">where</span> (<span class="string">"COF_NAME"</span> = <span class="string">'Colombian'</span> <span class="keyword">or</span> <span class="string">"COF_NAME"</span> = <span class="string">'Espresso'</span>)</span>
+</code></pre><h3 id="Joining_and_Zipping">Joining and Zipping</h3><p>Join用于将两个不同的表或查询组合成一个单独的查询,有两种不同的方式编写Join:Applicative或monadic.</p>
+<h4 id="Applicative_joins">Applicative joins</h4><p>Applicative(应用型) join的执行是通过调用方法,将两个单独的查询联合成一个单独的查询,返回一个tuple类型的结果.跟原生SQL中的限制一样,即右侧可以不依赖于左侧.</p>
+<pre><code>val crossJoin = <span class="keyword">for</span> {
+  (c, <span class="keyword">s</span>) &lt;- coffees <span class="keyword">join</span> suppliers
+} yield (c.name, <span class="keyword">s</span>.name)
+// compiles to SQL (simplified):
+<span class="regexp">//</span>   <span class="keyword">select</span> x2.<span class="string">"COF_NAME"</span>, x3.<span class="string">"SUP_NAME"</span> from <span class="string">"COFFEES"</span> x2
+//     inner <span class="keyword">join</span> <span class="string">"SUPPLIERS"</span> x3
+
+val innerJoin = <span class="keyword">for</span> {
+  (c, <span class="keyword">s</span>) &lt;- coffees <span class="keyword">join</span> suppliers on (<span class="number">_</span>.supID === <span class="number">_</span>.id)
+} yield (c.name, <span class="keyword">s</span>.name)
+// compiles to SQL (simplified):
+<span class="regexp">//</span>   <span class="keyword">select</span> x2.<span class="string">"COF_NAME"</span>, x3.<span class="string">"SUP_NAME"</span> from <span class="string">"COFFEES"</span> x2
+//     inner <span class="keyword">join</span> <span class="string">"SUPPLIERS"</span> x3
+//     on x2.<span class="string">"SUP_ID"</span> = x3.<span class="string">"SUP_ID"</span>
+
+val leftOuterJoin = <span class="keyword">for</span> {
+  (c, <span class="keyword">s</span>) &lt;- coffees joinLeft suppliers on (<span class="number">_</span>.supID === <span class="number">_</span>.id)
+} yield (c.name, <span class="keyword">s</span>.<span class="keyword">map</span>(<span class="number">_</span>.name))
+// compiles to SQL (simplified):
+<span class="regexp">//</span>   <span class="keyword">select</span> x2.<span class="string">"COF_NAME"</span>, x3.<span class="string">"SUP_NAME"</span> from <span class="string">"COFFEES"</span> x2
+//     left outer <span class="keyword">join</span> <span class="string">"SUPPLIERS"</span> x3
+//     on x2.<span class="string">"SUP_ID"</span> = x3.<span class="string">"SUP_ID"</span>
+
+val rightOuterJoin = <span class="keyword">for</span> {
+  (c, <span class="keyword">s</span>) &lt;- coffees joinRight suppliers on (<span class="number">_</span>.supID === <span class="number">_</span>.id)
+} yield (c.<span class="keyword">map</span>(<span class="number">_</span>.name), <span class="keyword">s</span>.name)
+// compiles to SQL (simplified):
+<span class="regexp">//</span>   <span class="keyword">select</span> x2.<span class="string">"COF_NAME"</span>, x3.<span class="string">"SUP_NAME"</span> from <span class="string">"COFFEES"</span> x2
+//     right outer <span class="keyword">join</span> <span class="string">"SUPPLIERS"</span> x3
+//     on x2.<span class="string">"SUP_ID"</span> = x3.<span class="string">"SUP_ID"</span>
+
+val fullOuterJoin = <span class="keyword">for</span> {
+  (c, <span class="keyword">s</span>) &lt;- coffees joinFull suppliers on (<span class="number">_</span>.supID === <span class="number">_</span>.id)
+} yield (c.<span class="keyword">map</span>(<span class="number">_</span>.name), <span class="keyword">s</span>.<span class="keyword">map</span>(<span class="number">_</span>.name))
+// compiles to SQL (simplified):
+<span class="regexp">//</span>   <span class="keyword">select</span> x2.<span class="string">"COF_NAME"</span>, x3.<span class="string">"SUP_NAME"</span> from <span class="string">"COFFEES"</span> x2
+//     full outer <span class="keyword">join</span> <span class="string">"SUPPLIERS"</span> x3
+//     on x2.<span class="string">"SUP_ID"</span> = x3.<span class="string">"SUP_ID"</span>
+</code></pre><h4 id="Monadic_joins">Monadic joins</h4><p>Monadic join使用flatMap创建.它在理论上比Applicative join更有威力,因为右侧可以不用依赖左侧.</p>
+<pre><code>val monadicCrossJoin = <span class="keyword">for</span> {
+  c &lt;- coffees
+  s &lt;- suppliers
+} yield (c.name, s.name)
+// compiles <span class="keyword">to</span> SQL:
+//   <span class="keyword">select</span> x2.<span class="string">"COF_NAME"</span>, x3.<span class="string">"SUP_NAME"</span>
+//     from <span class="string">"COFFEES"</span> x2, <span class="string">"SUPPLIERS"</span> x3
+
+val monadicInnerJoin = <span class="keyword">for</span> {
+  c &lt;- coffees
+  s &lt;- suppliers <span class="keyword">if</span> c.supID === s.id
+} yield (c.name, s.name)
+// compiles <span class="keyword">to</span> SQL:
+//   <span class="keyword">select</span> x2.<span class="string">"COF_NAME"</span>, x3.<span class="string">"SUP_NAME"</span>
+//     from <span class="string">"COFFEES"</span> x2, <span class="string">"SUPPLIERS"</span> x3
+//     where x2.<span class="string">"SUP_ID"</span> = x3.<span class="string">"SUP_ID"</span>
+</code></pre><h4 id="Zip_joins">Zip joins</h4><pre><code><span class="function"><span class="keyword">val</span> <span class="title">zipJoinQuery</span> =</span> <span class="keyword">for</span> {
+  (c, s) &lt;- coffees zip suppliers
+} <span class="keyword">yield</span> (c.name, s.name)
+
+<span class="function"><span class="keyword">val</span> <span class="title">zipWithJoin</span> =</span> <span class="keyword">for</span> {
+  res &lt;- coffees.zipWith(suppliers, (c: <span class="type">Coffees</span>, s: <span class="type">Suppliers</span>) =&gt; (c.name, s.name))
+} <span class="keyword">yield</span> res
+</code></pre><h3 id="Unions">Unions</h3><p>两个查询拥有兼容的类型,可以通过++ (or unionAll) 或 union进行连接:</p>
+<pre><code><span class="label">val</span> <span class="literal">q1</span> = coffees.filter(_.price &lt; <span class="number">8</span>.<span class="number">0</span>)
+<span class="label">val</span> <span class="literal">q2</span> = coffees.filter(_.price &gt; <span class="number">9</span>.<span class="number">0</span>)
+
+<span class="label">val</span> unionQuery = <span class="literal">q1</span> union <span class="literal">q2</span>
+// compiles to SQL (simplified):
+//   <span class="keyword">select </span>x8.<span class="string">"COF_NAME"</span>, x8.<span class="string">"SUP_ID"</span>, x8.<span class="string">"PRICE"</span>, x8.<span class="string">"SALES"</span>, x8.<span class="string">"TOTAL"</span>
+//     from <span class="string">"COFFEES"</span> x8
+//     where x8.<span class="string">"PRICE"</span> &lt; <span class="number">8</span>.<span class="number">0</span>
+//   union <span class="keyword">select </span>x9.<span class="string">"COF_NAME"</span>, x9.<span class="string">"SUP_ID"</span>, x9.<span class="string">"PRICE"</span>, x9.<span class="string">"SALES"</span>, x9.<span class="string">"TOTAL"</span>
+//     from <span class="string">"COFFEES"</span> x9
+//     where x9.<span class="string">"PRICE"</span> &gt; <span class="number">9</span>.<span class="number">0</span>
+
+<span class="label">val</span> unionAllQuery = <span class="literal">q1</span> ++ <span class="literal">q2</span>
+// compiles to SQL (simplified):
+//   <span class="keyword">select </span>x8.<span class="string">"COF_NAME"</span>, x8.<span class="string">"SUP_ID"</span>, x8.<span class="string">"PRICE"</span>, x8.<span class="string">"SALES"</span>, x8.<span class="string">"TOTAL"</span>
+//     from <span class="string">"COFFEES"</span> x8
+//     where x8.<span class="string">"PRICE"</span> &lt; <span class="number">8</span>.<span class="number">0</span>
+//   union all <span class="keyword">select </span>x9.<span class="string">"COF_NAME"</span>, x9.<span class="string">"SUP_ID"</span>, x9.<span class="string">"PRICE"</span>, x9.<span class="string">"SALES"</span>, x9.<span class="string">"TOTAL"</span>
+//     from <span class="string">"COFFEES"</span> x9
+//     where x9.<span class="string">"PRICE"</span> &gt; <span class="number">9</span>.<span class="number">0</span>
+</code></pre><p>union会过滤出重复的值,”++”会将单个结果进行连接,会更有效率.</p>
+<h3 id="Aggregation">Aggregation</h3><p>聚集的最简单形式包括计算从查询返回一列，一般用数字类型，如原始值：</p>
+<pre><code>val q = coffees.map(_.price)
+
+val q1 = q.min
+// compiles to SQL (simplified):
+//   <span class="operator"><span class="keyword">select</span> <span class="keyword">min</span>(x4.<span class="string">"PRICE"</span>) <span class="keyword">from</span> <span class="string">"COFFEES"</span> x4
+
+val q2 = q.<span class="keyword">max</span>
+// compiles <span class="keyword">to</span> <span class="keyword">SQL</span> (simplified):
+//   <span class="keyword">select</span> <span class="keyword">max</span>(x4.<span class="string">"PRICE"</span>) <span class="keyword">from</span> <span class="string">"COFFEES"</span> x4
+
+val q3 = q.<span class="keyword">sum</span>
+// compiles <span class="keyword">to</span> <span class="keyword">SQL</span> (simplified):
+//   <span class="keyword">select</span> <span class="keyword">sum</span>(x4.<span class="string">"PRICE"</span>) <span class="keyword">from</span> <span class="string">"COFFEES"</span> x4
+
+val q4 = q.<span class="keyword">avg</span>
+// compiles <span class="keyword">to</span> <span class="keyword">SQL</span> (simplified):
+//   <span class="keyword">select</span> <span class="keyword">avg</span>(x4.<span class="string">"PRICE"</span>) <span class="keyword">from</span> <span class="string">"COFFEES"</span> x4</span>
+</code></pre><p>这些聚合操作返回一个scalar结果而不是一个集合.有些聚合操作用于任意查询而不仅是一列:</p>
+<pre><code>val q1 = coffees.length
+// compiles to SQL (simplified):
+//   <span class="operator"><span class="keyword">select</span> <span class="keyword">count</span>(<span class="number">1</span>) <span class="keyword">from</span> <span class="string">"COFFEES"</span>
+
+val q2 = coffees.<span class="keyword">exists</span>
+// compiles <span class="keyword">to</span> <span class="keyword">SQL</span> (simplified):
+//   <span class="keyword">select</span> <span class="keyword">exists</span>(<span class="keyword">select</span> * <span class="keyword">from</span> <span class="string">"COFFEES"</span>)</span>
+</code></pre><p>Grouping使用groupBy方法:</p>
+<pre><code>val q = (<span class="keyword">for</span> {
+  c &lt;- coffees
+  s &lt;- c.supplier
+} yield (c, s)).groupBy(<span class="number">_</span>._1.supID)
+
+val q2 = q.<span class="keyword">map</span> { case (supID, css) =&gt;
+  (supID, css.length, css.map(<span class="number">_</span>._1.price).avg)
+}
+// compiles <span class="keyword">to</span> SQL:
+//   select x2.<span class="string">"SUP_ID"</span>, count(<span class="number">1</span>), avg(x2.<span class="string">"PRICE"</span>)
+//     from <span class="string">"COFFEES"</span> x2, <span class="string">"SUPPLIERS"</span> x3
+//     <span class="keyword">where</span> x3.<span class="string">"SUP_ID"</span> = x2.<span class="string">"SUP_ID"</span>
+//     <span class="keyword">group</span> <span class="keyword">by</span> x2.<span class="string">"SUP_ID"</span>
+</code></pre><h3 id="Querying">Querying</h3><p>一个Query可以通过调用result方法转换成一个Action,该行动就可以直接在流执行或完全物化的方式，或与其他动作还组成：</p>
+<pre><code>val q = coffees.map(_.price)
+val action = q.<span class="literal">result</span>
+val <span class="literal">result</span>: <span class="type">Future</span>[<span class="type">Seq</span>[<span class="type">Double</span>]] = db.run(action)
+val sql = action.statements.head
+</code></pre><h3 id="Deleting">Deleting</h3><p>Deleting的执行方式和Querying非常相似,通过调用delete方法执行:</p>
+<pre><code>val <span class="tag">q</span> = coffees.<span class="function"><span class="title">filter</span><span class="params">(_.supID === <span class="number">15</span>)</span></span>
+val action = <span class="tag">q</span><span class="class">.delete</span>
+val affectedRowsCount: Future[Int] = db.<span class="function"><span class="title">run</span><span class="params">(action)</span></span>
+val sql = action<span class="class">.statements</span><span class="class">.head</span>
+</code></pre><h3 id="Inserting">Inserting</h3><p>Insert操作通过表与字段的映射完成:</p>
+<pre><code>val insertActions = DBIO.seq(
+  coffees += ("Colombian", 101, 7.99, 0, 0),
+
+  coffees ++= Seq(
+    ("French_Roast", 49, 8.99, 0, 0),
+    ("Espresso",    150, 9.99, 0, 0)
+  ),
+
+  // "sales" and "total" will <span class="operator"><span class="keyword">use</span> the <span class="keyword">default</span> <span class="keyword">value</span> <span class="number">0</span>:
+  coffees.<span class="keyword">map</span>(<span class="keyword">c</span> =&gt; (<span class="keyword">c</span>.<span class="keyword">name</span>, <span class="keyword">c</span>.supID, <span class="keyword">c</span>.price)) += (<span class="string">"Colombian_Decaf"</span>, <span class="number">101</span>, <span class="number">8.99</span>)
+)
+
+// <span class="keyword">Get</span> the <span class="keyword">statement</span> <span class="keyword">without</span> <span class="keyword">having</span> <span class="keyword">to</span> specify a <span class="keyword">value</span> <span class="keyword">to</span> <span class="keyword">insert</span>:
+val <span class="keyword">sql</span> = coffees.insertStatement
+
+// compiles <span class="keyword">to</span> <span class="keyword">SQL</span>:
+//   <span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">"COFFEES"</span> (<span class="string">"COF_NAME"</span>,<span class="string">"SUP_ID"</span>,<span class="string">"PRICE"</span>,<span class="string">"SALES"</span>,<span class="string">"TOTAL"</span>) <span class="keyword">VALUES</span> (?,?,?,?,?)
+
+// 插入后返回指定的字段
+val userId =
+  (<span class="keyword">users</span> <span class="keyword">returning</span> <span class="keyword">users</span>.<span class="keyword">map</span>(_.<span class="keyword">id</span>)) += <span class="keyword">User</span>(<span class="keyword">None</span>, <span class="string">"Stefan"</span>, <span class="string">"Zeiger"</span>)
+
+// 可以在<span class="keyword">returning</span>方法后面跟随<span class="keyword">into</span>方法,可以把已经插入的数据和插入时生成的值生成一个新的值:
+val userWithId =
+  (<span class="keyword">users</span> <span class="keyword">returning</span> <span class="keyword">users</span>.<span class="keyword">map</span>(_.<span class="keyword">id</span>)
+         <span class="keyword">into</span> ((<span class="keyword">user</span>,<span class="keyword">id</span>) =&gt; <span class="keyword">user</span>.copy(<span class="keyword">id</span>=<span class="keyword">Some</span>(<span class="keyword">id</span>)))
+  ) += <span class="keyword">User</span>(<span class="keyword">None</span>, <span class="string">"Stefan"</span>, <span class="string">"Zeiger"</span>)
+
+// 使用<span class="keyword">Query</span>插入
+<span class="keyword">class</span> Users2(tag: Tag) extends <span class="keyword">Table</span>[(<span class="built_in">Int</span>, <span class="keyword">String</span>)](tag, <span class="string">"users2"</span>) {
+  <span class="keyword">def</span> <span class="keyword">id</span> = <span class="keyword">column</span>[<span class="built_in">Int</span>](<span class="string">"id"</span>, O.PrimaryKey)
+  <span class="keyword">def</span> <span class="keyword">name</span> = <span class="keyword">column</span>[<span class="keyword">String</span>](<span class="string">"name"</span>)
+  <span class="keyword">def</span> * = (<span class="keyword">id</span>, <span class="keyword">name</span>)
+}
+val users2 = TableQuery[Users2]
+
+val actions = DBIO.seq(
+  users2.<span class="keyword">schema</span>.<span class="keyword">create</span>,
+  users2 forceInsertQuery (<span class="keyword">users</span>.<span class="keyword">map</span> { u =&gt; (u.<span class="keyword">id</span>, u.<span class="keyword">first</span> ++ <span class="string">" "</span> ++ u.<span class="keyword">last</span>) }),
+  users2 forceInsertExpr (<span class="keyword">users</span>.<span class="keyword">length</span> + <span class="number">1</span>, <span class="string">"admin"</span>)
+)</span>
+</code></pre><h3 id="Updating">Updating</h3><pre><code><span class="function"><span class="keyword">val</span> <span class="title">q</span> =</span> <span class="keyword">for</span> { c &lt;- coffees <span class="keyword">if</span> c.name === <span class="string">"Espresso"</span> } <span class="keyword">yield</span> c.price
+<span class="function"><span class="keyword">val</span> <span class="title">updateAction</span> =</span> q.update(<span class="number">10.49</span>)
+
+<span class="comment">// Get the statement without having to specify an updated value:</span>
+<span class="function"><span class="keyword">val</span> <span class="title">sql</span> =</span> q.updateStatement
+
+<span class="comment">// compiles to SQL:</span>
+<span class="comment">//   update "COFFEES" set "PRICE" = ? where "COFFEES"."COF_NAME" = 'Espresso'</span>
+</code></pre><h3 id="Upserting">Upserting</h3><pre><code>val updated = users.<span class="function"><span class="title">insertOrUpdate</span><span class="params">(User(Some(<span class="number">1</span>)</span></span>, <span class="string">"Admin"</span>, <span class="string">"Zeiger"</span>))
+<span class="comment">// returns: number of rows updated</span>
+
+val updatedAdmin = (users returning users).<span class="function"><span class="title">insertOrUpdate</span><span class="params">(User(Some(<span class="number">1</span>)</span></span>, <span class="string">"Slick Admin"</span>, <span class="string">"Zeiger"</span>))
+<span class="comment">// returns: None if updated, Some((Int, String)) if row inserted</span>
+</code></pre><h3 id="Compiled_Queries">Compiled Queries</h3><p>编译查询语句:</p>
+<pre><code>def userNameByIDRange(min: <span class="type">Rep</span>[<span class="type">Int</span>], max: <span class="type">Rep</span>[<span class="type">Int</span>]) =
+  <span class="keyword">for</span> {
+    u &lt;- users <span class="keyword">if</span> u.id &gt;= min &amp;&amp; u.id &lt; max
+  } <span class="keyword">yield</span> u.first
+
+val userNameByIDRangeCompiled = <span class="type">Compiled</span>(userNameByIDRange _)
+
+// <span class="type">The</span> query will be compiled only once:
+val namesAction1 = userNameByIDRangeCompiled(<span class="number">2</span>, <span class="number">5</span>).<span class="literal">result</span>
+val namesAction2 = userNameByIDRangeCompiled(<span class="number">1</span>, <span class="number">3</span>).<span class="literal">result</span>
+// <span class="type">Also</span> works <span class="keyword">for</span> .insert, .update <span class="keyword">and</span> .delete
+</code></pre><p>用于分页:</p>
+<pre><code>val userPaged = <span class="type">Compiled</span>((d: <span class="type">ConstColumn</span>[<span class="type">Long</span>], t: <span class="type">ConstColumn</span>[<span class="type">Long</span>]) =&gt; users.drop(d).take(t))
+
+val usersAction1 = userPaged(<span class="number">2</span>, <span class="number">1</span>).<span class="literal">result</span>
+val usersAction2 = userPaged(<span class="number">1</span>, <span class="number">3</span>).<span class="literal">result</span>
+</code></pre><p>使用flatMap实现:</p>
+<pre><code>val userNameByID = <span class="keyword">for</span> {
+  id &lt;- <span class="type">Parameters</span>[<span class="type">Int</span>]
+  u &lt;- users <span class="keyword">if</span> u.id === id
+} <span class="keyword">yield</span> u.first
+
+val nameAction = userNameByID(<span class="number">2</span>).<span class="literal">result</span>.head
+
+val userNameByIDRange = <span class="keyword">for</span> {
+  (min, max) &lt;- <span class="type">Parameters</span>[(<span class="type">Int</span>, <span class="type">Int</span>)]
+  u &lt;- users <span class="keyword">if</span> u.id &gt;= min &amp;&amp; u.id &lt; max
+} <span class="keyword">yield</span> u.first
+
+val namesAction = userNameByIDRange(<span class="number">2</span>, <span class="number">5</span>).<span class="literal">result</span>
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/PostgreSQL/" rel="tag">#PostgreSQL</a>
+          
+            <a href="/tags/scala/" rel="tag">#scala</a>
+          
+            <a href="/tags/slick/" rel="tag">#slick</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/01/REST-API-with-Scala-Play-Slick-PostgreSQL-Redis-and-AWS-S3/" rel="next">REST API with Scala, Play, Slick, PostgreSQL, Redis and AWS S3</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">38</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">21</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置"><span class="nav-number">2.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开始使用"><span class="nav-number">3.</span> <span class="nav-text">开始使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据结构"><span class="nav-number">4.</span> <span class="nav-text">数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#业务数据结构定义"><span class="nav-number">4.1.</span> <span class="nav-text">业务数据结构定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据库表结构定义"><span class="nav-number">4.2.</span> <span class="nav-text">数据库表结构定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#字段类型"><span class="nav-number">4.3.</span> <span class="nav-text">字段类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#约束"><span class="nav-number">4.4.</span> <span class="nav-text">约束</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查询"><span class="nav-number">5.</span> <span class="nav-text">查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#排序和过滤"><span class="nav-number">5.1.</span> <span class="nav-text">排序和过滤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Joining_and_Zipping"><span class="nav-number">5.2.</span> <span class="nav-text">Joining and Zipping</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Applicative_joins"><span class="nav-number">5.2.1.</span> <span class="nav-text">Applicative joins</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Monadic_joins"><span class="nav-number">5.2.2.</span> <span class="nav-text">Monadic joins</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Zip_joins"><span class="nav-number">5.2.3.</span> <span class="nav-text">Zip joins</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Unions"><span class="nav-number">5.3.</span> <span class="nav-text">Unions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Aggregation"><span class="nav-number">5.4.</span> <span class="nav-text">Aggregation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Querying"><span class="nav-number">5.5.</span> <span class="nav-text">Querying</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Deleting"><span class="nav-number">5.6.</span> <span class="nav-text">Deleting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Inserting"><span class="nav-number">5.7.</span> <span class="nav-text">Inserting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Updating"><span class="nav-number">5.8.</span> <span class="nav-text">Updating</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Upserting"><span class="nav-number">5.9.</span> <span class="nav-text">Upserting</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Compiled_Queries"><span class="nav-number">5.10.</span> <span class="nav-text">Compiled Queries</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
