@@ -1,0 +1,674 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Scala中的Promise.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: Promise">
+<meta property="og:url" content="http://yoursite.com/2015/11/06/Simple-Scala-Promise/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Scala中的Promise.">
+<meta property="og:updated_time" content="2015-11-06T04:18:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: Promise">
+<meta name="twitter:description" content="Scala中的Promise.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: Promise | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: Promise
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2015-11-06T11:36:17+08:00" content="2015-11-06">
+            2015-11-06
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Future是一个只读类型,允许你使用它计算得到的值,或者处理计算中出现的错误.但在这之前,必须有一个方法把这个值放进去.而Promise可以达到这种目的.</p>
+<h2 id="类型Promise">类型Promise</h2><p>之前,我们把顺序执行的代码块传递给了scala.concurrent中的future方法,并且在作用域中给出了一个ExecutionContext,它神奇的异步调用代码块,返回一个Future类型的结果.</p>
+<p>虽然这种获得Future的方式很简单,但还有其他的方法来创建Future实例,并填充它,这就是Promise.Promise允许你在Future中放入一个值,不过只能做一次,Future一旦完成,就不能更改了.</p>
+<p>一个Future实例总是(只能)和一个Promise实例关联在一起,如果你再REPL里调用future方法,你会发现返回的是一个Promise:</p>
+<pre><code><span class="preprocessor"><span class="keyword">import</span> concurrent.Future</span>
+<span class="preprocessor"><span class="keyword">import</span> concurrent.Future</span>
+
+scala&gt; <span class="preprocessor"><span class="keyword">import</span> concurrent.future</span>
+<span class="preprocessor"><span class="keyword">import</span> concurrent.future</span>
+
+scala&gt; <span class="preprocessor"><span class="keyword">import</span> concurrent.ExecutionContext.Implicits.global</span>
+<span class="preprocessor"><span class="keyword">import</span> concurrent.ExecutionContext.Implicits.global</span>
+
+scala&gt; val f: Future[String] = future { <span class="string">"Hello World!"</span> }
+f: scala.concurrent.Future[String] = scala.concurrent.impl.Promise<span class="number">$Defa</span>ultPromise@<span class="number">2</span>b509249
+</code></pre><p>你得到的是一个DefaultPromise,它实现了Future和Promise接口,不过这就是具体的实现细节了,使用者只需要知道代码实现把Future和Promise之间的联系分的很清晰.</p>
+<p>这个例子说明,除了Promise,没有其他方法可以完成一个Future,future方法也只是一个辅助函数,隐藏了具体的实现机制.</p>
+<h2 id="给出承诺">给出承诺</h2><p>当我们谈论起承诺能否被兑现时,一个很熟知的例子就是那些政客的竞选诺言.</p>
+<p>假设被推选的政客给他得投票者一个减税的承诺,这可以用Promise[TaxCut]表示:</p>
+<pre><code><span class="keyword">import</span> concurrent.Promise
+case <span class="class"><span class="keyword">class</span> <span class="title">TaxCut</span></span>(reduction: <span class="typename">Int</span>)
+<span class="comment">// either give the type as a type parameter to the factory method:</span>
+<span class="variable"><span class="keyword">val</span> taxcut</span> = Promise[TaxCut]()
+<span class="comment">// or give the compiler a hint by specifying the type of your val:</span>
+<span class="variable"><span class="keyword">val</span> taxcut2</span>: Promise[TaxCut] = Promise()
+<span class="comment">// taxcut: scala.concurrent.Promise[TaxCut] = scala.concurrent.impl.Promise$DefaultPromise@66ae2a84</span>
+<span class="comment">// taxcut2: scala.concurrent.Promise[TaxCut] = scala.concurrent.impl.Promise$DefaultPromise@346974c6</span>
+</code></pre><p>一旦创建了一个Promise,就可以在它上面调用future方法来获取承诺的未来:</p>
+<pre><code>val taxCutF: Future[TaxCut] = taxcut.future
+// `&gt; scala.concurrent.Future[TaxCut] `  scala.concurrent.impl.Promise<span class="variable">$DefaultPromise</span>@<span class="number">66</span>ae2a84
+</code></pre><p>返回的Future可能和Promise并不一样,但在同一个Promise上调用future方法总是返回同一个对象,以确保Future和Promise之间一对一的关系.</p>
+<h2 id="结束承诺">结束承诺</h2><p>一旦给出了承诺,并告诉世界在不远的将来兑现它,那最好尽力去实现.在Scala中,可以结束一个Promise,无论成功还是失败.</p>
+<h3 id="对象承诺">对象承诺</h3><p>为了成功兑现一个Promise,可以调用他的succes方法,并传递一个大家期许的结果:</p>
+<pre><code>taxcut.<span class="function"><span class="title">success</span><span class="params">(TaxCut(<span class="number">20</span>)</span></span>)
+</code></pre><p>这样做之后,Promise就无法在写入其他值了,如果偏要再写会产生异常.</p>
+<p>此时,Promise关联的Future也成功完成,注册的回调也开始执行,或者说多这个Future进行了映射,那这个时候,映射函数也该执行了.</p>
+<p>一般来说,Promise的完成和对返回的Future的处理发生在不同的线程,很可能你创建了Promise,并立即返回和他关联的Future给调用者,而实际上,另外一个线程还在计算它:</p>
+<pre><code>object Government {
+  <span class="function"><span class="keyword">def</span> <span class="title">redeemCampaignPledge</span><span class="params">()</span>:</span> Future[TaxCut] = {
+    val p = Promise[TaxCut]()
+    Future {
+      println(<span class="string">"Starting the new legislative period."</span>)
+      Thread.sleep(<span class="number">2000</span>)
+      p.success(TaxCut(<span class="number">20</span>))
+      println(<span class="string">"We reduced the taxes! You must reelect us!!!!1111"</span>)
+    }
+    p.future
+  }
+}
+</code></pre><p>这个例子中使用了Future半生对象,不过不要被他搞混淆了,这个例子的重点是:Promise并是在调用者的线程里完成的.</p>
+<p>现在我们来兑现当初的竞选宣言,在Future上添加一个onComplete回调:</p>
+<pre><code>import scala<span class="class">.util</span>.{Success, Failure}
+val taxCutF<span class="value">: Future[TaxCut] = Government.<span class="function">redeemCampaignPledge</span>()
+<span class="function">println</span>(<span class="string">"Now that they're elected, let's see if they remember their promises..."</span>)
+taxCutF.onComplete {
+  case <span class="function">Success</span>(<span class="function">TaxCut</span>(reduction)) =&gt;
+    <span class="function">println</span>(s<span class="string">"A miracle! They really cut our taxes by $reduction percentage points!"</span>)
+  case <span class="function">Failure</span>(ex) =&gt;
+    <span class="function">println</span>(s<span class="string">"They broke their promises! Again! Because of a ${ex.getMessage}"</span>)
+}</span>
+</code></pre><p>多次运行这个例子，会发现显示屏输出的结果顺序是不确定的，而且，最终回调函数会执行，进入成功的那个 case.</p>
+<h3 id="违背诺言">违背诺言</h3><p>政客习惯违背诺言,Scala程序员有时候也只能这样做,调用failure方法,传递一个异常,结束Promise:</p>
+<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">LameExcuse</span>(</span>msg: <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">Exception</span>(msg)
+<span class="class"><span class="keyword">object</span> <span class="title">Government</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">redeemCampaignPledge</span>(</span>): <span class="type">Future</span>[<span class="type">TaxCut</span>] = {
+     <span class="function"><span class="keyword">val</span> <span class="title">p</span> =</span> <span class="type">Promise</span>[<span class="type">TaxCut</span>]()
+     <span class="type">Future</span> {
+       println(<span class="string">"Starting the new legislative period."</span>)
+       <span class="type">Thread</span>.sleep(<span class="number">2000</span>)
+       p.failure(<span class="type">LameExcuse</span>(<span class="string">"global economy crisis"</span>))
+       println(<span class="string">"We didn't fulfill our promises, but surely they'll understand."</span>)
+     }
+     p.future
+   }
+}
+</code></pre><p>这个redeemCampaignPledge实现最终会违背承诺.一旦用failure结束这个Promise,也就无法再次写入了,正如succes方法一样.相关联的Future也会以Failure收场.</p>
+<p>如果已经有了一个Try,那可以直接把他传递给Promise的complete方法,以此来结束它.如果这是一个Success,关联Future会成功完成,否则,就失败.</p>
+<h2 id="基于Future的编程实践">基于Future的编程实践</h2><p>如果想要使用基于Future的编程范式以增加应用的扩展性,那应用从下都上都必须设计成非阻塞模式.这意味着,基本上应用层所有的函数都应该是异步的,并且返回Future.</p>
+<p>当下，一个可能的使用场景是开发 Web 应用。 流行的 Scala Web 框架，允许你将响应作为 Future[Response] 返回，而不是等到你完成响应再返回。 这个非常重要，因为它允许 Web 服务器用少量的线程处理更多的连接。 通过赋予服务器 Future[Response] 的能力，你可以最大化服务器线程池的利用率。</p>
+<p>而且，应用的服务可能需要多次调用数据库层以及（或者）某些外部服务， 这时候可以获取多个 Future，用 for 语句将它们组合成新的 Future，简单可读！ 最终，Web 层再将这样的一个 Future 变成 Future[Response]。</p>
+<p>但是该怎样在实践中实现这些呢？需要考虑三种不同的场景：</p>
+<h3 id="非阻塞IO">非阻塞IO</h3><p>应用很可能涉及到大量的 IO 操作。比如，可能需要和数据库交互，还可能作为客户端去调用其他的 Web 服务。</p>
+<p>如果是这样，可以使用一些基于 Java 非阻塞 IO 实现的库，也可以直接或通过 Netty 这样的库来使用 Java 的 NIO API。 这样的库可以用定量的线程池处理大量的连接。</p>
+<p>但如果是想开发这样的一个库，直接和 Promise 打交道更为合适。</p>
+<h3 id="阻塞_IO">阻塞 IO</h3><p>有时候，并没有基于 NIO 的库可用。比如，Java 世界里大多数的数据库驱动都是使用阻塞 IO。 在 Web 应用中，如果用这样的驱动发起大量访问数据库的调用，要记得这些调用是发生在服务器线程里的。 为了避免这个问题，可以将所有需要和数据库交互的代码都放入 future 代码块里，就像这样：</p>
+<pre><code><span class="comment">// get back a Future[ResultSet] or something similar:</span>
+Future {
+  queryDB<span class="comment">(query)</span>
+}
+</code></pre><p>到现在为止，我们都是使用隐式可用的全局 ExecutionContext 来执行这些代码块。 通常，更好的方式是创建一个专用的 ExecutionContext 放在数据库层里。 可以从 Java的 ExecutorService 来它，这也意味着，可以异步的调整线程池来执行数据库调用，应用的其他部分不受影响。</p>
+<pre><code>import java<span class="class">.util</span><span class="class">.concurrent</span><span class="class">.Executors</span>
+import concurrent<span class="class">.ExecutionContext</span>
+val executorService = Executors.<span class="function"><span class="title">newFixedThreadPool</span><span class="params">(<span class="number">4</span>)</span></span>
+val executionContext = ExecutionContext.<span class="function"><span class="title">fromExecutorService</span><span class="params">(executorService)</span></span>
+</code></pre><h3 id="长时间运行的计算">长时间运行的计算</h3><p>取决于应用的本质特点，一个应用偶尔还会调用一些长时间运行的任务，它们完全不涉及 IO（CPU 密集的任务）。 这些任务也不应该在服务器线程中执行，因此需要将它们变成 Future：</p>
+<pre><code><span class="type">Future</span> {
+  longRunningComputation(<span class="typedef"><span class="keyword">data</span>, moreData)</span>
+}
+</code></pre><p>同样，最好有一些专属的 ExecutionContext 来处理这些 CPU 密集的计算。 怎样调整这些线程池大小取决于应用的特征，这些已经超过了本文的范围。</p>
+<h2 id="参考">参考</h2><p><a href="https://windor.gitbooks.io/beginners-guide-to-scala/content/chp9-promises-and-futures-in-practice.html" title="info" target="_blank" rel="external">参考链接</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/scala/" rel="tag">#scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/05/Simple-Scala-Future/" rel="next">Simple Scala: Future</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">40</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">21</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类型Promise"><span class="nav-number">2.</span> <span class="nav-text">类型Promise</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#给出承诺"><span class="nav-number">3.</span> <span class="nav-text">给出承诺</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结束承诺"><span class="nav-number">4.</span> <span class="nav-text">结束承诺</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#对象承诺"><span class="nav-number">4.1.</span> <span class="nav-text">对象承诺</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#违背诺言"><span class="nav-number">4.2.</span> <span class="nav-text">违背诺言</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于Future的编程实践"><span class="nav-number">5.</span> <span class="nav-text">基于Future的编程实践</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#非阻塞IO"><span class="nav-number">5.1.</span> <span class="nav-text">非阻塞IO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#阻塞_IO"><span class="nav-number">5.2.</span> <span class="nav-text">阻塞 IO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#长时间运行的计算"><span class="nav-number">5.3.</span> <span class="nav-text">长时间运行的计算</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
