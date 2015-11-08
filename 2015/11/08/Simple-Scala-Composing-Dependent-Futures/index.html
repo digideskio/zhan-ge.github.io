@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="akka,scala," />
+  <meta name="keywords" content="scala," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="Akka并发:Akka编程模式">
+<meta name="description" content="Scala:依赖于Future的应用构建.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Akka Concurrency: Patterns for Akka Programming">
-<meta property="og:url" content="http://yoursite.com/2015/10/04/Akka-Concurrency-Patterns-for-Akka-Programming/index.html">
+<meta property="og:title" content="Simple Scala: Composing Dependent Futures">
+<meta property="og:url" content="http://yoursite.com/2015/11/08/Simple-Scala-Composing-Dependent-Futures/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Akka并发:Akka编程模式">
-<meta property="og:updated_time" content="2015-10-04T15:16:07.000Z">
+<meta property="og:description" content="Scala:依赖于Future的应用构建.">
+<meta property="og:updated_time" content="2015-11-08T09:41:25.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Akka Concurrency: Patterns for Akka Programming">
-<meta name="twitter:description" content="Akka并发:Akka编程模式">
+<meta name="twitter:title" content="Simple Scala: Composing Dependent Futures">
+<meta name="twitter:description" content="Scala:依赖于Future的应用构建.">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Akka Concurrency: Patterns for Akka Programming | Hexo </title>
+  <title> Simple Scala: Composing Dependent Futures | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Akka Concurrency: Patterns for Akka Programming
+              Simple Scala: Composing Dependent Futures
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-10-04T17:55:44+08:00" content="2015-10-04">
-            2015-10-04
+          <time itemprop="dateCreated" datetime="2015-11-08T16:05:11+08:00" content="2015-11-08">
+            2015-11-08
           </time>
         </span>
 
@@ -185,15 +185,128 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="Behavioural_Composition">Behavioural Composition</h2></span>
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>我已经注意到,每当提起”reactive”时,并不倾向于很实际的代码相关联.”reactive”的一方面是指”非阻塞”代码,无阻塞是指你在程序中执行了一个调用后继续往下执行其他的动作,直到收到一个之前调用产生的通知.</p>
+<p>有很多框架使用不同的方式处理类似这样响应不能立即返回的通知,Scala中可以选择几种不同的非阻塞机制.</p>
+<h2 id="Futures">Futures</h2><p>Scala中使用 scala.concurrent.Future 作为无阻塞访问的基础单元.</p>
+<p>一个比较好的理解方式是,把Future作为一个box,在其中包含你想要的东西,关键的一点是你从来不会打开这个box,试图强制打开box会引起阻塞或错误,取而代之的是把Future放在一个更大的盒子,然后使用map方法.</p>
+<p>下面这个例子中Future包含一个String,当Future完成的时候,Console.println会被调用.</p>
+<pre><code>object Main {
+  <span class="keyword">import</span> scala.concurrent.Future
+  <span class="keyword">import</span> scala.concurrent.ExecutionContext.Implicits.<span class="keyword">global</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">(args:Array[String])</span> :</span> Unit = {
+    val stringFuture: Future[String] = Future.successful(<span class="string">"hello world!"</span>)
+    stringFuture.map { someString =&gt;
+      // <span class="keyword">if</span> you use .foreach you avoid creating an extra Future, but we are proving
+      // the concept here...
+      Console.println(someString)
+    }
+  }
+}
+</code></pre><p>这个例子中Future[String]使用global提供的ExecutionContext,完成时调用Console.println,比较有趣的一点是:当someString出现时我们放弃控制权,同时Console.println会被调用,这一切都是系统本身进行管理.</p>
+<p>下面做一个对比,当我们强制打开box时会发生什么:</p>
+<pre><code>val stringFuture: Future[String] = Future.<span class="function"><span class="title">successful</span><span class="params">(<span class="string">"hello world!"</span>)</span></span>
+val someString = Future.<span class="function"><span class="title">await</span><span class="params">(future)</span></span>
+</code></pre><p>在这种情况下,我们不得不进行等待,保持线程在缓存中运行,直到someString完成.我们虽然已经打开了box,但不得不占用系统资源等待其完成.</p>
+<h2 id="Event_Based_Systems_with_Akka">Event Based Systems with Akka</h2><p>当我们讨论scala中的响应式系统时实质上市指事件驱动的系统,Akka.当我们想从akka系统得到结果时,有两种方式可以实现.</p>
+<p>使用tell发送消息到actor:</p>
+<pre><code>fooActor ! <span class="function"><span class="title">GetFoo</span><span class="params">(<span class="number">1</span>)</span></span>
+</code></pre><p>然后依赖fooActor回复给我们一条消息:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">receive</span></span> = {
+  <span class="keyword">case</span> <span class="constant">GetFoo</span>(id) =&gt;
+    sender() ! <span class="constant">Foo</span>(id)
+}
+</code></pre><p>或者使用ask,生成一个Future:</p>
+<pre><code><span class="tag">val</span> <span class="rule"><span class="attribute">fooFuture</span>:<span class="value"> Future[Foo] = fooActor ? <span class="function">GetFoo</span>(<span class="number">1</span>)</span></span>
+</code></pre><p>当actor的receive方法回复一个Foo(id)时fooFuture就会完成.或者你想用其他方式,从Future到Actor,可以使用pipeTo方法:</p>
+<pre><code>Future.<span class="name">successful</span> {
+  Foo(<span class="number">1</span>)
+} <span class="name">pipeTo</span> <span class="name">actorRef</span>
+</code></pre><p>通常推荐的做法是tell而不是ask.</p>
+<p>但是一个重要的警告是:并不是所有的系统都是基于Akka的.如果要操作一个NoSQL比如Redis或Cassandra,确保你使用的是一个直接基于Future的驱动.或者你使用Play!的时候,会允许你通过Action.async传递一个Future:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span><span class="params">()</span>:</span> Future[Result] = Action.<span class="keyword">async</span> {
+  Future.successful {
+    Ok(<span class="string">"hello world!"</span>) // <span class="number">200</span> HTTP Result
+  }
+}
+</code></pre><p>这些意味着什么呢?在实践中,如果你使用的系统不是基于Akka,或者,你没有使用一个基于stream的API,比如 Iteratees/Reactive Streams,然后你又听到”响应式”或”无阻塞”,那么这时候你就应该看到Future了.</p>
+<h2 id="Dependent_Futures">Dependent Futures</h2><p>假设一个service用于传递数据:</p>
+<pre><code>trait FooService {
+  <span class="function"><span class="keyword">def</span> <span class="title">find</span><span class="params">(fooId:FooID)</span>:</span> Option[Foo]
+}
+</code></pre><p>这个服务返回一个Option[T],Option是另一种容器类型,只有两种值会返回:如果Foo(1)存在时返回Some(Foo(1)),否则返回None.使用Option则不需要像下面这样进行null值检查:</p>
+<pre><code>val foo:Foo = fooService.find(fooId)
+<span class="keyword">if</span> (foo != <span class="keyword">null</span>) { <span class="comment">// WITHOUT OPTION</span>
+  Console.println(<span class="string">"Foo is "</span> + foo)
+}
+</code></pre><p>调用Option.map可以在值存在是安全的获得该值:</p>
+<pre><code>val maybeFoo:<span class="type">Option</span>[<span class="type">Foo</span>] = fooService.<span class="built_in">find</span>(fooId)
+maybeFoo.<span class="built_in">map</span> { foo =&gt; <span class="comment">// WITH OPTION</span>
+  <span class="type">Console</span>.<span class="built_in">println</span>(<span class="string">"Foo is "</span> + foo)
+}
+</code></pre><p>可以发现Future和Option都是基于同样的工作原则:一个类型中包含另一个只有某些条件下才能得到的类型.</p>
+<p>但是FooService并非无阻塞的,假设服务后是无阻塞的数据源,我们可以这样处理:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">find</span><span class="params">(fooId:FooID)</span>:</span> Future[Option[Foo]]
+</code></pre><p>然后这样调用:</p>
+<pre><code>fooService.<span class="keyword">find</span>(fooId).<span class="typename">map</span> { maybeFoo =&gt;
+  maybeFoo.<span class="typename">map</span> { foo =&gt;
+    Console.<span class="keyword">println</span>(<span class="string">"Foo is "</span> + foo)
+  }
+}
+</code></pre><p>但是现在有趣的是不能使用Option来组合Future.如果是两层嵌套的Future可以使用flatMap解包成一个Future,或者一个嵌套的Option也可以解包成一个单独的Option,但是不能解包一个Future[Option[T]],像这样:</p>
+<pre><code>fooService.<span class="keyword">find</span>(fooId).flatMap { foo =&gt;
+  Console.<span class="keyword">println</span>(<span class="string">"Foo is "</span> + foo)
+}
+</code></pre><p>现在在FooService之外再添加两个服务:</p>
+<pre><code>trait BarService {
+  <span class="function"><span class="keyword">def</span> <span class="title">find</span><span class="params">(barId:BarID)</span> :</span> Future[Option[Bar]]
+}
+trait QuuxService {
+  <span class="function"><span class="keyword">def</span> <span class="title">find</span><span class="params">(quuxId:QuuxID)</span> :</span> Future[Option[Quux]]
+}
+</code></pre><p>假设所有的这次服务都返回单独的Future:</p>
+<pre><code>val fooFuture = fooService.<span class="function"><span class="title">find</span><span class="params">(FooID(<span class="number">1</span>)</span></span>)
+val barFuture = barService.<span class="function"><span class="title">find</span><span class="params">(BarID(<span class="number">2</span>)</span></span>)
+val quuxFuture = quuxService.<span class="function"><span class="title">find</span><span class="params">(QuuxID(<span class="number">3</span>)</span></span>)
+</code></pre><p>这会得到三个不同的Future,可能三个不同的线程在并行的运行他们.这种模式在各种Future中会见到.</p>
+<p>或者更多情况下,你会需要这样的处理方式:</p>
+<pre><code>val fooFuture = fooService.<span class="function"><span class="title">find</span><span class="params">(<span class="number">1</span>)</span></span>
+val barFuture = barService.<span class="function"><span class="title">find</span><span class="params">(foo.barId)</span></span> <span class="comment">// where is foo?</span>
+val quuxFuture = quuxService.<span class="function"><span class="title">find</span><span class="params">(bar.quuxId)</span></span> <span class="comment">// where is bar?</span>
+</code></pre><p>一个Future计算依赖于其他Future计算.</p>
+<h2 id="The_Obvious_Solution">The Obvious Solution</h2><p>比较直接的处理方式可能是这样:</p>
+<pre><code>fooService.<span class="built_in">get</span>(<span class="number">1</span>).<span class="built_in">map</span> { maybeFoo =&gt;
+  maybeFoo.<span class="built_in">map</span> { foo =&gt;
+    barService.<span class="built_in">get</span>(foo.barId).<span class="built_in">map</span> { maybeBar =&gt;
+      maybeBar.<span class="built_in">map</span> { bar =&gt;
+        quuxService.<span class="built_in">get</span>(bar.quuxId).<span class="built_in">map</span> { maybeQuux =&gt;
+          maybeQuux.<span class="built_in">map</span> { quux =&gt;
+            Console.<span class="built_in">println</span>(<span class="string">"Quux = "</span> + quux)
+          }
+        }
+      }
+    }
+  }
+}
+</code></pre><p>但很明显,这种方式并不是很优雅.</p>
+<h2 id="For_Comprehensions">For Comprehensions</h2><p>有多种不同的方式可以更好的处理这种问题,我们可以使用for语句.</p>
+<p>一种情况是嵌套的for语句:</p>
+<pre><code><span class="keyword">for</span> (maybeFoo &lt;- fooService.find(<span class="number">1</span>)) <span class="keyword">yield</span> {
+  <span class="keyword">for</span> (foo &lt;- maybeFoo) <span class="keyword">yield</span> ...
+}
+</code></pre><p>或者:</p>
+<pre><code><span class="function"><span class="keyword">def</span> :</span> Future[Option[Bar]] = {
+  <span class="keyword">for</span> {
+    Some(foo) &lt;- fooService.find(<span class="number">1</span>)
+    maybeBar &lt;- barService.find(foo.barId)
+  } <span class="keyword">yield</span> maybeBar
+}
+</code></pre></span>
       
     </div>
 
     <footer class="post-footer">
       
         <div class="post-tags">
-          
-            <a href="/tags/akka/" rel="tag">#akka</a>
           
             <a href="/tags/scala/" rel="tag">#scala</a>
           
@@ -204,13 +317,11 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/10/04/Simple-Scala-Type-Less-Do-More/" rel="prev">Simple Scala: Type Less, Do More</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/10/04/Akka-Concurrency-Akka-Does-Concurrency/" rel="next">Akka Concurrency: Akka Does Concurrency</a>
+              <a href="/2015/11/07/Simple-Scala-Option/" rel="next">Simple Scala: Option</a>
             
           </div>
         </div>
@@ -314,7 +425,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Behavioural_Composition"><span class="nav-number">1.</span> <span class="nav-text">Behavioural Composition</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Futures"><span class="nav-number">2.</span> <span class="nav-text">Futures</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Event_Based_Systems_with_Akka"><span class="nav-number">3.</span> <span class="nav-text">Event Based Systems with Akka</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dependent_Futures"><span class="nav-number">4.</span> <span class="nav-text">Dependent Futures</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The_Obvious_Solution"><span class="nav-number">5.</span> <span class="nav-text">The Obvious Solution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#For_Comprehensions"><span class="nav-number">6.</span> <span class="nav-text">For Comprehensions</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
