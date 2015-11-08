@@ -1,0 +1,689 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Scala中的Option类型.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: Option">
+<meta property="og:url" content="http://yoursite.com/2015/11/07/Simple-Scala-Option/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Scala中的Option类型.">
+<meta property="og:updated_time" content="2015-11-07T15:01:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: Option">
+<meta name="twitter:description" content="Scala中的Option类型.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: Option | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: Option
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2015-11-07T21:33:54+08:00" content="2015-11-07">
+            2015-11-07
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Java开发者都知道NullPointerException,通常是因为某个方法返回了null,但这并不是开发者所期望的,代码也不好去处理这种异常.</p>
+<p>值null通常被滥用来表征一个可能缺失的值.不过,某些语言以一些特殊的方法对待null值,或者允许你安全的使用可能是null的值.比如说,Groovy有安全运算符用于访问属性,这样调用foo?.bar?.baz,不会再foo或bar为null时而引发异常,而是直接返回null值,然而,Groovy中并没有机制强制你使用此运算符,所以如果你忘了使用它,那就完蛋了.</p>
+<p>Clojure对待nil基本上就像对待空字符串一样,也可以把它当成空列表或映射表一样去访问,这意味着,nil在调用层级中向上冒泡.很多时候这样是可行的,但有时候会导致异常出现在更高的调用层级中,而那里的代码没有对nil的处理进行考虑.</p>
+<p>Scala试图通过摆脱null来解决这个问题,并提供自己的类型用来表示一个值是可选得,这就是Option[A]特质.</p>
+<p>Option[A]是一个类型为A的可选值的容器:如果值存在,Option[A]就是一个Some[A],如果不存在,Option[A]就是对象None.</p>
+<p>在类型层面上指出一个值是否存在,使用你的代码的开发者或者你自己,就会被编译器强制去处理这种可能性,而不能仅仅依赖于值存在的偶然性.</p>
+<p>Option是强制的,不要使用null来表示一个值的缺失.</p>
+<h2 id="创建Option">创建Option</h2><p>通常,你可以直接实例化Some样例类来创建一个Option:</p>
+<pre><code>val greeting: <span class="built_in">Option</span>[<span class="built_in">String</span>] = <span class="built_in">Some</span>(<span class="string">"Hello world"</span>)
+</code></pre><p>或者,在知道缺失的情况下直接使用None:</p>
+<pre><code>val greeting: <span class="built_in">Option</span>[<span class="built_in">String</span>] = <span class="built_in">None</span>
+</code></pre><p>然而,在实际工作中,你不可避免的要去操作一些Java库,或者其他将null做为缺失值的JVM语言代码.为此,Option半生对象提供了一个工厂方法,可以根据给定的参数创建相映的Option:</p>
+<pre><code>val absentGreeting: <span class="built_in">Option</span>[<span class="built_in">String</span>] = <span class="built_in">Option</span>(null) <span class="comment">// absentGreeting will be None</span>
+val presentGreeting: <span class="built_in">Option</span>[<span class="built_in">String</span>] = <span class="built_in">Option</span>(<span class="string">"Hello!"</span>) <span class="comment">// presentGreeting will be Some("Hello!")</span>
+</code></pre><h2 id="使用Option">使用Option</h2><p>想象一下,你正在为某个创业公司工作,要做的第一件事情就是实现一个用户的存储库,要求能够通过唯一的用户ID来查找他们.有时候请求会带来假的ID,这种情况,查找方法就需要返回Option[User]类型的数据,一个假想的实现可能如下:</p>
+<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span>(</span>
+    id: <span class="type">Int</span>,
+    firstName: <span class="type">String</span>,
+    lastName: <span class="type">String</span>,
+    age: <span class="type">Int</span>,
+    gender: <span class="type">Option</span>[<span class="type">String</span>]
+  )
+
+<span class="class"><span class="keyword">object</span> <span class="title">UserRepository</span> {</span>
+    <span class="keyword">private</span> <span class="function"><span class="keyword">val</span> <span class="title">users</span> =</span> <span class="type">Map</span>(<span class="number">1</span> -&gt; <span class="type">User</span>(<span class="number">1</span>, <span class="string">"John"</span>, <span class="string">"Doe"</span>, <span class="number">32</span>, <span class="type">Some</span>(<span class="string">"male"</span>)),
+                                <span class="number">2</span> -&gt; <span class="type">User</span>(<span class="number">2</span>, <span class="string">"Johanna"</span>, <span class="string">"Doe"</span>, <span class="number">30</span>, <span class="type">None</span>))
+    <span class="function"><span class="keyword">def</span> <span class="title">findById</span>(</span>id: <span class="type">Int</span>): <span class="type">Option</span>[<span class="type">User</span>] = users.get(id)
+    <span class="function"><span class="keyword">def</span> <span class="title">findAll</span> =</span> users.values
+}  
+</code></pre><p>现在,假设从UserRepository接收到一个Option[User]实例,并需要那它做点什么,该怎么处理呢?</p>
+<p>一个办法就是通过isDefined方法来检查是否有值,如果有,你就可以用get方法来获取该值:</p>
+<pre><code><span class="variable"><span class="keyword">val</span> user1</span> = UserRepository.findById(<span class="number">1</span>)
+  <span class="keyword">if</span> (user1.isDefined) {
+    println(user1.<span class="keyword">get</span>.firstName)
+} <span class="comment">// will print "John"</span>
+</code></pre><p>这和Guava库中的Optional使用方法类似.不过这种使用方式太过笨重,更重要的是,使用get之前,你可能会忘记使用isDefined方法做检查,这会导致运行期出现异常,这样一来,相对于null,使用Option就没有什么优势了.</p>
+<h2 id="提供一个默认值">提供一个默认值</h2><p>很多时候,在值不存在时需要进行回退,或者提供一个默认值.Scala为Option提供了getOrElse方法,以应对这种情况:</p>
+<pre><code>val user = <span class="function"><span class="title">User</span><span class="params">(<span class="number">2</span>, <span class="string">"Johanna"</span>, <span class="string">"Doe"</span>, <span class="number">30</span>, None)</span></span>
+<span class="function"><span class="title">println</span><span class="params">(<span class="string">"Gender: "</span> + user.gender.getOrElse(<span class="string">"not specified"</span>)</span></span>) <span class="comment">// will print "not specified"</span>
+</code></pre><p>请注意,作为getOrElse参数的默认值是一个传名参数,这意味着,只有当这个Option确实是None时,传名参数才会被求值.因此,没有必要担心创建默认值的代价,它只有在需要时才会被执行.</p>
+<h2 id="模式匹配">模式匹配</h2><p>Some是一个样例类,可以出现在模式匹配表达式或者其他允许模式出现的地方,上面的例子可以用模式匹配方式重写:</p>
+<pre><code>val user = User(<span class="number">2</span>, <span class="string">"Johanna"</span>, <span class="string">"Doe"</span>, <span class="number">30</span>, None)
+user.gender match {
+  <span class="function"><span class="keyword">case</span> <span class="title">Some</span><span class="params">(gender)</span> </span>=&gt; println(<span class="string">"Gender: "</span> + gender)
+  <span class="keyword">case</span> None =&gt; println(<span class="string">"Gender: not specified"</span>)
+}
+</code></pre><p>或者,你想删除重复的println语句,并重点突出模式匹配表达式的使用:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">user</span> =</span> <span class="type">User</span>(<span class="number">2</span>, <span class="string">"Johanna"</span>, <span class="string">"Doe"</span>, <span class="number">30</span>, <span class="type">None</span>)
+<span class="function"><span class="keyword">val</span> <span class="title">gender</span> =</span> user.gender <span class="keyword">match</span> {
+  <span class="keyword">case</span> <span class="type">Some</span>(gender) =&gt; gender
+  <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="string">"not specified"</span>
+}
+println(<span class="string">"Gender: "</span> + gender)
+</code></pre><p>你可能已经发现使用模式匹配处理Option是非常啰嗦的,这也是它非惯用法的原因,所有还是使用其他方式进行类似的处理.</p>
+<h2 id="作为集合的Option">作为集合的Option</h2><p>Option是类型A的容器,更确切的说,可以把它看成某种集合,这个特殊的集合要么只包含一个元素,要么就什么元素都没有.</p>
+<p>虽然在类型层次上Option并不是Scala的集合类型,但,凡事你觉得Scala好用的方法,Option也有,你甚至可以将它转换成一个集合List.</p>
+<h3 id="执行一个副作用">执行一个副作用</h3><p>如果想在Option值存在的时候执行某个副作用,foreach方法就派上用场了:</p>
+<pre><code>UserRepository.<span class="function"><span class="title">findById</span><span class="params">(<span class="number">2</span>)</span></span>.<span class="function"><span class="title">foreach</span><span class="params">(user =&gt; println(user.firstName)</span></span>) <span class="comment">// prints "Johanna"</span>
+</code></pre><p>如果这个Option是一个Some,传递给foreach的函数就会被调用一次,且只有一次,如果是None,就不会被调用.</p>
+<h3 id="执行映射">执行映射</h3><p>Option表现的像集合,最棒的一点是,你可以用他来进行函数式编程,就像处理列表集合那样.</p>
+<p>正如你可以将List[A]映射到List[B]一样,你也可以将Option[A]映射到Option[B],如果Option[A]实例是Some[A]类型,那映射结果就是Some[B]类型,否则,就是None.</p>
+<p>如果将Option和List作对比,那None就相当于一个空列表:当你映射一个空的List[A],会得到一个空得List[B],而映射一个是None的Option[A]时,得到的Option[B]也是None.</p>
+<p>让我们得到一个可能不存在的用户的年龄:</p>
+<pre><code>val age = UserRepository.<span class="function"><span class="title">findById</span><span class="params">(<span class="number">1</span>)</span></span>.<span class="function"><span class="title">map</span><span class="params">(_.age)</span></span> <span class="comment">// age is Some(32)</span>
+</code></pre><h3 id="Option与flatMap">Option与flatMap</h3><p>也可以在gender上做map操作:</p>
+<pre><code>val gender = UserRepository.<span class="function"><span class="title">findById</span><span class="params">(<span class="number">1</span>)</span></span>.<span class="function"><span class="title">map</span><span class="params">(_.gender)</span></span> <span class="comment">// gender is an Option[Option[String]]</span>
+</code></pre><p>所生成的gender时Option[Option[String]]类型,这又是为何?</p>
+<p>可以这样想:你有一个装有user的Option容器,在容器里面,你将User映射到Option[String],必然得到一个嵌套的Option.</p>
+<p>既然可以使用flatMap方法将List[List[A]]处理成List[B],Option[Option[A]]也可以调用flatMap方法处理成Option[B],这没有任何问题,Option提供了flatMap方法:</p>
+<pre><code>val gender1 = UserRepository.<span class="function"><span class="title">findById</span><span class="params">(<span class="number">1</span>)</span></span>.<span class="function"><span class="title">flatMap</span><span class="params">(_.gender)</span></span> <span class="comment">// gender is Some("male")</span>
+val gender2 = UserRepository.<span class="function"><span class="title">findById</span><span class="params">(<span class="number">2</span>)</span></span>.<span class="function"><span class="title">flatMap</span><span class="params">(_.gender)</span></span> <span class="comment">// gender is None</span>
+val gender3 = UserRepository.<span class="function"><span class="title">findById</span><span class="params">(<span class="number">3</span>)</span></span>.<span class="function"><span class="title">flatMap</span><span class="params">(_.gender)</span></span> <span class="comment">// gender is None</span>
+</code></pre><p>现在结果就变成了Option[String]类型,如果user和gender都有值,那结果就会是Some类型,反之,就会得到一个None.</p>
+<p>要理解是什么原理,让我们看一下flatMap操作List[List[A]时发生了什么:</p>
+<pre><code><span class="tag">val</span> <span class="rule"><span class="attribute">names</span>:<span class="value"> List[List[String]] =
+ <span class="function">List</span>(<span class="function">List</span>(<span class="string">"John"</span>, <span class="string">"Johanna"</span>, <span class="string">"Daniel"</span>), <span class="function">List</span>(), <span class="function">List</span>(<span class="string">"Doe"</span>, <span class="string">"Westheide"</span>))
+names.<span class="function">map</span>(_.<span class="function">map</span>(_.toUpperCase))
+// results in <span class="function">List</span>(<span class="function">List</span>(<span class="string">"JOHN"</span>, <span class="string">"JOHANNA"</span>, <span class="string">"DANIEL"</span>), <span class="function">List</span>(), <span class="function">List</span>(<span class="string">"DOE"</span>, <span class="string">"WESTHEIDE"</span>))
+names.<span class="function">flatMap</span>(_.<span class="function">map</span>(_.toUpperCase))
+// results in <span class="function">List</span>(<span class="string">"JOHN"</span>, <span class="string">"JOHANNA"</span>, <span class="string">"DANIEL"</span>, <span class="string">"DOE"</span>, <span class="string">"WESTHEIDE"</span>)</span></span>
+</code></pre><p>如果我们使用flatMap,内部列表中的元素会被转换成一个扁平的字符串列表.显然如果内部列表是空得,则不会有任何东西留下.</p>
+<p>现在回到Option类型,如果映射一个由Option组成的列表呢:</p>
+<pre><code><span class="tag">val</span> <span class="rule"><span class="attribute">names</span>:<span class="value"> List[Option[String]] = <span class="function">List</span>(<span class="function">Some</span>(<span class="string">"Johanna"</span>), None, <span class="function">Some</span>(<span class="string">"Daniel"</span>))
+names.<span class="function">map</span>(_.<span class="function">map</span>(_.toUpperCase)) // <span class="function">List</span>(<span class="function">Some</span>(<span class="string">"JOHANNA"</span>), None, <span class="function">Some</span>(<span class="string">"DANIEL"</span>))
+names.<span class="function">flatMap</span>(xs =&gt; xs.<span class="function">map</span>(_.toUpperCase)) // <span class="function">List</span>(<span class="string">"JOHANNA"</span>, <span class="string">"DANIEL"</span>)</span></span>
+</code></pre><p>如果只是map,那结果还是List[Option[String]],而如果使用flatMap时,内部集合的元素就会被放到一个扁平的列表里:任何一个Some[String]里的元素都会被解包,放入结果集中;而原列表中的None值由于不包含任何元素,就直接被过滤掉了.</p>
+<h3 id="过滤Option">过滤Option</h3><p>也可以像过滤列表那样过滤Option,如果Option包含有值,而且传递给filter的谓词函数返回真,filter会返回Some实例,否则,返回值为None.</p>
+<pre><code>UserRepository.<span class="function"><span class="title">findById</span><span class="params">(<span class="number">1</span>)</span></span>.<span class="function"><span class="title">filter</span><span class="params">(_.age &gt; <span class="number">30</span>)</span></span> <span class="comment">// None, because age is &lt;= 30</span>
+UserRepository.<span class="function"><span class="title">findById</span><span class="params">(<span class="number">2</span>)</span></span>.<span class="function"><span class="title">filter</span><span class="params">(_.age &gt; <span class="number">30</span>)</span></span> <span class="comment">// Some(user), because age is &gt; 30</span>
+UserRepository.<span class="function"><span class="title">findById</span><span class="params">(<span class="number">3</span>)</span></span>.<span class="function"><span class="title">filter</span><span class="params">(_.age &gt; <span class="number">30</span>)</span></span> <span class="comment">// None, because user is already None</span>
+</code></pre><h2 id="for语句">for语句</h2><p>现在，你已经知道 Option 可以被当作集合来看待，并且有 map 、 flatMap 、 filter 这样的方法。 可能你也在想 Option 是否能够用在 for 语句中，答案是肯定的。 而且，用 for 语句来处理 Option 是可读性最好的方式，尤其是当你有多个 map 、flatMap 、filter 调用的时候。 如果只是一个简单的 map 调用，那 for 语句可能有点繁琐。</p>
+<p>假如我们想得到一个用户的性别,可以使用for语句:</p>
+<pre><code><span class="title">for</span> {
+  user &lt;- <span class="type">UserRepository</span>.findById(<span class="number">1</span>)
+  gender &lt;- user.gender
+} yield gender // results <span class="keyword">in</span> <span class="type">Some</span>(<span class="string">"male"</span>)
+</code></pre><p>可能你已经知道,这样的for语句等同于flatMap调用,如果UserRepository.findById(1)返回None,或者gender是None,那个for语句的结果就是None.不过这个例子里,gender含有值,所以返回结果是Some类型的.</p>
+<p>如果我们想返回所有用户的性别,可以遍历用户,yield其性别:</p>
+<pre><code><span class="keyword">for</span> {
+  user &lt;- <span class="type">UserRepository</span>.findAll
+  gender &lt;- user.gender
+} <span class="keyword">yield</span> gender
+// <span class="literal">result</span> <span class="keyword">in</span> <span class="type">List</span>(<span class="string">"male"</span>)
+</code></pre><h3 id="在生成器左侧使用">在生成器左侧使用</h3><p>也许你还记得，前一章曾经提到过， for 语句中生成器的左侧也是一个模式。 这意味着也可以在 for 语句中使用包含选项的模式。<br>重写之前的例子:</p>
+<pre><code><span class="name">for</span> {
+   User(<span class="number">_</span>, <span class="number">_</span>, <span class="number">_</span>, <span class="number">_</span>, Some(gender)) &lt;- UserRepository.findAll
+ } <span class="name">yield</span> <span class="name">gender</span>
+</code></pre><p>在生产期左侧使用Some模式就可以在结果集中排除掉值为None的元素.</p>
+<h2 id="连接Option">连接Option</h2><p>Option 还可以被链接使用，这有点像偏函数的链接： 在 Option 实例上调用 orElse 方法，并将另一个 Option 实例作为传名参数传递给它。 如果一个 Option 是 None ， orElse 方法会返回传名参数的值，否则，就直接返回这个 Option。</p>
+<p>一个很好的使用案例是资源查找：对多个不同的地方按优先级进行搜索。 下面的例子中，我们首先搜索 config 文件夹，并调用 orElse 方法，以传递备用目录：</p>
+<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Resource</span>(</span>content: <span class="type">String</span>)
+<span class="function"><span class="keyword">val</span> <span class="title">resourceFromConfigDir</span>:</span> <span class="type">Option</span>[<span class="type">Resource</span>] = <span class="type">None</span>
+<span class="function"><span class="keyword">val</span> <span class="title">resourceFromClasspath</span>:</span> <span class="type">Option</span>[<span class="type">Resource</span>] = <span class="type">Some</span>(<span class="type">Resource</span>(<span class="string">"I was found on the classpath"</span>))
+<span class="function"><span class="keyword">val</span> <span class="title">resource</span> =</span> resourceFromConfigDir orElse resourceFromClasspath
+</code></pre><p>如果想链接多个选项，而不仅仅是两个，使用 orElse 会非常合适。 不过，如果只是想在值缺失的情况下提供一个默认值，那还是使用 getOrElse 吧。</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/07/Simple-Scala-Pattern-in-Everywhere/" rel="next">Simple Scala: Pattern in Everywhere</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">42</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">21</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建Option"><span class="nav-number">2.</span> <span class="nav-text">创建Option</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Option"><span class="nav-number">3.</span> <span class="nav-text">使用Option</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提供一个默认值"><span class="nav-number">4.</span> <span class="nav-text">提供一个默认值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模式匹配"><span class="nav-number">5.</span> <span class="nav-text">模式匹配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#作为集合的Option"><span class="nav-number">6.</span> <span class="nav-text">作为集合的Option</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#执行一个副作用"><span class="nav-number">6.1.</span> <span class="nav-text">执行一个副作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#执行映射"><span class="nav-number">6.2.</span> <span class="nav-text">执行映射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Option与flatMap"><span class="nav-number">6.3.</span> <span class="nav-text">Option与flatMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#过滤Option"><span class="nav-number">6.4.</span> <span class="nav-text">过滤Option</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#for语句"><span class="nav-number">7.</span> <span class="nav-text">for语句</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#在生成器左侧使用"><span class="nav-number">7.1.</span> <span class="nav-text">在生成器左侧使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#连接Option"><span class="nav-number">8.</span> <span class="nav-text">连接Option</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

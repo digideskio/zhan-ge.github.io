@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/10/28/Simple-Scala-Extractor/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Scala中的提取器.">
-<meta property="og:updated_time" content="2015-10-28T00:48:52.000Z">
+<meta property="og:updated_time" content="2015-11-07T10:24:26.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Scala: Extractor">
 <meta name="twitter:description" content="Scala中的提取器.">
@@ -293,7 +293,61 @@ xs match {
   <span class="keyword">case</span> _ =&gt; -<span class="number">1</span>
 }
 </code></pre><p>首先为传递给模式匹配的初始流 xs 调用提取器。 由于提取器返回 Some(xs.head, xs.tail) ，从而 first 会绑定成 58， xs 的尾会继续传递给提取器，提取器再一次被调用，返回首和尾， second 就被绑定成 43 ， 而尾就绑定到通配符 _ ，被直接扔掉了。</p>
-<h2 id="参考">参考</h2><p><a href="https://windor.gitbooks.io/beginners-guide-to-scala/content/chp1-extractors.html" title="info" target="_blank" rel="external">参考链接</a></p>
+<h2 id="序列提取">序列提取</h2><p>对于某种数据结构来说,Scala提供了提取任意多个参数的模式匹配方法.</p>
+<p>比如,可以匹配只有两个或只有三个元素的列表:</p>
+<pre><code>val xs = <span class="number">3</span> :: <span class="number">6</span> :: <span class="number">12</span> :: Nil
+xs match {
+ <span class="function"><span class="keyword">case</span> <span class="title">List</span><span class="params">(a, b)</span> </span>=&gt; a * b           <span class="comment">// 匹配两个元素的列表</span>
+ <span class="function"><span class="keyword">case</span> <span class="title">List</span><span class="params">(a, b, c)</span> </span>=&gt; a + b + c    <span class="comment">// 匹配三个元素的列表</span>
+ <span class="keyword">case</span> _ =&gt; <span class="number">0</span>
+}
+</code></pre><p>除此之外,可以使用通配符_*匹配不确定长度的列表:</p>
+<pre><code>val xs = <span class="number">3</span> :: <span class="number">6</span> :: <span class="number">12</span> :: <span class="number">24</span> :: Nil
+xs match {
+ <span class="function"><span class="keyword">case</span> <span class="title">List</span><span class="params">(a, b, _*)</span> </span>=&gt; a * b       <span class="comment">// 匹配任意长度列表的前连个元素</span>
+ <span class="keyword">case</span> _ =&gt; <span class="number">0</span>
+}
+</code></pre><p>这个例子中,第一个模式成功匹配,把xs的前两个元素分别绑定到a/b,而剩余的列表,无论其还有多少个元素,都直接被忽略掉.</p>
+<p>显然,这种方式的提取器是无法通过上一章介绍的方式来实现的.需要一种特殊的方式,来使一个提取器可以接收某一类型的对象,将其结构成列表,而这个列表的长度在编译器是不确定的.<br>unapplySeq就是用来做这件事的,下面的代码是可能的方法签名:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">unapplySeq</span><span class="params">(object: S)</span>:</span> Option[Seq[T]]
+</code></pre><p>这个方法接收一个类型为S的对象,返回一个类型参数为Seq[T]的Option.</p>
+<h2 id="例子:提取给定的名字">例子:提取给定的名字</h2><p>假设有一个应用,其某处代码接收了一个表示人名且类型为String的参数,这个字符串可能包含了这个人的第二个名字甚至第三个名字,比如:Daniel/Catherina Johanna/Matthew John Michael.而我们想做的是从这个字符串中提取出单个的名字.</p>
+<p>下面的代码是一个用unapplySeq方法实现的提取器:</p>
+<pre><code>object GivenNames {
+  <span class="function"><span class="keyword">def</span> <span class="title">unapplySeq</span><span class="params">(name: String)</span>:</span> Option[Seq[String]] = {
+    val names = name.trim.split(<span class="string">" "</span>)
+    <span class="keyword">if</span> (name.forall(_.isEmpty)) <span class="keyword">None</span>
+    <span class="keyword">else</span> Some(names)
+  }
+}
+</code></pre><p>给定一个含有一个或多个名字的字符串,这个提取器会将其结构成一个列表.如果字符串不包含有任何名字,提取器会返回None,提取器所在的那个模式就匹配失败.下面对提取器进行测试:</p>
+<pre><code>def greetWithFirstName(name: <span class="built_in">String</span>) = name match {
+    <span class="keyword">case</span> GivenNames(firstName, _*) =&gt; <span class="string">"Good morning, $firstname!"</span>
+    <span class="keyword">case</span> _ =&gt; <span class="string">"Welcome! Please make sure to fill in your name!"</span>
+}
+</code></pre><p>调用greetWithFirstName(“Daniel”),会返回”Good morning, Daniel!”,而调用greetWithFirstName(“Catherina Johanna”) 会返回 “Good morning, Catherina!”.</p>
+<h2 id="固定和可变的参数提取">固定和可变的参数提取</h2><p>有些时候需要提取出多个值,这样,在编译期,就必须知道要提取出多少个值出来,在外加一个可选的序列,用来保存不确定的那一部分.</p>
+<p>在我们的例子中,假设输入的字符串包含了一个完整的姓名,而不仅仅是名字.比如字符串可能是”John Doe”/“Catherina Johanna Peterson”,其中”Doe”、”Peterson”是姓,”John”/“Catherina”/“Johanna”是名.我们想做的是匹配这样的字符串,把姓绑定到一个变量,把第一个名绑定到第二个变量,第三个变量存放剩下的任意名字.<br>稍微修改unapplySeq方法就可以解决上述问题:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">unapplySeq</span><span class="params">(object: S)</span>:</span> Option[(T1, .., Tn-<span class="number">1</span>, Seq[T])]
+</code></pre><p>unapplySeq 返回的同样是 Option[TupleN],只不过,其最后一个元素是Seq[T],这个方法签名看起来应该很熟悉,它和之前的一个unapply签名类似.</p>
+<p>下列代码是使用这个方法生成的提取器:</p>
+<pre><code>object Names {
+  <span class="function"><span class="keyword">def</span> <span class="title">unapplySeq</span><span class="params">(name: String)</span>:</span> Option[(String, String, Seq[String])] = {
+    val names = name.trim.split(<span class="string">" "</span>)
+    <span class="keyword">if</span> (names.size &lt; <span class="number">2</span>) <span class="keyword">None</span>
+    <span class="keyword">else</span> Some((names.last, names.head, names.drop(<span class="number">1</span>).dropRight(<span class="number">1</span>)))
+  }
+}
+</code></pre><p>仔细看其返回值和构造Some的方式.代码返回一个类型参数为Tuple3的Option,这个元祖包含了姓/名以及剩余的名构成的序列.</p>
+<p>如果这个提取器用在一个模式中,那只有当给定的字符串至少含有姓和名时,模式才能匹配成功.</p>
+<p>下面这个提取器重写greeting方法:</p>
+<pre><code>def greet(fullName: String) = fullName <span class="name">match</span> {
+  <span class="keyword">case</span> Names(lastName, firstName, <span class="number">_</span>*) =&gt;
+    <span class="string">"Good morning, <span class="variable">$firstName</span> <span class="variable">$lastName</span>!"</span>
+  <span class="keyword">case</span> _ =&gt;
+    <span class="string">"Welcome! Please make sure to fill in your name!"</span>
+}
+</code></pre><h2 id="参考">参考</h2><p><a href="https://windor.gitbooks.io/beginners-guide-to-scala/content/chp1-extractors.html" title="info" target="_blank" rel="external">参考链接</a></p>
 </span>
       
     </div>
@@ -379,7 +433,7 @@ xs match {
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">40</span>
+              <span class="site-state-item-count">42</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -421,7 +475,7 @@ xs match {
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一个提取器"><span class="nav-number">2.</span> <span class="nav-text">第一个提取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提取多个值"><span class="nav-number">3.</span> <span class="nav-text">提取多个值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#布尔提取器"><span class="nav-number">4.</span> <span class="nav-text">布尔提取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中缀表达方式"><span class="nav-number">5.</span> <span class="nav-text">中缀表达方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进一步看流提取器"><span class="nav-number">6.</span> <span class="nav-text">进一步看流提取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一个提取器"><span class="nav-number">2.</span> <span class="nav-text">第一个提取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提取多个值"><span class="nav-number">3.</span> <span class="nav-text">提取多个值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#布尔提取器"><span class="nav-number">4.</span> <span class="nav-text">布尔提取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中缀表达方式"><span class="nav-number">5.</span> <span class="nav-text">中缀表达方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进一步看流提取器"><span class="nav-number">6.</span> <span class="nav-text">进一步看流提取器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#序列提取"><span class="nav-number">7.</span> <span class="nav-text">序列提取</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#例子:提取给定的名字"><span class="nav-number">8.</span> <span class="nav-text">例子:提取给定的名字</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#固定和可变的参数提取"><span class="nav-number">9.</span> <span class="nav-text">固定和可变的参数提取</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">10.</span> <span class="nav-text">参考</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
