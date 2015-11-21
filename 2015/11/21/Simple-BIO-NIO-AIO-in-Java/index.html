@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="scala," />
+  <meta name="keywords" content="IO,Java," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="Scala隐式转换.">
+<meta name="description" content="Java中的 BIO, NIO, AIO.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Scala: Implicits">
-<meta property="og:url" content="http://yoursite.com/2015/10/05/Simple-Scala-Implicits/index.html">
+<meta property="og:title" content="Simple BIO, NIO, AIO in Java">
+<meta property="og:url" content="http://yoursite.com/2015/11/21/Simple-BIO-NIO-AIO-in-Java/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Scala隐式转换.">
-<meta property="og:updated_time" content="2015-10-06T03:00:15.000Z">
+<meta property="og:description" content="Java中的 BIO, NIO, AIO.">
+<meta property="og:updated_time" content="2015-11-21T17:43:48.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Scala: Implicits">
-<meta name="twitter:description" content="Scala隐式转换.">
+<meta name="twitter:title" content="Simple BIO, NIO, AIO in Java">
+<meta name="twitter:description" content="Java中的 BIO, NIO, AIO.">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Scala: Implicits | Hexo </title>
+  <title> Simple BIO, NIO, AIO in Java | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Scala: Implicits
+              Simple BIO, NIO, AIO in Java
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-10-05T22:35:30+08:00" content="2015-10-05">
-            2015-10-05
+          <time itemprop="dateCreated" datetime="2015-11-21T20:40:08+08:00" content="2015-11-21">
+            2015-11-21
           </time>
         </span>
 
@@ -185,107 +185,35 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>隐式转换是为现有的类库增加功能的一种方式，用java的话，只能用工具类或者继承的方式来实现，而在scala则采用隐式转化的方式来实现。</p>
-<ul>
-<li>scala隐式转换可以把一个类的实例当作另一个类的实例，这样一来，通过在facade里隐式封装实例，无需修改原来的类，就可以将方法附着于对象上。这种技巧可以用于创建DSL.</li>
-<li>在Predef对象里，scala定义了一些隐式转换，scala默认导入它们，这样的话，比如写1 to 3时，scala会隐式将1从Int转换为RichInt类型，然后调用to()方法.</li>
-<li>scala一次至多应用一个隐式转换，在当前范围内，如果发现通过类型转换有助于操作、方法调用或类型转换的成功完成，就会进行转换，不再继续往外找. <ul>
-<li>位于源或者目标类型的companion object中的隐式函数</li>
-<li>位于当前作⽤用域可以以单个标识符指代的隐式函数</li>
-</ul>
-</li>
-</ul>
-<p>说明:</p>
-<ul>
-<li>如果代码能在不使用隐式转换的前提下通过编译，则不会使用隐式转换</li>
-<li>编译器不会同时使用多个隐式转换</li>
-<li>存在二义性的隐式转换不被允许</li>
-<li>implicit关键字只能用来修饰方法、变量（参数)和伴随对象</li>
-<li>隐式转换的方法（变量和伴随对象）在当前范围内才有效。如果隐式转换不在当前范围内定义（比如定义在另一个类中或包含在某个对象中），那么必须通过import语句将其导入。</li>
-<li><p>定义函数时参数可以声明为implicit,但implicit关键字必须出现在首位,并且对所有的参数有效,不能给部分参数声明为implicit,比如:</p>
-<pre><code>def maxFunc(<span class="type">implicit</span> a: <span class="built_in">Int</span>, b: <span class="built_in">Int</span>) = i1 + i2
-</code></pre><p>  maxFunc的拥有两个隐式参数a和b,不能按下面这样写:</p>
-<pre><code>def maxFunc( a: <span class="built_in">Int</span>, <span class="type">implicit</span> b: <span class="built_in">Int</span>) = i1 + i2
-</code></pre><p>  也不能按下面这样写:</p>
-<pre><code>def maxFunc(<span class="type">implicit</span> a: <span class="built_in">Int</span>, <span class="type">implicit</span> b: <span class="built_in">Int</span>) = i1 + i2
-</code></pre><p>  如果只想声明一个参数为隐式参数,则需要使用curry,比如:</p>
-<pre><code>def maxFunc(<span class="type">implicit</span> a: <span class="built_in">Int</span>)(b: <span class="built_in">Int</span>) = i1 + i2
-</code></pre><p>  此时maxFunc只拥有一个隐式参数a.</p>
-</li>
-<li><p>匿名函数不能声明隐式参数,比如: </p>
-<pre><code>val f = (<span class="type">implicit</span> s: String) =&gt; s+<span class="number">1</span>
-</code></pre></li>
-<li><p>如果一个函数带有隐式参数,则不能通过 _ 获得该函数引用,这样做将会编译失败:</p>
-<pre><code>def maxFunc(<span class="type">implicit</span> i1: <span class="built_in">Int</span>, i2: <span class="built_in">Int</span>) = i1 + i2
-val f = maxFunc _     // 编译错误
-</code></pre></li>
-</ul>
-<h2 id="参数隐式转换">参数隐式转换</h2><p>加入我们我们有一个方法用于计算销售税,但是比率是隐式转换的:</p>
-<pre><code>def calcTax(amount: <span class="built_in">Float</span>)(<span class="type">implicit</span> rate: <span class="built_in">Float</span>): <span class="built_in">Float</span> = amount * rate
-</code></pre><p>如果调用该方法,当前作用域内的隐式转换值会被使用:</p>
-<pre><code><span class="type">implicit</span> val currentTaxRate = <span class="number">0.</span>8F 
-...
-val tax = calcTax(0000F)               // <span class="number">4000.0</span>
-</code></pre><p>对于简单的情况,可能一个固定的浮点值作为缴税比率就足够了.但是,程序可能需要知道在哪交易,添加城市税等等.同时有些地方有时又会实行免税期以促进消费.<br>这些同样可以使用隐式转换,下面是一个实例:</p>
-<pre><code>// Never <span class="keyword">use</span> Floats for money:
-def calcTax(amount: <span class="built_in">Float</span>)(<span class="type">implicit</span> rate: <span class="built_in">Float</span>): <span class="built_in">Float</span> = amount * rate
-
-object SimpleStateSalesTax { 
-    <span class="type">implicit</span> val rate: <span class="built_in">Float</span> = <span class="number">0.</span>5F
-}
-
-<span class="keyword">case</span> <span class="keyword">class</span> ComplicatedSalesTaxData( baseRate: <span class="built_in">Float</span>, isTaxHoliday: Boolean, storeId: <span class="built_in">Int</span>)
-
-object ComplicatedSalesTax {
-    <span class="keyword">private</span> def extraTaxRateForStore(id: <span class="built_in">Int</span>): <span class="built_in">Float</span> = {
-        // From id, determine location, <span class="keyword">then</span> extra taxes...
-        <span class="number">0.</span>F
-    }
-    <span class="type">implicit</span> def rate(<span class="type">implicit</span> cstd: ComplicatedSalesTaxData): <span class="built_in">Float</span> = 
-        <span class="keyword">if</span> (cstd.isTaxHoliday) <span class="number">0.</span>F
-        <span class="keyword">else</span> cstd.baseRate + extraTaxRateForStore(cstd.storeId)
-}
-
-{
-    <span class="keyword">import</span> SimpleStateSalesTax.rate
-    val amount = 00F
-    println(s<span class="string">"Tax on $amount = ${calcTax(amount)}"</span>)
-}
-
-{
-    <span class="keyword">import</span> ComplicatedSalesTax.rate
-    <span class="type">implicit</span> val myStore = ComplicatedSalesTaxData(<span class="number">0.</span>6F, false, <span class="number">1010</span>)
-    val amount = 00F
-    println(s<span class="string">"Tax on $amount = ${calcTax(amount)}"</span>)
-}
-</code></pre><h3 id="使用implicitly">使用implicitly</h3><p>Predef定义了一个implicitly方法,它结合类型签名另外提供有用的简写方法定义接受一个单一的隐式参数,该参数是参数化的类型情况的方法签名.<br>考虑下面的实例,是谁包装了List的sortBy方法:</p>
-<pre><code>import math.<span class="constant">Ordering</span>
-
-<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">MyList</span>[<span class="title">A</span>](<span class="title">list</span>:<span class="title">List</span>[<span class="title">A</span>]){</span>
-    <span class="function"><span class="keyword">def</span> <span class="title">sortBy1</span>[<span class="title">B</span>]<span class="params">(<span class="symbol">f:</span><span class="constant">A</span> =&gt; <span class="constant">B</span>)</span><span class="params">(implicit <span class="symbol">ord:</span> <span class="constant">Ordering</span>[<span class="constant">B</span>])</span>:<span class="title">List</span>[<span class="title">A</span>] = <span class="title">list</span>.<span class="title">sortBy</span><span class="params">(f)</span><span class="params">(ord)</span></span>
-
-    <span class="function"><span class="keyword">def</span> <span class="title">sortBy2</span>[<span class="title">B</span> : <span class="title">Ordering</span>]<span class="params">(<span class="symbol">f:</span> <span class="constant">A</span> =&gt; <span class="constant">B</span>)</span>: <span class="title">List</span>[<span class="title">A</span>] = <span class="title">list</span>.<span class="title">sortBy</span><span class="params">(f)</span><span class="params">(implicitly[<span class="constant">Ordering</span>[<span class="constant">B</span>]])</span></span>
-}
-
-val list = <span class="constant">MyList</span>(<span class="constant">List</span>(<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>,<span class="number">2</span>,<span class="number">4</span>))
-list sortBy1 (i =&gt; -i) 
-list sortBy2 (i =&gt; -i)
-</code></pre><p>List.sortBy是很多集合排序方法中的一个,它接受一个函数,然后将参数转换成满足math.Ordering要求的类型,类似于java的Comparable抽象.必须提供一个隐式参数以知道如何排序B类型的实例.<br>MyList展示了两种不同的思路用于编写类似于sortBy的方法.第一个sortBy1使用了我们已经知道的语法,该方法额外接收一个Ordering[B]类型的隐式参数值.因此为了使用sortBy1,当前作用域内必须有一个实例以知道如何排序B类型的实例.我们说B绑定了一个上下文,这个例子中是排序实例的能力.<br>这种习惯用法非常普遍,scala提供了一种简写语法,即第二种sortBy2的实现.参数类型 B : Ordering被称为上下文绑定.</p>
-<h2 id="隐式参数方案">隐式参数方案</h2><p>明智谨慎的使用隐式转换很重要,过度的使用则使人难以理解代码的真正意图.<br>隐式参数的使用基本有两种好处:第一类是样板消除,隐式提供上下文信息.第二类是约束,限制允许的类型以减少错误.</p>
-<h3 id="执行上下文">执行上下文</h3><p>在关于Future的实例介绍中,隐式参数列表用于向 Future.apply方法传送一个ExecutionContext:</p>
-<pre><code>apply[<span class="link_label">T</span>](<span class="link_url">body: =&gt; T</span>)(implicit executor: ExecutionContext): Future[T]
-</code></pre><p>一些其他方法也有这样的隐式参数.<br>当我们调用这些方法时并不需要指定ExecutionContex,但是编译器会使用我们已经引入的一个ExecutionContex:</p>
-<pre><code>import scala<span class="class">.concurrent</span><span class="class">.ExecutionContext</span><span class="class">.Implicits</span><span class="class">.global</span>
-</code></pre><p>传送一个执行上下文是隐式参数的推荐用法,其他的一些上下文实例包括事务,数据库连接,线程池,用户会话等.合理使用隐式参数可以创建清晰的API.</p>
-<h3 id="权力控制">权力控制</h3><p>除了传送上下文环境,隐式参数还可以用于控制capabilities.<br>比如一个隐式用户会话可能会包含一些API或数据对于该用户的可见性授权令牌.假设你正在构建一个用户登录菜单,已登录用户显示某些选项而未登录用户只显示登录选项:</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">createMenu</span><span class="params">(implicit session: Session)</span>:</span> Menu = { 
-    val defaultItems = List(helpItem, searchItem) 
-    val accountItems =
-        <span class="keyword">if</span> (session.loggedin()) List(viewAccountItem, editAccountItem)
-        <span class="keyword">else</span> List(loginItem) 
-    Menu(defaultItems ++ accountItems)
-}
-</code></pre><h3 id="Constraining_Allowed_Instances">Constraining Allowed Instances</h3><p>…</p>
+        <span itemprop="articleBody"><h2 id="基本概念">基本概念</h2><p>同步与异步: 同步与异步是针对应用程序跟内核的交互而言的,具体指消息通知机制,对如何处理消息并不关心.</p>
+<p>阻塞和非阻塞: 阻塞和非阻塞是指程序在等待消息/返回值时的状态,阻塞调用在调用结果返回之前当前线程被挂起,非阻塞调用在不能立即得到结果之前该调用不会阻塞当前线程. 是针对于进程在访问数据的时候,根据IO操作的就绪状态来采取的不同方式,说白了就是一种读取或写入操作函数的实现方式. 阻塞方式下读取/写入函数一直等待操作完成,而非阻塞方式下,该操作函数会立即返回一个状态值.</p>
+<p>由上面的基本描述可以进行总结: 同步/异步是目的,阻塞/非阻塞是实现方式.</p>
+<h2 id="详细解释">详细解释</h2><h3 id="同步">同步</h3><p>指的是用户进程触发IO操作并等待或轮询的方式去去查看IO操作是否就绪,即发出一个功能调用时,在没有得到结果之前该调用就不返回.</p>
+<p>按照这个定义,大部分的函数/方法调用都是同步的,比如一些内建的math函数,但是一般而言,我们在说同步/异步的时候,特指那些需要其他部件或需要一定时间才能完成的任务.</p>
+<h3 id="异步">异步</h3><p>指用户进程触发IO操作后便开始做别的事情,而当该IO操作完成的时候该进程会得到完成的通知(异步的特点就是通知, 使用异步IO时,Java将IO读写委托给OS处理,需要将数据缓冲区地址和大小传给OS).</p>
+<p>即当一个异步过程调用发出后,调用者不会立即得到结果,实际处理这个调用的部件会在该调用发出后,通过状态/通知的方式来通知调用者,或通过回调函数处理这个调用.</p>
+<h3 id="阻塞">阻塞</h3><p>所谓阻塞的方式是指,当试图对文件描述符进行读写时,如果当时没有数据可读,或者暂时不可写,程序就进入等待状态,直到有数据读或可写为止.</p>
+<p>即调用结果返回之前,当前线程会被挂起,不能做其他任何操作,函数只有在得到结果之后才会返回.</p>
+<h3 id="非阻塞">非阻塞</h3><p>非阻塞状态下,如果没有东西可读,或者不可写,读写函数马上返回,不会等待,而去进行其他操作. 即不会阻塞当前线程,会立即返回.</p>
+<h2 id="IO组合">IO组合</h2><p>同步阻塞IO(BIO): 同步并阻塞, 效率最低,即专心排队,什么别的事都不做.</p>
+<p>异步阻塞IO(NIO): 使用异步的消息触发方式,比如在银行领一个序号,但是领取序号后不能做别的事情,此时这个人又被阻塞在等待上了.</p>
+<p>同步非阻塞IO(NIO): 同样效率低下,比如一边打电话一边去看队伍轮到你了没有,把打电话和观察队伍看成是程序的两个操作的话,这个程序需要在两种行为间不停的切换,造成效率低下. 服务器实现为一个请求一个线程,即客户端发送的连接请求都会注册到多路复用器上,多路复用器轮询到连接有IO请求时才启动一个线程进行处理.用户进程也需要时不时的询问IO是否就绪,这就要求用户进程不停的询问.</p>
+<p>异步非阻塞IO(AIO,NIO.2): 比如领完序号后就可以随意做别的事情,而”叫号”通知你则是柜台的事情,程序不需要在两种行为间切换. 用户进程只需要发起一个IO操作后立即返回,IO操作真正完成之后应用程序会得到IO操作完成的通知,此时用户进程只需要对数据进行处理就好了,不需要实际的IO读写操作,因为真正的IO读取或写入操作已经由内核完成了.</p>
+<h2 id="实例解释">实例解释</h2><p>这里摘抄<a href="http://www.zhihu.com/question/19732473" title="info" target="_blank" rel="external">知乎上相关问题的回答</a>,比喻比较形象.</p>
+<p>出场人物:老张,道具:普通水壶,会响水壶</p>
+<p>1: 同步阻塞: 老张把水壶放火上,立等水开.</p>
+<p>2: 同步非阻塞: 老张把水壶放火上,去客厅看电视,时不时去厨房看水有没有开.</p>
+<p>3: 异步阻塞: 来张把水壶放到火上,立等水开.</p>
+<p>4: 异步非阻塞: 老张把会响的水壶放到火上,去客厅看电视,水壶响之前不再去看它了,响了再去拿壶.</p>
+<p>所谓同步/异步是针对水壶而言: 普通水壶的水开没开,只能让调用者去轮询,造成老张效率低下. 会响水壶在水开之后会提示老张.</p>
+<p>所谓阻塞与非阻塞是针对老张而言: 立等水开的老张为阻塞,看电视的老张为非阻塞.这里跟判断水开的方式无关,即自己去看(同步)还是水壶自己响(异步).</p>
+<p>情况1和3时,老张就是阻塞的,老张这个当前线程被挂起,为了等获取水开得结果不能再去做其他事情, 虽然3中的响水壶以异步方式(水壶响)通知水开,当老张是立等(阻塞)的方式接收到结果.</p>
+<p>情况2时,虽然可以去做其他事情(不阻塞),但是老张需要不停的去查看水开了没有,这样需要在客厅和厨房来回跑,造成效率低下.</p>
+<p>情况4时,异步与无阻塞相结合,发挥最大效率.</p>
+<h2 id="适用场景">适用场景</h2><p>BIO方式适用于连接数目比较小且固定的架构,这种方式对服务器资源要求比较高,并发局限于应用.</p>
+<p>NIO方式使用于连接数目多且短(轻操作)的架构,比如聊天服务器,并发局限于应用中,编程模型发杂,JDK1.4开始支持.</p>
+<p>AIO方式适用于连接多且长(重操作)的架构,比如相册服务器,充分调用OS参与并发操作,编程模型不复杂,JDK7开始支持.</p>
+<h2 id="参考连接">参考连接</h2><p><a href="http://bbym010.iteye.com/blog/2100868" title="info" target="_blank" rel="external">参考连接1</a><br><a href="http://blog.chinaunix.net/uid-26000296-id-3754118.html" title="info" target="_blank" rel="external">参考连接2</a><br><a href="http://www.zhihu.com/question/19732473" title="info" target="_blank" rel="external">参考连接3</a></p>
 </span>
       
     </div>
@@ -294,7 +222,9 @@ list sortBy2 (i =&gt; -i)
       
         <div class="post-tags">
           
-            <a href="/tags/scala/" rel="tag">#scala</a>
+            <a href="/tags/IO/" rel="tag">#IO</a>
+          
+            <a href="/tags/Java/" rel="tag">#Java</a>
           
         </div>
       
@@ -303,13 +233,11 @@ list sortBy2 (i =&gt; -i)
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/10/06/Simple-Scala-Functional-Programming/" rel="prev">Simple Scala: Functional Programming</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/10/05/Simple-Scala-Pattern-Matching/" rel="next">Simple Scala: Pattern Matching</a>
+              <a href="/2015/11/08/Simple-Scala-Composing-Dependent-Futures/" rel="next">Simple Scala: Composing Dependent Futures</a>
             
           </div>
         </div>
@@ -413,7 +341,7 @@ list sortBy2 (i =&gt; -i)
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数隐式转换"><span class="nav-number">2.</span> <span class="nav-text">参数隐式转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用implicitly"><span class="nav-number">2.1.</span> <span class="nav-text">使用implicitly</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#隐式参数方案"><span class="nav-number">3.</span> <span class="nav-text">隐式参数方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#执行上下文"><span class="nav-number">3.1.</span> <span class="nav-text">执行上下文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#权力控制"><span class="nav-number">3.2.</span> <span class="nav-text">权力控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Constraining_Allowed_Instances"><span class="nav-number">3.3.</span> <span class="nav-text">Constraining Allowed Instances</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本概念"><span class="nav-number">1.</span> <span class="nav-text">基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#详细解释"><span class="nav-number">2.</span> <span class="nav-text">详细解释</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#同步"><span class="nav-number">2.1.</span> <span class="nav-text">同步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#异步"><span class="nav-number">2.2.</span> <span class="nav-text">异步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#阻塞"><span class="nav-number">2.3.</span> <span class="nav-text">阻塞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#非阻塞"><span class="nav-number">2.4.</span> <span class="nav-text">非阻塞</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#IO组合"><span class="nav-number">3.</span> <span class="nav-text">IO组合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实例解释"><span class="nav-number">4.</span> <span class="nav-text">实例解释</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#适用场景"><span class="nav-number">5.</span> <span class="nav-text">适用场景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考连接"><span class="nav-number">6.</span> <span class="nav-text">参考连接</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
