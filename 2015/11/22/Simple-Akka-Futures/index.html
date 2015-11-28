@@ -1,0 +1,796 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Akka,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Akka官方文档中Futures部分的详细介绍.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Akka: Futures">
+<meta property="og:url" content="http://yoursite.com/2015/11/22/Simple-Akka-Futures/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Akka官方文档中Futures部分的详细介绍.">
+<meta property="og:updated_time" content="2015-11-24T10:05:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Akka: Futures">
+<meta name="twitter:description" content="Akka官方文档中Futures部分的详细介绍.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Akka: Futures | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Akka: Futures
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2015-11-22T19:01:38+08:00" content="2015-11-22">
+            2015-11-22
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="介绍">介绍</h2><p>在Scala标准库中,Future是一种从并发操作中获取处理结果的数据结构.这些结果可以以异步(无阻塞)或同步(阻塞)的方式被访问.</p>
+<h2 id="执行上下文(Execution_Contexts)">执行上下文(Execution Contexts)</h2><p>为了执行回调和操作,Futures需要一个叫做ExecutionContext的东西,非常类似于java.util.concurrent.Executor.如果你在作用域中有一个ActorSystem,Future会使用默认的调度器(dispatcher)作为ExecutionContext,或者你可以使用ExecutionContext伴生对象中提供的工厂方法来提供Executors和ExecutorServices,或者自己创建一个.</p>
+<pre><code><span class="keyword">import</span> scala.concurrent.{ ExecutionContext, Promise }
+
+<span class="type">implicit</span> val ec = ExecutionContext.fromExecutorService(yourExecutorServiceGoesHere)
+
+// <span class="keyword">Do</span> stuff with your brand new shiny ExecutionContext
+val f = Promise.successful(<span class="string">"foo"</span>)
+
+// <span class="keyword">Then</span> shut your ExecutionContext down at some
+// appropriate place <span class="type">in</span> your <span class="function"><span class="keyword">program</span></span>/application
+ec.shutdown()
+</code></pre><h2 id="在Actors内部使用">在Actors内部使用</h2><p>每个actor都会被配置基于一个MessageDispatcher运行,这个调度器(dispatcher)同时是一个ExecutionContext.如果Future和actor属性匹配或者执行的活动跟actor兼容,比如所有CPU的约束或无延迟的要求,那么最简单的方式就是通过导入context.dispatcher来重用调度器(dispatcher)以运行Futures.</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">A</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+  <span class="keyword">import</span> context.dispatcher
+  <span class="function"><span class="keyword">val</span> <span class="title">f</span> =</span> <span class="type">Future</span>(<span class="string">"hello"</span>)
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="comment">// receive omitted ...</span>
+  }
+}
+</code></pre><h2 id="与Actor一起使用">与Actor一起使用</h2><p>通常有两种方法从actor中获取回复.第一种情况,如果原始的sender(original sender,即消息发送方)是一个actor,可以使用(actor ! msg).第二种情况就是通过Future.</p>
+<p>使用Actor的 “?” 方法(ask)会返回一个Future:</p>
+<pre><code><span class="keyword">import</span> scala.concurrent.<span class="type">Await</span>
+<span class="keyword">import</span> akka.pattern.ask
+<span class="keyword">import</span> akka.util.<span class="type">Timeout</span>
+<span class="keyword">import</span> scala.concurrent.duration._
+
+implicit val timeout = <span class="type">Timeout</span>(<span class="number">5</span> seconds)
+val future = actor ? msg // enabled by the “ask” <span class="keyword">import</span>
+val <span class="literal">result</span> = <span class="type">Await</span>.<span class="literal">result</span>(future, timeout.duration).asInstanceOf[<span class="type">String</span>]
+</code></pre><p>这种用法会导致线程阻塞以等待Actor对Futur完成填充从而进行回复.阻塞会带来性能问题因此并不被鼓励使用.这些位于Await.result和Await.ready的阻塞操作使其更容易发现阻塞发生位置,避免阻塞的方案会在本文档的其他位置进行讨论.</p>
+<p>同时需要注意的是,由于Actor是动态的,因此从Actor重返回的Future类型是一个Future[Any],这也是上例中使用asInstanceOf的原因.在无阻塞处理中使用maoTo方法可以更好的把Future作为预期的类型进行计算.</p>
+<pre><code>import scala<span class="class">.concurrent</span><span class="class">.Future</span>
+import akka<span class="class">.pattern</span><span class="class">.ask</span>
+
+val future: Future[String] = <span class="function"><span class="title">ask</span><span class="params">(actor, msg)</span></span><span class="class">.mapTo</span>[String]
+</code></pre><p>如果计算成功的话,mapTo方法会返回一个包含结果的新Future,失败的话返回一个ClassCastException,异常处理会在稍后讨论.</p>
+<p>可以通过pipe结果把Future类型的结果发送给Actor:</p>
+<pre><code>import akka<span class="class">.pattern</span><span class="class">.pipe</span>
+future pipeTo actor
+</code></pre><h2 id="更直接的使用">更直接的使用</h2><p>Akka的另一种常见用例是执行一些并行计算,同时又不需要一些额外的actor.如果你需要创建一个actor池只是为了进行一些并行计算,这有另一种更加简单快速的方式:</p>
+<pre><code><span class="keyword">import</span> scala.concurrent.Await
+<span class="keyword">import</span> scala.concurrent.Future
+<span class="keyword">import</span> scala.concurrent.duration._
+
+val future = <span class="type">Future</span> {
+  <span class="string">"Hello"</span> + <span class="string">"World"</span>
+}
+future foreach <span class="built_in">println</span>
+</code></pre><p>上例传送给Future的代码块会被默认的Dispatcher执行,然后使用代码块返回的计算结果(“HelloWorld”)来填充Future.不像从Actor中返回Future,这个Future是被预定义类型的,同时有避免了另外管理一个actor的开销.</p>
+<p>同样你也可以使用Future伴生对象创建一个已完成的Future,并且可以是成功的:</p>
+<pre><code>val future = Future.<span class="function"><span class="title">successful</span><span class="params">(<span class="string">"Yay!"</span>)</span></span>
+</code></pre><p>或失败的(失败的Future中包含一个异常):</p>
+<pre><code>val otherFuture = Future.failed[<span class="link_label">String</span>](<span class="link_url">new IllegalArgumentException("Bang!"</span>))
+</code></pre><p>或者创建一个空得Promise,稍后进行填充并获得对应的Future:</p>
+<pre><code>val promise = Promise[<span class="link_label">String</span>](<span class="link_url"></span>)
+val theFuture = promise.future
+promise.success("hello")
+</code></pre><h2 id="函数式的Future">函数式的Future</h2><p>Scala中的Future有一些monadic方法,和collection集合中的方法非常类似.这允许你创建pipelines或streams以使结果进行来往.</p>
+<h3 id="Future是Monad">Future是Monad</h3><p>Future第一个函数式的方法时map.这个方法接收一个方法用于在Future的结果上执行操作,然后返回一个新的结果.map方法的返回值是一个包含结果的新的Future.</p>
+<pre><code>val f1 = <span class="name">Future</span> {
+  <span class="string">"Hello"</span> + <span class="string">"World"</span>
+}
+<span class="name">val</span> <span class="name">f2</span> = f1 <span class="name">map</span> { x =&gt;
+  x.length
+}
+<span class="name">f2</span> <span class="name">foreach</span> <span class="name">println</span>
+</code></pre><p>这个例子中,在一个Future中将两个字符串进行jion处理.与其等待这个计算完成,我们通过map方法把计算字符串长度的函数作用到该Future上.现在我们得到第二个Future,最后会包含一个Int.当最初的第一个Future完成时即会执行我们的函数,然后将该函数的结果填充以完成第二个Future.我们最终得到的结果会包含一个数字10,而第一个Future仍然包含一个”HelloWorld”字符串而没有被map方法改变.</p>
+<p>当我们处理单个Future时map方法能很好的工作,但是如果有两个或更多的Future时,map方法则不会允许你将他们结合在一起:</p>
+<pre><code><span class="label">val</span> <span class="literal">f1</span> = Future {
+  <span class="string">"Hello"</span> + <span class="string">"World"</span>
+}
+<span class="label">val</span> <span class="literal">f2</span> = Future.successful(<span class="number">3</span>)
+<span class="label">val</span> <span class="literal">f3</span> = <span class="literal">f1</span> <span class="preprocessor">map</span> { x =&gt;
+  <span class="literal">f2</span> <span class="preprocessor">map</span> { y =&gt;
+    x.length * y
+  }
+}
+<span class="label">f3</span> foreach println
+</code></pre><p>f3会是一个Future[Future[Int]]而不是Future[Int].这种情况就需要使用flatMap方法:</p>
+<pre><code><span class="label">val</span> <span class="literal">f1</span> = Future {
+  <span class="string">"Hello"</span> + <span class="string">"World"</span>
+}
+<span class="label">val</span> <span class="literal">f2</span> = Future.successful(<span class="number">3</span>)
+<span class="label">val</span> <span class="literal">f3</span> = <span class="literal">f1</span> flatMap { x =&gt;
+  <span class="literal">f2</span> <span class="preprocessor">map</span> { y =&gt;
+    x.length * y
+  }
+}
+<span class="label">f3</span> foreach println
+</code></pre><p>使用嵌套组合子有时会变得非常复杂并难以阅读.这时候,使用for表达式会使代码更加清晰易读,或者需要添加判断语法时可以使用filter方法:</p>
+<pre><code>val future1 = Future.successful(<span class="number">4</span>)
+val future2 = future1.filter(_ % <span class="number">2</span> == <span class="number">0</span>)
+
+future2 foreach println
+
+val failedFilter = future1.filter(_ % <span class="number">2</span> == <span class="number">1</span>).recover {
+  <span class="comment">// When filter fails, it will have a java.util.NoSuchElementException</span>
+  <span class="keyword">case</span> m: NoSuchElementException =&gt; <span class="number">0</span>
+}
+
+failedFilter foreach println
+</code></pre><h3 id="For表达式">For表达式</h3><p>Future除了可以使用map/flatMap/filter方法,还可以简单的使用for表达式:</p>
+<pre><code>val f = <span class="keyword">for</span> {
+  a &lt;- Future(<span class="number">10</span> / <span class="number">2</span>) <span class="comment">// 10 / 2 = 5</span>
+  b &lt;- Future(a + <span class="number">1</span>) <span class="comment">//  5 + 1 = 6</span>
+  c &lt;- Future(a - <span class="number">1</span>) <span class="comment">//  5 - 1 = 4</span>
+  <span class="keyword">if</span> c &gt; <span class="number">3</span> <span class="comment">// Future.filter</span>
+} yield b * c <span class="comment">//  6 * 4 = 24</span>
+
+<span class="comment">// 这种写法写a/b/c并不是并行执行</span>
+
+f foreach println
+</code></pre><p>上面这种处理方式虽然看起来是可以并行处理的,但是要理解的是for表达式中的语句都是顺序执行的.正确的做法是先单独的创建每个Future,然后再将他们结合再一起.</p>
+<h3 id="组合做个Future">组合做个Future</h3><p>上面的例子中演示了如何组合多个future进行计算.这种情况的常见用例是将多个actor回复的结果组合成一个单独的计算,而不需要调用Await.result或Await.ready阻塞来得到每个结果.下面是一个使用Await.result的例子:</p>
+<pre><code>val f1 = ask(actor1, msg1)
+val f2 = ask(actor2, msg2)
+
+val a = <span class="type">Await</span>.<span class="literal">result</span>(f1, <span class="number">3</span> seconds).asInstanceOf[<span class="type">Int</span>]
+val b = <span class="type">Await</span>.<span class="literal">result</span>(f2, <span class="number">3</span> seconds).asInstanceOf[<span class="type">Int</span>]
+
+val f3 = ask(actor3, (a + b))
+
+val <span class="literal">result</span> = <span class="type">Await</span>.<span class="literal">result</span>(f3, <span class="number">3</span> seconds).asInstanceOf[<span class="type">Int</span>]
+</code></pre><p>这个例子中,我们在将结果发到第三个actor前首先要等待两个actor返回结果.一共使用了三次Await.result,这会导致我们的小程序在得到结果前需要阻塞三次,现在对比下面这个例子:</p>
+<pre><code><span class="label">val</span> <span class="literal">f1</span> = ask(actor1, msg1)
+<span class="label">val</span> <span class="literal">f2</span> = ask(actor2, msg2)
+
+<span class="label">val</span> <span class="literal">f3</span> = for {
+  a &lt;- <span class="literal">f1</span>.mapTo[Int]
+  <span class="keyword">b </span>&lt;- <span class="literal">f2</span>.mapTo[Int]
+  c &lt;- ask(actor3, (a + <span class="keyword">b)).mapTo[Int]
+</span>} <span class="keyword">yield </span>c
+
+<span class="label">f3</span> foreach println
+</code></pre><p>这里两个actor各自处理一条消息,一旦两个结果可用,即完成(这里并没有阻塞来获取结果),他们就会被组合到一起然后发送给第三个actor,最终回复一个字符串,即我们要的结果.</p>
+<p>这种处理方式对于处理已知数量的actor很合适,但是数量一多会变得难以控制.这时sequence和traverse方法可以使处理更复杂用例时变得简单.两个方法都可以用于转换,比如一个Traversable的子类T,然后将T[Future[A]]转换为Future[T[A]],实例:</p>
+<pre><code><span class="comment">// oddActor returns odd numbers sequentially from 1 as a List[Future[Int]]</span>
+val listOfFutures = List.<span class="function"><span class="title">fill</span><span class="params">(<span class="number">100</span>)</span><span class="params">(akka.pattern.ask(oddActor, GetNext)</span></span><span class="class">.mapTo</span>[Int])
+
+<span class="comment">// now we have a Future[List[Int]]</span>
+val futureList = Future.<span class="function"><span class="title">sequence</span><span class="params">(listOfFutures)</span></span>
+
+<span class="comment">// Find the sum of the odd numbers</span>
+val oddSum = futureList.<span class="function"><span class="title">map</span><span class="params">(_.sum)</span></span>
+oddSum foreach println
+</code></pre><p>详细解释这个例子中发生了什么,Future.sequence接收一个List[Future[Int]]然后将它转换成一个Future[List[Int]],然后就可以直接使用map方法处理List[Int],求得这个List得sum值.</p>
+<p>traverse方法和sequence类似,但是它是接收一个T[A]和一个函数A =&gt; Future[B],然后返回一个Future[T[B]],其中T是Traversable得一个子类,例如求前100个偶数的和:</p>
+<pre><code>val futureList = Future.<span class="function"><span class="title">traverse</span><span class="params">((<span class="number">1</span> to <span class="number">100</span>)</span></span>.toList)(x =&gt; <span class="function"><span class="title">Future</span><span class="params">(x * <span class="number">2</span> - <span class="number">1</span>)</span></span>)
+val oddSum = futureList.<span class="function"><span class="title">map</span><span class="params">(_.sum)</span></span>
+oddSum foreach println
+</code></pre><p>下面这个例子也会得到同样的结果:</p>
+<pre><code>val futureList = Future.<span class="function"><span class="title">sequence</span><span class="params">((<span class="number">1</span> to <span class="number">100</span>)</span></span><span class="class">.toList</span><span class="class">.map</span>(x =&gt; <span class="function"><span class="title">Future</span><span class="params">(x * <span class="number">2</span> - <span class="number">1</span>)</span></span>))
+val oddSum = futureList.<span class="function"><span class="title">map</span><span class="params">(_.sum)</span></span>
+oddSum foreach println
+</code></pre><p>但是就速度来说traverse会更快,因为它不需要创建一个中间的List[Future[Int]].</p>
+<p>fold方法接收一个起始值,一个Future序列,一个函数,该函数 根据初始值和Future的类型返回一个跟初始值类型一样的值,然后将该函数作用到Future序列的所有元素上,并且是以异步的方式:</p>
+<pre><code><span class="comment">// Create a sequence of Futures</span>
+val futures = <span class="keyword">for</span> (<span class="tag">i</span> &lt;- <span class="number">1</span> to <span class="number">1000</span>) yield <span class="function"><span class="title">Future</span><span class="params">(i * <span class="number">2</span>)</span></span>
+val futureSum = Future.<span class="function"><span class="title">fold</span><span class="params">(futures)</span><span class="params">(<span class="number">0</span>)</span><span class="params">(_ + _)</span></span>
+futureSum foreach println
+</code></pre><p>如果传给fold的序列是空的,则会返回初始值,上面的用例中将会返回0,如果有些用例中你不提供初始值,则会使用Future序列中第一个完成的Future中的值作为初始值,这样可以使用reduce方法:</p>
+<pre><code><span class="comment">// Create a sequence of Futures</span>
+val futures = <span class="keyword">for</span> (<span class="tag">i</span> &lt;- <span class="number">1</span> to <span class="number">1000</span>) yield <span class="function"><span class="title">Future</span><span class="params">(i * <span class="number">2</span>)</span></span>
+val futureSum = Future.<span class="function"><span class="title">reduce</span><span class="params">(futures)</span><span class="params">(_ + _)</span></span>
+futureSum foreach println
+</code></pre><p>跟fold一样,整个执行过程会在最后一个Future完成时异步的结束,当还还可以嵌套的处理多个序列,然后在调用reduce处理多个序列经过reduce处理的结果.</p>
+<h2 id="回调">回调</h2><p>有时候你只是需要监听一个Future完成,但并不是通过的返回一个新的Future进行响应,而是通过它的副作用.这种场景下Scala提供了onComplete, onSuccess和onFailure,后面两种情况是第一个分割.</p>
+<pre><code>future onSuccess {
+  <span class="keyword">case</span> <span class="string">"bar"</span>     =&gt; println(<span class="string">"Got my bar alright!"</span>)
+  <span class="keyword">case</span> x: <span class="type">String</span> =&gt; println(<span class="string">"Got some random string: "</span> + x)
+}
+
+future onFailure {
+  <span class="keyword">case</span> ise: <span class="type">IllegalStateException</span> <span class="keyword">if</span> ise.getMessage == <span class="string">"OHNOES"</span> =&gt;
+  //<span class="type">OHNOES</span>! <span class="type">We</span> are <span class="keyword">in</span> deep trouble, <span class="keyword">do</span> something!
+  <span class="keyword">case</span> e: <span class="type">Exception</span> =&gt;
+  //<span class="type">Do</span> something <span class="keyword">else</span>
+}
+
+future onComplete {
+  <span class="keyword">case</span> <span class="type">Success</span>(<span class="literal">result</span>)  =&gt; doSomethingOnSuccess(<span class="literal">result</span>)
+  <span class="keyword">case</span> <span class="type">Failure</span>(failure) =&gt; doSomethingOnFailure(failure)
+}
+</code></pre><h2 id="定义顺序">定义顺序</h2><p>由于回调以任何顺序和潜在的并行执行,这在你需要一些顺序执行时会比较棘手.andThen用于解决这种场景的问题,它在预期的回调中创建一个Future:</p>
+<pre><code>val <span class="literal">result</span> = <span class="type">Future</span> { loadPage(url) } andThen {
+  <span class="keyword">case</span> <span class="type">Failure</span>(exception) =&gt; log(exception)
+} andThen {
+  <span class="keyword">case</span> _ =&gt; watchSomeTV()
+}
+<span class="literal">result</span> foreach println
+</code></pre><h2 id="辅助方法">辅助方法</h2><p>Future的fallbackTo方法将两个Future组合成一个新的Future,如果第一个Future失败的话则会包含第二个Future成功的结果.</p>
+<pre><code>val future4 = future1 fallbackTo future2 fallbackTo future3
+future4 <span class="keyword">foreach</span> <span class="keyword">println</span>
+</code></pre><p>同样可以将两个Future组合成一个新的Future同时包含两个Future成功结果的元祖,使用zip操作:</p>
+<pre><code>val future3 = future1 zip future2 <span class="name">map</span> { <span class="keyword">case</span> (a, b) =&gt; a + <span class="string">" "</span> + b }
+<span class="name">future3</span> <span class="name">foreach</span> <span class="name">println</span>
+</code></pre><h2 id="异常处理">异常处理</h2><p>由于Future的结果是以并行的方式进行处理,异常必须以不同的方式进行处理.</p>
+<p>如果实在Actor或dispatcher处理Future则没有关系,如果捕捉到一个异常,则该Future会包含该异常而不是一个正确值.如果一个Future包含一个异常,调用Await.result方法会重新抛出该异常,因此能够进行正确的处理.</p>
+<p>同样也可以返回一个不同的值来处理异常,使用recover实现:</p>
+<pre><code>val future = akka.pattern.ask(actor, msg1) <span class="name">recover</span> {
+  <span class="keyword">case</span> e: ArithmeticException =&gt; <span class="number">0</span>
+}
+<span class="name">future</span> <span class="name">foreach</span> <span class="name">println</span>
+</code></pre><p>这个例子中,如果actor回复一个包含ArithmeticException的akka.actor.Status.Failure,Future中这会包含一个0,recover方法的工作的工作方式和try/catch非常相似,这种风格可以同时处理多个异常.</p>
+<p>同时可以使用recoverWith方法,和recover关系类似于flatMap之于map:</p>
+<pre><code>val future = akka.pattern.ask(actor, msg1) <span class="name">recoverWith</span> {
+  <span class="keyword">case</span> e: ArithmeticException =&gt; Future.successful(<span class="number">0</span>)
+  <span class="keyword">case</span> foo: IllegalArgumentException =&gt;
+    Future.failed[Int](new IllegalStateException(<span class="string">"All br0ken!"</span>))
+}
+<span class="name">future</span> <span class="name">foreach</span> <span class="name">println</span>
+</code></pre><h2 id="After">After</h2><p>akka.pattern.after可以简单的在一段固定的超时时间后完成一个包含值或异常的Future:</p>
+<pre><code>// <span class="type">TODO</span> after <span class="keyword">is</span> unfortunately shadowed by <span class="type">ScalaTest</span>, fix <span class="keyword">as</span> part <span class="keyword">of</span> <span class="comment">#3759</span>
+// <span class="keyword">import</span> akka.pattern.after
+
+val delayed = akka.pattern.after(<span class="number">200</span> millis, <span class="keyword">using</span> = system.scheduler)(<span class="type">Future</span>.failed(
+  new <span class="type">IllegalStateException</span>(<span class="string">"OHNOES"</span>)))
+val future = <span class="type">Future</span> { <span class="type">Thread</span>.sleep(<span class="number">1000</span>); <span class="string">"foo"</span> }
+val <span class="literal">result</span> = <span class="type">Future</span> firstCompletedOf <span class="type">Seq</span>(future, delayed)
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Akka/" rel="tag">#Akka</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/21/Simple-BIO-NIO-AIO-in-Java/" rel="next">Simple BIO, NIO, AIO in Java</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">45</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">24</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行上下文(Execution_Contexts)"><span class="nav-number">2.</span> <span class="nav-text">执行上下文(Execution Contexts)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在Actors内部使用"><span class="nav-number">3.</span> <span class="nav-text">在Actors内部使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与Actor一起使用"><span class="nav-number">4.</span> <span class="nav-text">与Actor一起使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更直接的使用"><span class="nav-number">5.</span> <span class="nav-text">更直接的使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数式的Future"><span class="nav-number">6.</span> <span class="nav-text">函数式的Future</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Future是Monad"><span class="nav-number">6.1.</span> <span class="nav-text">Future是Monad</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#For表达式"><span class="nav-number">6.2.</span> <span class="nav-text">For表达式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组合做个Future"><span class="nav-number">6.3.</span> <span class="nav-text">组合做个Future</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#回调"><span class="nav-number">7.</span> <span class="nav-text">回调</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义顺序"><span class="nav-number">8.</span> <span class="nav-text">定义顺序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#辅助方法"><span class="nav-number">9.</span> <span class="nav-text">辅助方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常处理"><span class="nav-number">10.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#After"><span class="nav-number">11.</span> <span class="nav-text">After</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2015</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
