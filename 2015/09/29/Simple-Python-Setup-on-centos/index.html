@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Python-Setup-on-centos/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="centos下的python环境配置">
-<meta property="og:updated_time" content="2015-12-13T07:10:45.000Z">
+<meta property="og:updated_time" content="2015-12-13T07:21:28.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Python: Setup on centos">
 <meta name="twitter:description" content="centos下的python环境配置">
@@ -200,6 +200,8 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ wget http://pypi.python.org/packages/<span class="built_in">source</span>/d/distribute/distribute-<span class="number">0.6</span>.<span class="number">14</span>.tar.gz</span><br><span class="line">$ sudo tar -xzvf distribute-<span class="number">0.6</span>.<span class="number">14</span>.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> distribute-<span class="number">0.6</span>.<span class="number">14</span></span><br><span class="line">$ python setup.py install</span><br><span class="line">$ &amp;&amp;</span><br><span class="line">$ <span class="built_in">cd</span> ez_setup</span><br><span class="line">$ python setup.py install</span><br><span class="line">$ &amp;&amp;</span><br><span class="line">$ easy_install pip</span><br></pre></td></tr></table></figure>
 <p>或者从<a href="https://pip.pypa.io/下载最新的pip安装工具get-pip.py" target="_blank" rel="external">https://pip.pypa.io/下载最新的pip安装工具get-pip.py</a>:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ python get-pip.py</span><br></pre></td></tr></table></figure>
+<p>pip安装包依赖:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ pip freeze &gt; requirements.txt</span><br><span class="line">$ pip install -r requirements.txt</span><br></pre></td></tr></table></figure>
 <p>解决MySQL-python安装后无法import：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ pip uninstall MySQL-python</span><br><span class="line">$ yum install mysql-devel</span><br><span class="line">$ pip install MySQL-python</span><br></pre></td></tr></table></figure>
 <p>解决Github域名无法访问:</p>
