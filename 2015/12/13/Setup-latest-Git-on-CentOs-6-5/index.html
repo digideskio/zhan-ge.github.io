@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="python,supervisor," />
+  <meta name="keywords" content="git," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="程序守护监控Supervisor。">
+<meta name="description" content="CentOS 6.5安装最新版本Git">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Python: How to use Supervisor">
-<meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Python-How-to-use-Supervisor/index.html">
+<meta property="og:title" content="Setup latest Git on CentOs 6.5">
+<meta property="og:url" content="http://yoursite.com/2015/12/13/Setup-latest-Git-on-CentOs-6-5/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="程序守护监控Supervisor。">
-<meta property="og:updated_time" content="2015-09-29T07:40:18.000Z">
+<meta property="og:description" content="CentOS 6.5安装最新版本Git">
+<meta property="og:updated_time" content="2015-12-13T13:26:09.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Python: How to use Supervisor">
-<meta name="twitter:description" content="程序守护监控Supervisor。">
+<meta name="twitter:title" content="Setup latest Git on CentOs 6.5">
+<meta name="twitter:description" content="CentOS 6.5安装最新版本Git">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Python: How to use Supervisor | Hexo </title>
+  <title> Setup latest Git on CentOs 6.5 | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Python: How to use Supervisor
+              Setup latest Git on CentOs 6.5
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-29T15:33:35+08:00" content="2015-09-29">
-            2015-09-29
+          <time itemprop="dateCreated" datetime="2015-12-13T17:33:03+08:00" content="2015-12-13">
+            2015-12-13
           </time>
         </span>
 
@@ -185,61 +185,20 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Supervisor 是由python语言编写、基于linux操作系统的一款服务器管理工具，用以监控服务器的运行，发现问题能立即自动预警及自动重启等功能。<br>运行环境：*nix，Python2.7</p>
-<h2 id="安装supervisor">安装supervisor</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ pip install supervisor</span><br><span class="line">$ python</span><br><span class="line">&gt;&gt;&gt; import supervisor</span><br><span class="line">&gt;&gt;&gt;</span><br></pre></td></tr></table></figure>
-<p>安装成功后Supervisor会提供一个命令行来生成配置文件：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">echo</span>_supervisord_conf &gt; /etc/supervisord.conf</span><br></pre></td></tr></table></figure>
-<p>然后编辑配置文件：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vi /etc/supervisord.conf</span><br></pre></td></tr></table></figure>
-<p>查看配置提示：</p>
-<pre><code>;[program:theprogramname]      ; 冒号后为自定义的进程名，为Supervisor使用
-;command=/bin/cat              ; 执行程序路径，可带参数
-;process_name=%(program_name)s ; 进程名，默认为 %(program_name)s
-;numprocs=<span class="number">1</span>                    ; 进程数，默认 <span class="number">1</span>
-;directory=/tmp                ; 执行前的路径，默认为 无
-;umask=<span class="number">022</span>                     ; <span class="function">umask <span class="keyword">for</span> <span class="title">process</span> <span class="params">(<span class="keyword">default</span> None)</span>
-</span>;priority=<span class="number">999</span>                  ; 执行权限，默认 <span class="number">999</span>
-;autostart=<span class="literal">true</span>                ; 在supervisord启动时启动，默认 是
-;autorestart=unexpected        ; 重启的条件，默认 unexpected（意外关闭时）
-;startsecs=<span class="number">1</span>                   ; 等待启动的秒数，默认 <span class="number">1</span>
-;startretries=<span class="number">3</span>                ; 最大启动失败次数，默认 <span class="number">3</span>
-;exitcodes=<span class="number">0</span>,<span class="number">2</span>                 ; 意外退出码，默认 <span class="number">0</span>,<span class="number">2</span>
-;stopsignal=QUIT               ; 杀死进程的信号，默认 TERM
-;stopwaitsecs=<span class="number">10</span>               ; 杀死进程最大等待秒数，默认 <span class="number">10</span>
-;stopasgroup=<span class="literal">false</span>             ; 向UNIX进程组发送停止信号，默认 否
-;killasgroup=<span class="literal">false</span>             ; 向UNIX进程组发送杀死信号，默认 否
-;user=chrism                   ; 启动时向UNIX设置setuid
-;redirect_stderr=<span class="literal">true</span>          ; 重定向标准错误到标准输出，默认 否
-;stdout_logfile=/a/path        ; 标准输出路径, NONE 为无; 默认 AUTO
-;stdout_logfile_maxbytes=<span class="number">1</span>MB   ; 日志文件最大值，默认 <span class="number">50</span>MB
-;stdout_logfile_backups=<span class="number">10</span>     ; 日志文件备份时间，默认 <span class="number">10</span>
-;stdout_capture_maxbytes=<span class="number">1</span>MB   ; capturemode大小，默认 <span class="number">0</span>
-;stdout_events_enabled=<span class="literal">false</span>   ; <span class="function">emit events on <span class="built_in">stdout</span> <span class="title">writes</span> <span class="params">(<span class="keyword">default</span> <span class="literal">false</span>)</span>
-</span>;stderr_logfile=/a/path        ; 标准输出路径, NONE 为无; 默认 AUTO
-;stderr_logfile_maxbytes=<span class="number">1</span>MB   ; 错误日志文件最大值，默认 <span class="number">50</span>MB
-;stderr_logfile_backups=<span class="number">10</span>     ; 错误日志文件备份时间，默认 <span class="number">10</span>
-;stderr_capture_maxbytes=<span class="number">1</span>MB   ; capturemode大小，默认 <span class="number">0</span>
-;stderr_events_enabled=<span class="literal">false</span>   ; <span class="function">emit events on <span class="built_in">stderr</span> <span class="title">writes</span> <span class="params">(<span class="keyword">default</span> <span class="literal">false</span>)</span>
-</span>;environment=A=<span class="string">"1"</span>,B=<span class="string">"2"</span>       ; <span class="function">process environment <span class="title">additions</span> <span class="params">(def no adds)</span>
-</span>;serverurl=AUTO                ; <span class="function">override serverurl <span class="title">computation</span> <span class="params">(childutils)</span>
-
-</span>;配置样例
-[program:crop]
-command=python /alidata/python/CropUp.py    
-process_name=%(program_name)s
-stdout_logfile=/alidata/python/crop.<span class="built_in">log</span>
-stderr_logfile=/alidata/python/crop.<span class="built_in">log</span>
-stdout_logfile_maxbytes=<span class="number">1</span>MB
-stdout_logfile_backups=<span class="number">10</span>
-stderr_logfile_maxbytes=<span class="number">1</span>MB
-stderr_logfile_backups=<span class="number">10</span>
-</code></pre><h2 id="开始使用">开始使用</h2><p>确认上面的配置无误后启动：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ supervisord -c /etc/supervisord.conf</span><br></pre></td></tr></table></figure>
-<p>几种控制命令：</p>
-<pre><code>supervisorctl <span class="keyword">status</span> crop   任务状态
-supervisorctl <span class="keyword">stop</span> crop     停止任务
-supervisorctl start crop    开启任务
-supervisorctl reload        重载
+        <span itemprop="articleBody"><p>配置安装:</p>
+<pre><code>yum groupinstall “Development Tools”
+yum <span class="operator"><span class="keyword">install</span> zlib-devel perl-ExtUtils-MakeMaker asciidoc xmlto openssl-devel
+wget <span class="keyword">http</span>://www.codemonkey.org.uk/projects/git-snapshots/git/git-latest.tar.gz
+(wget <span class="keyword">http</span>://www.codemonkey.org.uk/projects/git-snapshots/git/git-latest.tar.xz)
+xz -<span class="keyword">d</span> git-latest.tar.xz
+tar -xvf git-latest.tar
+cd git-latest
+autoconf
+./configure
+make -j <span class="number">4</span> &amp;&amp; make -j <span class="number">4</span> <span class="keyword">install</span>
+rm -fr /usr/<span class="keyword">bin</span>/git
+<span class="keyword">ln</span> -s /usr/<span class="keyword">local</span>/<span class="keyword">bin</span>/git /usr/<span class="keyword">bin</span>/git
+git <span class="comment">--version</span></span>
 </code></pre></span>
       
     </div>
@@ -248,9 +207,7 @@ supervisorctl reload        重载
       
         <div class="post-tags">
           
-            <a href="/tags/python/" rel="tag">#python</a>
-          
-            <a href="/tags/supervisor/" rel="tag">#supervisor</a>
+            <a href="/tags/git/" rel="tag">#git</a>
           
         </div>
       
@@ -259,13 +216,11 @@ supervisorctl reload        重载
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/09/29/Reading-List/" rel="prev">Reading List</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-Setup-on-centos/" rel="next">Simple Python: Setup on centos</a>
+              <a href="/2015/11/22/Simple-Akka-Futures/" rel="next">Simple Akka: Futures</a>
             
           </div>
         </div>
@@ -369,7 +324,7 @@ supervisorctl reload        重载
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装supervisor"><span class="nav-number">2.</span> <span class="nav-text">安装supervisor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开始使用"><span class="nav-number">3.</span> <span class="nav-text">开始使用</span></a></li></ol></div>
+              <p class="post-toc-empty">此文章未包含目录</p>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
