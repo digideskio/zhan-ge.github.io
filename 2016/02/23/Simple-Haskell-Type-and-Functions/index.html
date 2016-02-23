@@ -1,0 +1,662 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Haskell," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Haskell中的类型和函数.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Haskell: Type and Functions">
+<meta property="og:url" content="http://yoursite.com/2016/02/23/Simple-Haskell-Type-and-Functions/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Haskell中的类型和函数.">
+<meta property="og:updated_time" content="2016-02-23T09:15:18.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Haskell: Type and Functions">
+<meta name="twitter:description" content="Haskell中的类型和函数.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Haskell: Type and Functions | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Haskell: Type and Functions
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-02-23T16:18:08+08:00" content="2016-02-23">
+            2016-02-23
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="类型的作用">类型的作用</h2><p>在计算机的最底层，处理的都是没有任何附加结构的字节（byte）。而类型系统在这个基础上提供了抽象：它为那些单纯的字节加上了意义，使得我们可以说“这些字节是文本”，“那些字节是机票预约数据”，等等。</p>
+<p>通常情况下，类型系统还会在标识类型的基础上更进一步：它会阻止我们混合使用不同的类型，避免程序错误。比如说，类型系统通常不会允许将一个酒店预约数据当作汽车租凭数据来使用。</p>
+<p>引入抽象的使得我们可以忽略底层细节。举个例子，如果程序中的某个值是一个字符串，那么我不必考虑这个字符串在内部是如何实现的，只要像操作其他字符串一样，操作这个字符串就可以了。</p>
+<p>类型系统的一个有趣的地方是，不同的类型系统的表现并不完全相同。实际上，不同类型系统有时候处理的还是不同种类的问题。</p>
+<p>除此之外，一门语言的类型系统，还会深切地影响这门语言的使用者思考和编写程序的方式。而 Haskell 的类型系统则允许程序员以非常抽象的层次思考，并写出简洁、高效、健壮的代码。</p>
+<p>&lt;以上摘抄自”Real World Haskell”&gt;</p>
+<h2 id="Haskell类型系统">Haskell类型系统</h2><p>Haskell中的类型有三个有趣的方面: 强类型,静态,可以通过自动推导得出.</p>
+<h3 id="强类型">强类型</h3><p>Haskell的强类型系统会拒绝执行任何没有意义的表达式,保证程序不会因为这些表达式引起错误:比如把整数当做函数来使用,或者将一个字符串传给一个只接受整数参数的函数,等等.</p>
+<p>Haskell强类型系统的另一个作用是,它不会自动的将值从一个类型转换到另一个类型.比如将一个整数值作为参数传给一个只接受浮点数的函数,C编译器会自动且静默的将整数类型转换为浮点类型,而Haskell编译器则会引起一个编译期错误.</p>
+<p>要在Haskell中进行类型转换必须显式的使用类型转换函数.</p>
+<p>强类型的最大好处是可以让bug在代码实际运行之前显现.</p>
+<h3 id="静态类型">静态类型</h3><p>静态类型系统指的是,编译器可以在编译期知道每个值和表达式的类型.Haskell编译器或解释器会觉察出类型不正确的表达式,并拒绝执行:</p>
+<pre><code><span class="type">Prelude</span>&gt; <span class="type">True</span> &amp;&amp; <span class="string">"False"</span>
+
+&lt;interactive&gt;:<span class="number">2</span>:<span class="number">9</span>:
+    <span class="type">Couldn</span><span class="symbol">'t</span> <span class="keyword">match</span> expected <span class="class"><span class="keyword">type</span> `<span class="title">Bool</span>' <span class="keyword"><span class="keyword">with</span></span> <span class="title">actual</span> <span class="title">type</span> `[</span><span class="type">Char</span>]'
+    <span class="type">In</span> the second argument of `(&amp;&amp;)', namely `<span class="string">"False"</span>'
+    <span class="type">In</span> the expression: <span class="type">True</span> &amp;&amp; <span class="string">"False"</span>
+    <span class="type">In</span> an equation <span class="keyword">for</span> `it': it = <span class="type">True</span> &amp;&amp; <span class="string">"False"</span>
+</code></pre><h3 id="类型推导">类型推导</h3><p>Haskell编译器可以自动推断出程序中几乎任何表达式的类型,这个过程被称为类型推导(type inference).</p>
+<h2 id="正确理解类型系统">正确理解类型系统</h2><h2 id="常用的基本类型">常用的基本类型</h2><p>Char:单个Unicode字符<br>Bool:布尔逻辑值<br>Int:带符号的定长整数,由机器决定<br>Integer:不限长度的带符号整数,由内存量决定<br>Double:浮点数,由机器决定</p>
+<p>:: 符号可表示类型,同时用于类型签名,exp::T拜师exp的类型是T,而::T是变量exp的类型签名.</p>
+<h2 id="调用函数">调用函数</h2><p>要调用一个函数,首先是函数名,空格后跟参数,并不需要小括号,多个参数间用空格隔开:</p>
+<pre><code>Prelude&gt; compare <span class="number">2</span> <span class="number">3</span>
+LT
+</code></pre><p>在表达式过于复杂时使用括号进行标注:</p>
+<pre><code>Prelude&gt; compare (<span class="built_in">sqrt</span> <span class="number">3</span>) (<span class="built_in">sqrt</span> <span class="number">6</span>)
+LT
+</code></pre><h2 id="复合数据类型:列表和元祖">复合数据类型:列表和元祖</h2><p>head函数取出列表的第一个元素:</p>
+<pre><code>ghci&gt; head [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
+<span class="number">1</span>
+</code></pre><p>tail函数取出除了第一个元素的所有元素:</p>
+<pre><code>ghci&gt; tail [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>]
+[<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>]
+</code></pre><p>[Char]表示一个Char类型的列表,[Int]表示一个整数类型的列表,同理[MyType]表示一个自定义类型的列表.</p>
+<p>列表可以任意长度,但是只能表示一种类型.</p>
+<p>元祖长度固定,但可以包含不同类型的值.</p>
+<pre><code>Prelude&gt; :<span class="keyword">type</span> (True, <span class="string">"hello"</span>)
+(True, <span class="string">"hello"</span>) <span class="type-annotation">::</span> (<span class="built_in">Bool</span>, [<span class="built_in">Char</span>])
+</code></pre><p>特殊类型()表示包含零个元素的元祖,相当于C中的void.</p>
+<p>元组的类型由它所包含元素的数量、位置和类型决定。这意味着，如果两个元组里都包含着同样类型的元素，而这些元素的摆放位置不同，那么它们的类型就不相等，就像这样：</p>
+<pre><code>Prelude&gt; :<span class="keyword">type</span> (False, <span class="char">'a'</span>)
+(False, <span class="char">'a'</span>) <span class="type-annotation">::</span> (<span class="built_in">Bool</span>, <span class="built_in">Char</span>)
+
+Prelude&gt; :<span class="keyword">type</span> (<span class="char">'a'</span>, False)
+(<span class="char">'a'</span>, False) <span class="type-annotation">::</span> (<span class="built_in">Char</span>, <span class="built_in">Bool</span>)
+</code></pre><p>只有元组中的数量、位置和类型都完全相同，这两个元组的类型才是相同的：</p>
+<pre><code>Prelude&gt; :t (<span class="keyword">False</span>, <span class="string">'a'</span>)
+(<span class="keyword">False</span>, <span class="string">'a'</span>) :: (<span class="keyword">Bool</span>, <span class="keyword">Char</span>)
+
+Prelude&gt; :t (<span class="keyword">True</span>, <span class="string">'b'</span>)
+(<span class="keyword">True</span>, <span class="string">'b'</span>) :: (<span class="keyword">Bool</span>, <span class="keyword">Char</span>)
+</code></pre><p>元组通常用于以下两个地方：</p>
+<ol>
+<li>如果一个函数需要返回多个值，那么可以将这些值都包装到一个元组中，然后返回元组作为函数的值。</li>
+<li>当需要使用定长容器，但又没有必要使用自定义类型的时候，就可以使用元组来对值进行包装。</li>
+</ol>
+<h2 id="处理列表和元组的函数">处理列表和元组的函数</h2><p>函数 take 和 drop 接受两个参数，一个数字 n 和一个列表 l 。</p>
+<p>take 返回一个包含 l 前 n 个元素的列表:</p>
+<pre><code>Prelude&gt; take <span class="number">2</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]
+[<span class="number">1</span>,<span class="number">2</span>]
+</code></pre><p>drop 则返回一个包含 l 丢弃了前 n 个元素之后，剩余元素的列表：</p>
+<pre><code>Prelude&gt; drop <span class="number">2</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]
+[<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>]    
+</code></pre><p>函数 fst 和 snd 接受一个元组作为参数，返回该元组的第一个元素和第二个元素：</p>
+<pre><code>Prelude&gt; fst (<span class="number">1</span>, <span class="string">'a'</span>)
+<span class="number">1</span>
+Prelude&gt; snd (<span class="number">1</span>, <span class="string">'a'</span>)
+<span class="string">'a'</span>
+</code></pre><h2 id="将表达式传个函数">将表达式传个函数</h2><p>Haskell 的函数应用是左关联的。比如说，表达式 a b c d 等同于 (((a b) c) d) 。要将一个表达式用作另一个表达式的参数，那么就必须显式地使用括号来包围它，这样编译器才会知道我们的真正意思：</p>
+<pre><code>Prelude&gt; head (drop <span class="number">4</span> <span class="string">"azety"</span>)
+<span class="string">'y'</span>
+</code></pre><p>drop 4 “azety” 这个表达式被一对括号显式地包围，作为参数传入 head 函数。</p>
+<h2 id="函数类型">函数类型</h2><p>使用 :type 命令可以查看函数的类型[缩写形式为 :t ]：</p>
+<pre><code>Prelude&gt; :<span class="keyword">type</span> lines
+lines <span class="type-annotation">::</span> <span class="built_in">String</span> -&gt; [<span class="built_in">String</span>]
+</code></pre><p>符号 -&gt; 可以读作“映射到”,或者”返回”,表示函数lines接收一个字符串返回一个字符串列表.</p>
+<h2 id="纯度">纯度</h2><p>副作用指的是,函数的状态受系统的全局状态所影响.副作用实质上是一种不可见的输入输出.Haskell的函数在默认情况下都是无副作用的,函数的结果只取决于显示传入的参数.</p>
+<p>我们将带副作用的函数叫做”不纯(impure)函数”,而不带副作用的函数叫做”纯(pure)函数”.</p>
+<p>从类型签名可以看出一个 Haskell 函数是否带有副作用 —— 不纯函数的类型签名都以 IO 开头：</p>
+<pre><code>Prelude&gt; :<span class="keyword">type</span> readFile
+readFile <span class="type-annotation">::</span> FilePath -&gt; <span class="built_in">IO</span> <span class="built_in">String</span>
+</code></pre><h2 id="Haskell源码,简单函数的定义">Haskell源码,简单函数的定义</h2><p>编辑add.hs文件:</p>
+<pre><code>-- file: ch02/add<span class="class">.hs</span>
+add <span class="tag">a</span> <span class="tag">b</span> = <span class="tag">a</span> + b
+</code></pre><p>等号左边的add a b是函数名和参数,而右边的a + b是函数体,符号 = 表示将左边的名字定义为右边的表达式.</p>
+<p>将add.hs文件保存后可以在ghci中通过:load(缩写:l)载入,然后就可以像使用其他函数一样调用add函数了.</p>
+<p>Haskell不需要return关键字来返回函数值,因为一个函数就是一个单独的表达式,而不是一组语句.</p>
+<h3 id="变量">变量</h3></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Haskell/" rel="tag">#Haskell</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/23/Simple-Haskell-Prepare/" rel="next">Simple Haskell: Prepare</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">50</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#类型的作用"><span class="nav-number">1.</span> <span class="nav-text">类型的作用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Haskell类型系统"><span class="nav-number">2.</span> <span class="nav-text">Haskell类型系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#强类型"><span class="nav-number">2.1.</span> <span class="nav-text">强类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态类型"><span class="nav-number">2.2.</span> <span class="nav-text">静态类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类型推导"><span class="nav-number">2.3.</span> <span class="nav-text">类型推导</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#正确理解类型系统"><span class="nav-number">3.</span> <span class="nav-text">正确理解类型系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用的基本类型"><span class="nav-number">4.</span> <span class="nav-text">常用的基本类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#调用函数"><span class="nav-number">5.</span> <span class="nav-text">调用函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#复合数据类型:列表和元祖"><span class="nav-number">6.</span> <span class="nav-text">复合数据类型:列表和元祖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理列表和元组的函数"><span class="nav-number">7.</span> <span class="nav-text">处理列表和元组的函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#将表达式传个函数"><span class="nav-number">8.</span> <span class="nav-text">将表达式传个函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数类型"><span class="nav-number">9.</span> <span class="nav-text">函数类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#纯度"><span class="nav-number">10.</span> <span class="nav-text">纯度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Haskell源码,简单函数的定义"><span class="nav-number">11.</span> <span class="nav-text">Haskell源码,简单函数的定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#变量"><span class="nav-number">11.1.</span> <span class="nav-text">变量</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

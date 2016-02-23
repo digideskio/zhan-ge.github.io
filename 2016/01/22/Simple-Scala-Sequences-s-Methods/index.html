@@ -1,0 +1,988 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Most useful methods of scala sequences.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: Sequences's Methods">
+<meta property="og:url" content="http://yoursite.com/2016/01/22/Simple-Scala-Sequences-s-Methods/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Most useful methods of scala sequences.">
+<meta property="og:updated_time" content="2016-01-22T07:31:54.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: Sequences's Methods">
+<meta name="twitter:description" content="Most useful methods of scala sequences.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: Sequences's Methods | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: Sequences's Methods
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-01-22T12:24:36+08:00" content="2016-01-22">
+            2016-01-22
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="如何选择一个合适的集合类型">如何选择一个合适的集合类型</h2><p>???</p>
+<h2 id="如何选择一个合适的集合方法">如何选择一个合适的集合方法</h2><p>可遍历集合的通用方法:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>c collect f</td>
+<td style="text-align:left">将传入的偏函数作用到集合的所有元素上,根据偏函数的定义所生成新的元素组成一个新的集合</td>
+</tr>
+<tr>
+<td>c count p</td>
+<td style="text-align:left">对集合中满足该谓词的元素进行计数</td>
+</tr>
+<tr>
+<td>c1 diff c2</td>
+<td style="text-align:left">返回c1和c2集合中的差集</td>
+</tr>
+<tr>
+<td>c drop n</td>
+<td style="text-align:left">返回集合中除了前n个元素后的所有元素</td>
+</tr>
+<tr>
+<td>c dropWhile p</td>
+<td style="text-align:left">返回一个集合，包含”满足该谓词的元素的最长前缀”</td>
+</tr>
+<tr>
+<td>c exists p</td>
+<td style="text-align:left">如果集合中的任何一个元素满足该谓词,返回true,否则返回false</td>
+</tr>
+<tr>
+<td>c filter p</td>
+<td style="text-align:left">返回集合中所有满足该谓词为true的元素</td>
+</tr>
+<tr>
+<td>c filterNot p</td>
+<td style="text-align:left">返回集合中所有满足该谓词为false的元素</td>
+</tr>
+<tr>
+<td>c find p</td>
+<td style="text-align:left">返回集合中第一个满足谓词条件的元素Some[A],如果没有任何匹配则返回None</td>
+</tr>
+<tr>
+<td>c flatten</td>
+<td style="text-align:left">展开一个嵌套的集合,比如讲一个List[A](List[A])展开为List[A]</td>
+</tr>
+<tr>
+<td>c flatMap f</td>
+<td style="text-align:left">将一个方法作用到c集合中的所有元素上,并将由函数结果组成的嵌套集合展开</td>
+</tr>
+<tr>
+<td>c foldLeft(z)(op)</td>
+<td style="text-align:left">从左至右将操作作用到c集合中的连续元素,起始元素为z</td>
+</tr>
+<tr>
+<td>c foldRight(z)(op)</td>
+<td style="text-align:left">从右至左将操作作用到c集合中的连续元素,起始元素为z</td>
+</tr>
+<tr>
+<td>c forAll p</td>
+<td style="text-align:left">如果集合中的所有元素满足谓词条件p,返回true,否则返回false</td>
+</tr>
+<tr>
+<td>c foreach f</td>
+<td style="text-align:left">将f方法作用到集合的所有元素上</td>
+</tr>
+<tr>
+<td>c groupBy f</td>
+<td style="text-align:left">根据f方法将集合分成一个包含Map的集合</td>
+</tr>
+<tr>
+<td>c hasDefiniteSize</td>
+<td style="text-align:left">测试集合是否拥有优先长度,比如Stream或Iterator则会返回false</td>
+</tr>
+<tr>
+<td>c head</td>
+<td style="text-align:left">返回集合的第一个元素,如果集合为空则会抛出NoSuchElementException异常</td>
+</tr>
+<tr>
+<td>c headOption</td>
+<td style="text-align:left">返回集合的第一个元素,如果集合为空返回None,不为空则返回Some[A]</td>
+</tr>
+<tr>
+<td>c init</td>
+<td style="text-align:left">选取集合中除了最后一个元素的所有元素,如果集合为空则会抛出NoSuchElementException异常</td>
+</tr>
+<tr>
+<td>c1 intersect c2</td>
+<td style="text-align:left">获取两个集合的交集元素作为一个新的集合</td>
+</tr>
+<tr>
+<td>c isEmpty</td>
+<td style="text-align:left">判断集合是否为空,true或false</td>
+</tr>
+<tr>
+<td>c last</td>
+<td style="text-align:left">返回集合的最后一个元素,如果集合为空则抛出NoSuchElementException异常</td>
+</tr>
+<tr>
+<td>c lastOption</td>
+<td style="text-align:left">返回集合的最后一个元素,集合为空返回None,否则返回Some[A]</td>
+</tr>
+<tr>
+<td>c map f</td>
+<td style="text-align:left">将f方法作用到集合的所有元素作为一个新的集合返回</td>
+</tr>
+<tr>
+<td>c max</td>
+<td style="text-align:left">返回集合中最大的元素</td>
+</tr>
+<tr>
+<td>c min</td>
+<td style="text-align:left">返回集合中最小的元素</td>
+</tr>
+<tr>
+<td>c nonEmpty</td>
+<td style="text-align:left">判断集合是否不为空,true或false</td>
+</tr>
+<tr>
+<td>c par</td>
+<td style="text-align:left">返回该集合一个并行方式的实现,比如Array.par返回ParArray</td>
+</tr>
+<tr>
+<td>c partition p</td>
+<td style="text-align:left">根据谓词的算法返回两个集合</td>
+</tr>
+<tr>
+<td>c product</td>
+<td style="text-align:left">返回集合中所有元素的倍数</td>
+</tr>
+<tr>
+<td>c reduceLeft op</td>
+<td style="text-align:left">和foldLeft的作用一样,不过是从集合的第一个元素开始</td>
+</tr>
+<tr>
+<td>c reduceRight op</td>
+<td style="text-align:left">和foldRight作用一样,不过是从集合的最后一个元素开始</td>
+</tr>
+<tr>
+<td>c reverse</td>
+<td style="text-align:left">将集合中的所有元素翻转顺序后作为一个新的集合返回</td>
+</tr>
+<tr>
+<td>c size</td>
+<td style="text-align:left">返回集合的长度</td>
+</tr>
+<tr>
+<td>c slice(from, to)</td>
+<td style="text-align:left">从form到to位置切片集合中的元素作为一个新的集合返回</td>
+</tr>
+<tr>
+<td>c sortWith f</td>
+<td style="text-align:left">根据f中定义的比较方法对集合进行排序并返回</td>
+</tr>
+<tr>
+<td>c span p</td>
+<td style="text-align:left">返回两个集合,第一个由c.takeWhile(p)创建,第二个由c.dropWhile(p)创建</td>
+</tr>
+<tr>
+<td>c splitAt n</td>
+<td style="text-align:left">将集合在n的元素位置分割后返回两个集合,这两个集合组成一个嵌套集合返回</td>
+</tr>
+<tr>
+<td>c sum</td>
+<td style="text-align:left">返回集合中元素的和</td>
+</tr>
+<tr>
+<td>c tail</td>
+<td style="text-align:left">返回集合中除了第一个元素的所有元素作为一个新的集合</td>
+</tr>
+<tr>
+<td>c take n</td>
+<td style="text-align:left">返回集合中的前N个元素</td>
+</tr>
+<tr>
+<td>c takeWhile p</td>
+<td style="text-align:left">如果p条件为true则从集合中返回元素,p为false时停止</td>
+</tr>
+<tr>
+<td>c1 union c2</td>
+<td style="text-align:left">返回两个集合的并集</td>
+</tr>
+<tr>
+<td>c unzip</td>
+<td style="text-align:left">zip的反向操作,通过将一个元素拆分为两部分,将集合拆分为两个集合</td>
+</tr>
+<tr>
+<td>c view</td>
+<td style="text-align:left">返回集合的lazy视图</td>
+</tr>
+<tr>
+<td>c1 zip c2</td>
+<td style="text-align:left">将两个集合中的元素组合成对,合并成一个集合</td>
+</tr>
+<tr>
+<td>c zipWithIndex</td>
+<td style="text-align:left">将集合的元素和索引进行zip</td>
+</tr>
+</tbody>
+</table>
+<p>可变集合的方法:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>c += x</td>
+<td style="text-align:left">将元素x添加的集合x上</td>
+</tr>
+<tr>
+<td>c += (x,y,z)</td>
+<td style="text-align:left">将多个元素添加的集合上</td>
+</tr>
+<tr>
+<td>c1 ++= c2</td>
+<td style="text-align:left">将一个集合添加到另一个集合上</td>
+</tr>
+<tr>
+<td>c −= x</td>
+<td style="text-align:left">从集合中移除元素</td>
+</tr>
+<tr>
+<td>c −= (x,y,z)</td>
+<td style="text-align:left">从集合中移除多个元素</td>
+</tr>
+<tr>
+<td>c1 −−= c2</td>
+<td style="text-align:left">从一个集合中移除另一个集合的所有元素</td>
+</tr>
+<tr>
+<td>c(n) = x</td>
+<td style="text-align:left">对集合中的一个元素赋值</td>
+</tr>
+<tr>
+<td>c clear</td>
+<td style="text-align:left">移除集合中的所有元素</td>
+</tr>
+<tr>
+<td>c remove n</td>
+<td style="text-align:left">移除集合中索引位置n的元素</td>
+</tr>
+<tr>
+<td>c.remove(n, len)</td>
+<td style="text-align:left">从索引位置n处开始移除len个元素</td>
+</tr>
+</tbody>
+</table>
+<p>不可变集合操作:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>c1 ++ c2</td>
+<td style="text-align:left">讲一个集合添加到另一个集合中作为一个新的集合返回</td>
+</tr>
+<tr>
+<td>c :+ e</td>
+<td style="text-align:left">将元素添加到一个元素上并作为一个新的集合返回</td>
+</tr>
+<tr>
+<td>e +: c</td>
+<td style="text-align:left">将元素添加到一个集合的首部并返回一个新的集合</td>
+</tr>
+<tr>
+<td>e :: list</td>
+<td style="text-align:left">将元素添加到List的首部并返回一个新的List,仅对List可用</td>
+</tr>
+</tbody>
+</table>
+<p>可变和不可变Map的通用方法:</p>
+<p> Methods for immutable maps</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m - k</td>
+<td style="text-align:left">按键值k移除一个Map</td>
+</tr>
+<tr>
+<td>m - (k1, k2, k3)</td>
+<td style="text-align:left">按多个键值移除多个Map</td>
+</tr>
+<tr>
+<td>m – c</td>
+<td style="text-align:left">返回一个键值在集合中的Map</td>
+</tr>
+<tr>
+<td>m – List(k1, k2)</td>
+<td style="text-align:left">返回一个键值在集合中的Map</td>
+</tr>
+</tbody>
+</table>
+<p>Methods for mutable maps</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mm += (k -&gt; v)</td>
+<td style="text-align:left">向可变Map添加一个键值对</td>
+</tr>
+<tr>
+<td>mm += (k1 -&gt; v1, k2 -&gt; v2)</td>
+<td style="text-align:left">向可变Map添加多个键值对</td>
+</tr>
+<tr>
+<td>mm ++= c</td>
+<td style="text-align:left">将集合中的多个元素添加到可变Map</td>
+</tr>
+<tr>
+<td>mm ++= List(3 -&gt; “c”)</td>
+<td style="text-align:left">将集合中的多个元素添加到可变Map</td>
+</tr>
+<tr>
+<td>mm -= k</td>
+<td style="text-align:left">移除一个键值为k的元素</td>
+</tr>
+<tr>
+<td>mm -= (k1, k2, k3)</td>
+<td style="text-align:left">移除多个键值为Kn的元素</td>
+</tr>
+<tr>
+<td>mm –= c</td>
+<td style="text-align:left">从可变集合移除集合中的所有元素</td>
+</tr>
+</tbody>
+</table>
+<p>Methods for both mutable and immutable maps</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m(k)</td>
+<td style="text-align:left">返回键为k的值</td>
+</tr>
+<tr>
+<td>m contains k</td>
+<td style="text-align:left">判断Map中是否包含键为k的元素</td>
+</tr>
+<tr>
+<td>m filter p</td>
+<td style="text-align:left">返回一个键或值满足谓词条件的Map</td>
+</tr>
+<tr>
+<td>m filterKeys p</td>
+<td style="text-align:left">返回一个键值满足谓词条件的Map</td>
+</tr>
+<tr>
+<td>m get k</td>
+<td style="text-align:left">如果键k存在,返回对应的值Some[A],否则返回None</td>
+</tr>
+<tr>
+<td>m getOrElse(k, d)</td>
+<td style="text-align:left">返回键k的值,不存在时返回默认值d</td>
+</tr>
+<tr>
+<td>m isDefinedAt k</td>
+<td style="text-align:left">如果返回键k返回true</td>
+</tr>
+<tr>
+<td>m keys</td>
+<td style="text-align:left">返回所有键作为一个Iterable</td>
+</tr>
+<tr>
+<td>m keyIterator</td>
+<td style="text-align:left">返回所有键作为一个Iterator</td>
+</tr>
+<tr>
+<td>m keySet</td>
+<td style="text-align:left">返回所有的键作为一个Set</td>
+</tr>
+<tr>
+<td>m mapValues f</td>
+<td style="text-align:left">将f方法作用到所有的值上并返回一个新的Map</td>
+</tr>
+<tr>
+<td>m values</td>
+<td style="text-align:left">返回所有值作为一个Iterable</td>
+</tr>
+<tr>
+<td>m valuesIterator</td>
+<td style="text-align:left">返回所有值作为一个Iterator</td>
+</tr>
+</tbody>
+</table>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/23/Simple-Haskell-Prepare/" rel="prev">Simple Haskell: Prepare</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/20/Essential-Scala-Expressions-Types-and-Values/" rel="next">Essential Scala: Expressions, Types, and Values</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">50</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#如何选择一个合适的集合类型"><span class="nav-number">1.</span> <span class="nav-text">如何选择一个合适的集合类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何选择一个合适的集合方法"><span class="nav-number">2.</span> <span class="nav-text">如何选择一个合适的集合方法</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

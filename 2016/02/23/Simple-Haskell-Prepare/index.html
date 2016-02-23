@@ -1,0 +1,704 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Haskell," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="搭建Haskell开发环境">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Haskell: Prepare">
+<meta property="og:url" content="http://yoursite.com/2016/02/23/Simple-Haskell-Prepare/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="搭建Haskell开发环境">
+<meta property="og:updated_time" content="2016-02-23T08:39:46.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Haskell: Prepare">
+<meta name="twitter:description" content="搭建Haskell开发环境">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Haskell: Prepare | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Haskell: Prepare
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-02-23T14:17:49+08:00" content="2016-02-23">
+            2016-02-23
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="Mac下搭建Haskell">Mac下搭建Haskell</h2><p>Haskell Platform 是一个大包的Haskell开发环境,包含GHC已经一些三方库,已经包管理工具cabal,类似Python中的pip.<br>在Haskell官方直接下载即可,下载后按照提示进行安装.安装完成后配置程序路径:</p>
+<pre><code>vim ~/.bash_profile
+<span class="comment"># Setting PATH for Haskell</span>
+<span class="built_in">export</span> PATH=<span class="string">"<span class="variable">$HOME</span>/Library/Haskell/bin:<span class="variable">$PATH</span>"</span>
+:wq
+<span class="built_in">source</span> ~/.bash_profile
+<span class="built_in">which</span> ghc
+/usr/<span class="built_in">local</span>/bin/ghc
+<span class="built_in">which</span> ghci
+/usr/<span class="built_in">local</span>/bin/ghc
+<span class="built_in">which</span> cabal
+/usr/<span class="built_in">local</span>/bin/cabal
+cabal update
+cabal install ghc-mod
+cabal info ghc-mod
+</code></pre><p>然后开启Intellij IDEA,添加Haskell插件或HaskForce插件,重启IDEA,创建一个新的Haskell工程,此时需要设置ghc-mod和JDK路径,然后就可以使用IDEA进行开发了.</p>
+<p>其中,ghc是生成本地代码的优化编译器,ghci是一个交互解释器和调试器,runghc是一个以脚本形式(不需要首先编译)运行Haskell程序.</p>
+<p>在ghci中,命令行提示会随着加载的模块变化而变化,有时会变得很长影响输入,可以使用如下命令进行修改:</p>
+<pre><code>Prelude&gt; :<span class="keyword">set</span> prompt <span class="string">"ghci&gt;"</span>
+ghci&gt;
+</code></pre><p>调用:module方法预加载一个模块:</p>
+<pre><code><span class="tag">ghci</span>&gt; <span class="pseudo">:module</span> + <span class="tag">Data</span><span class="class">.Ratio</span>
+</code></pre><p>然后就可以使用Data.Ratio中的功能了,该模块提供一些有理数的计算.</p>
+<h2 id="运算符">运算符</h2><p>可以吧ghci当做一个计算器使用:加(+),减(-),乘(*),除(/),乘方(^),同时支持使用前缀方式运算: (+) 2 2</p>
+<p>布尔值使用True和False表示,(&amp;&amp;)表示逻辑与,(||)表示逻辑或,同时Haskell中并没有定义数字1等值于True,或者数字0等值于False.</p>
+<p>Haskell中的等于比较分别为:==,&gt;=,&lt;=,/=,最后一个不等于并不是一般语言中常用的!=,而其常用的”非”则用 not 表示,True == not False</p>
+<p>调用:info方法则可以查看各种操作的优先级,比如:</p>
+<pre><code>ghci&gt; :info (+)
+class (Eq <span class="tag">a</span>, Show a) =&gt; Num <span class="tag">a</span> where
+  (+) :: <span class="tag">a</span> -&gt; <span class="tag">a</span> -&gt; <span class="tag">a</span>
+  ...
+    -- Defined <span class="keyword">in</span> GHC<span class="class">.Num</span>
+infixl <span class="number">6</span> +
+
+ghci&gt; :info (*)
+class (Eq <span class="tag">a</span>, Show a) =&gt; Num <span class="tag">a</span> where
+  ...
+  (*) :: <span class="tag">a</span> -&gt; <span class="tag">a</span> -&gt; <span class="tag">a</span>
+  ...
+    -- Defined <span class="keyword">in</span> GHC<span class="class">.Num</span>
+infixl <span class="number">7</span> *
+</code></pre><p>这里的”infixl 6 +”表示”+”的优先级为6,”infixl 7 <em>“表示”</em>“的优先级为7,数字越大表示优先级越高.</p>
+<pre><code>ghci&gt; :info (^)
+(^) :: (Num <span class="tag">a</span>, Integral b) =&gt; <span class="tag">a</span> -&gt; <span class="tag">b</span> -&gt; <span class="tag">a</span>   -- Defined <span class="keyword">in</span> GHC<span class="class">.Real</span>
+infixr <span class="number">8</span> ^
+</code></pre><p>乘方的优先级则为8,同时和上面的不同是,infixl与infixr,前者表示左结合,后者表示右结合.</p>
+<h2 id="列表">列表</h2><p>Haskell中的列表与Python类似,但是Haskell中的”,”作为分隔符,不能在右括号前多出一个逗号,同时列表中的元素类型必须相同.</p>
+<pre><code>ghci&gt; [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
+[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
+</code></pre><p>如果使用列举符号(..)来表示一系列元素,Haskell则会自动对列举的内容进行填充,列举只能用于一些可列举的类型,字符串则不适合列举:</p>
+<pre><code>ghci&gt; [<span class="number">1.</span><span class="number">.10</span>]
+[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>]
+ghci&gt; [<span class="number">1.0</span>,<span class="number">1.25</span>.<span class="number">.2</span><span class="number">.0</span>]
+[<span class="number">1.0</span>,<span class="number">1.25</span>,<span class="number">1.5</span>,<span class="number">1.75</span>,<span class="number">2.0</span>]
+ghci&gt; [<span class="number">1</span>,<span class="number">4.</span><span class="number">.15</span>]
+[<span class="number">1</span>,<span class="number">4</span>,<span class="number">7</span>,<span class="number">10</span>,<span class="number">13</span>]
+ghci&gt; [<span class="number">10</span>,<span class="number">9.</span><span class="number">.1</span>]
+[<span class="number">10</span>,<span class="number">9</span>,<span class="number">8</span>,<span class="number">7</span>,<span class="number">6</span>,<span class="number">5</span>,<span class="number">4</span>,<span class="number">3</span>,<span class="number">2</span>,<span class="number">1</span>]
+</code></pre><p>如果没有填写结尾的话比如:[1..],这时会生成一个无穷列表而造成崩溃.</p>
+<p>列表合并:</p>
+<pre><code>ghci&gt; [<span class="number">3</span>,<span class="number">1</span>,<span class="number">3</span>] ++ [<span class="number">3</span>,<span class="number">7</span>]
+[<span class="number">3</span>,<span class="number">1</span>,<span class="number">3</span>,<span class="number">3</span>,<span class="number">7</span>]
+ghci&gt; [] ++ [False,True] ++ [True]
+[False,True,True]
+</code></pre><p>添加元素:</p>
+<pre><code>ghci&gt; <span class="number">1</span> : [<span class="number">2</span>,<span class="number">3</span>]
+[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
+ghci&gt; <span class="number">1</span> : []
+[<span class="number">1</span>]
+</code></pre><h2 id="字符串和字符">字符串和字符</h2><p>Haskell使用双引号表示一个字符串:</p>
+<pre><code>ghci&gt; <span class="comment">"This is a String."</span>
+<span class="comment">"This is a String."</span>
+</code></pre><p>字符串的转义字符基本与其他语言一致:</p>
+<pre><code><span class="comment">ghci</span>&gt; <span class="comment">putStrLn</span> <span class="comment">"Here's</span> <span class="comment">a</span> <span class="comment">newline</span> <span class="literal">-</span><span class="literal">-</span>&gt;<span class="comment">\n</span>&lt;<span class="literal">-</span><span class="literal">-</span> <span class="comment">See?"</span>
+<span class="comment">Here's</span> <span class="comment">a</span> <span class="comment">newline</span> <span class="literal">-</span><span class="literal">-</span>&gt;
+&lt;<span class="literal">-</span><span class="literal">-</span> <span class="comment">See?</span>
+</code></pre><p>单字符使用单引号表示:</p>
+<pre><code>ghci&gt; <span class="comment">'a'</span>
+<span class="comment">'a'</span>
+</code></pre><p>字符串实质上一一个单字符的列表:</p>
+<pre><code>ghci&gt; let <span class="tag">a</span> = [<span class="string">'l'</span>, <span class="string">'o'</span>, <span class="string">'t'</span>, <span class="string">'s'</span>, <span class="string">' '</span>, <span class="string">'o'</span>, <span class="string">'f'</span>, <span class="string">' '</span>, <span class="string">'w'</span>, <span class="string">'o'</span>, <span class="string">'r'</span>, <span class="string">'k'</span>]
+ghci&gt; <span class="tag">a</span>
+<span class="string">"lots of work"</span>
+ghci&gt; <span class="tag">a</span> == <span class="string">"lots of work"</span>
+True
+</code></pre><p>“”表示空字符串,与[]同义.</p>
+<p>同样可以使用列表方法操作字符串:</p>
+<pre><code>ghci&gt; <span class="string">'a'</span>:<span class="string">"bc"</span>
+<span class="string">"abc"</span>
+ghci&gt; <span class="string">"foo"</span> ++ <span class="string">"bar"</span>
+<span class="string">"foobar"</span>
+</code></pre><h2 id="类型">类型</h2><p>Haskell中所有的类型都是以大写字符开头,所有变量名都是以小写字母开头.</p>
+<p>修改ghci,让它在返回表达式求值时同时返回打印结果的类型,使用ghci的:set命令:</p>
+<pre><code>Prelude&gt; :<span class="built_in">set</span> +t
+
+Prelude&gt; <span class="string">'c'</span>    <span class="comment">-- 输入表达式</span>
+<span class="string">'c'</span>             <span class="comment">-- 输出值</span>
+<span class="keyword">it</span> :: Char      <span class="comment">-- 输出值的类型</span>
+
+Prelude&gt; <span class="string">"foo"</span>
+<span class="string">"foo"</span>
+<span class="keyword">it</span> :: [Char]
+</code></pre><p>上面结果中显示的”it:”是一个特殊标量,表示最后一次求值结果的变量名,只是ghci的一个辅助功能.x :: y 表示表达式 x 的类型为 y.而[char]表示的就是String.</p>
+<p>Haskell的整数表示为Integer,其长度仅受限于操作系统的内存大小.</p>
+<p>分数使用%构建,分子在左边,分母在右边:</p>
+<pre><code>Prelude&gt; :m +Data.Ratio        <span class="comment">// :m 为 :module的缩写</span>
+Prelude Data.Ratio&gt; <span class="number">11</span> % <span class="number">29</span>
+<span class="number">11</span> % <span class="number">29</span>
+it :: Ratio Integer            <span class="comment">// 表示类型为: 由整数构成的分数</span>
+</code></pre><p>使用 :unset +t 命令取消对类型的打印,而使用 :type a 命令可以显式的打印变量a的类型</p>
+<h2 id="行计数程序">行计数程序</h2><p>使用Haskell编写一个行计数程序:</p>
+<pre><code><span class="comment">-- file: ch01/WC.hs</span>
+<span class="comment">-- lines beginning with "--" are comments.</span>
+
+main = interact wordCount
+    where wordCount input = <span class="operator"><span class="keyword">show</span> (<span class="keyword">length</span> (<span class="keyword">lines</span> <span class="keyword">input</span>)) ++ <span class="string">"\n"</span></span>
+</code></pre><p>再创建一个 quux.txt,包含以下内容:</p>
+<pre><code><span class="label">Teignmouth</span>, England
+<span class="label">Paris</span>, France
+<span class="label">Ulm</span>, Germany
+<span class="label">Auxerre</span>, France
+<span class="keyword">Brunswick, </span>Germany
+<span class="keyword">Beaumont-en-Auge, </span>France
+<span class="label">Ryazan</span>, Russia
+</code></pre><p>然后在shell下执行: </p>
+<pre><code>$ runghc WC &lt; quux<span class="class">.txt</span>
+<span class="number">7</span>
+</code></pre><p>得到结果为7行.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Haskell/" rel="tag">#Haskell</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/23/Simple-Haskell-Type-and-Functions/" rel="prev">Simple Haskell: Type and Functions</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/22/Simple-Scala-Sequences-s-Methods/" rel="next">Simple Scala: Sequences's Methods</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">50</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mac下搭建Haskell"><span class="nav-number">1.</span> <span class="nav-text">Mac下搭建Haskell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运算符"><span class="nav-number">2.</span> <span class="nav-text">运算符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#列表"><span class="nav-number">3.</span> <span class="nav-text">列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字符串和字符"><span class="nav-number">4.</span> <span class="nav-text">字符串和字符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类型"><span class="nav-number">5.</span> <span class="nav-text">类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#行计数程序"><span class="nav-number">6.</span> <span class="nav-text">行计数程序</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
