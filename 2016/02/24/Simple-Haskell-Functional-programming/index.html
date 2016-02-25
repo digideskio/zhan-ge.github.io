@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/02/24/Simple-Haskell-Functional-programming/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="函数式编程">
-<meta property="og:updated_time" content="2016-02-25T09:32:30.000Z">
+<meta property="og:updated_time" content="2016-02-25T14:48:14.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Haskell: Functional programming">
 <meta name="twitter:description" content="函数式编程">
@@ -498,6 +498,115 @@ ghci&gt; zipWith (+) [<span class="number">1</span>,<span class="number">2</span
 [<span class="comment">"the"</span>,<span class="comment">"quick"</span>,<span class="comment">"brown"</span>,<span class="comment">"fox"</span>]
 ghci&gt; unwords [<span class="comment">"jumps"</span>, <span class="comment">"over"</span>, <span class="comment">"the"</span>, <span class="comment">"lazy"</span>, <span class="comment">"dog"</span>]
 <span class="comment">"jumps over the lazy dog"</span>
+</code></pre><h2 id="循环的表示">循环的表示</h2><p>Haskell中没有for循环或while循环等loop.</p>
+<h3 id="显式递归">显式递归</h3><p>首先定义类型签名:</p>
+<pre><code>-- file: ch04/IntParse.hs
+<span class="keyword">import</span> Data.<span class="built_in">Char</span> (digitToInt) -- we'll need ord shortly
+
+asInt <span class="type-annotation">::</span> <span class="built_in">String</span> -&gt; <span class="built_in">Int</span>
+
+loop <span class="type-annotation">::</span> <span class="built_in">Int</span> -&gt; <span class="built_in">String</span> -&gt; <span class="built_in">Int</span>
+
+asInt xs = loop <span class="number">0</span> xs
+</code></pre><p>loop 的第一个参数是累积器的变量,给他赋值0等同于在C语言中for循环的初始化操作.</p>
+<p>我们需要处理的数据是:输入xs是一个包含数字的字符串,而String类型是[Char]的别名,一个包含字符的列表.因此需要遍历字符串是可以把他当做列表来处理:要么是一个空字符,要么是一个字符,后面跟着列表的剩余部分.</p>
+<p>因此可以通过列表的构造器进行模式匹配来表达,首先匹配空字符串:</p>
+<pre><code>loop acc <span class="string">[]</span> = acc
+</code></pre><p>一个空列表并不仅仅意味着”输入了一个空列表”,另一层含义是,对一个空列表遍历并到达了列表的末尾,因此对于空列表,不能抛出错误,而是将值累加.</p>
+<p>另一个等式处理列表不为空的情况,先取出并处理当前元素,接着处理列表的剩余元素:</p>
+<pre><code><span class="keyword">loop</span> acc (x:xs) = <span class="keyword">let</span> acc<span class="comment">' = acc * 10 + digitToInt x</span>
+                  <span class="keyword">in</span> <span class="keyword">loop</span> acc<span class="comment">' xs</span>
+</code></pre><p>程序首先计算当前字符代表的数值,将它赋值给变量acc’,然后使用acc’和剩余列表的元素xs作为参数,再次调用loop函数,等同于在C语言中再次执行一次循环.</p>
+<p>每次调用loop,累积器的值都会被更新,并处理掉列表里的一个元素,直到列表为空,递归调用结束.下面是IntParse的完整定义:</p>
+<pre><code>-- file: ch04/IntParse.hs
+
+-- 只载入 Data.<span class="built_in">Char</span> 中的 digitToInt 函数
+import Data.<span class="built_in">Char</span> (digitToInt)
+
+asInt xs = <span class="keyword">loop</span> <span class="number">0</span> xs
+
+<span class="keyword">loop</span> :: Int -&gt; <span class="built_in">String</span> -&gt; Int
+<span class="keyword">loop</span> acc [] = acc
+<span class="keyword">loop</span> acc (x:xs) = <span class="keyword">let</span> acc<span class="comment">' = acc * 10 + digitToInt x</span>
+                  <span class="keyword">in</span> <span class="keyword">loop</span> acc<span class="comment">' xs</span>
+</code></pre><p>然后在ghci中测试:</p>
+<pre><code><span class="tag">Prelude</span>&gt; <span class="pseudo">:load</span> <span class="tag">IntParse</span><span class="class">.hs</span>
+<span class="attr_selector">[1 of 1]</span> <span class="tag">Compiling</span> <span class="tag">Main</span>             ( <span class="tag">IntParse</span><span class="class">.hs</span>, <span class="tag">interpreted</span> )
+<span class="tag">Ok</span>, <span class="tag">modules</span> <span class="rule"><span class="attribute">loaded</span>:<span class="value"> Main.
+
+*Main&gt; asInt <span class="string">"33"</span>
+<span class="number">33</span></span></span>
+</code></pre><h3 id="对列表元素进行转换">对列表元素进行转换</h3><p>对数组中的所有元素进行平方计算:</p>
+<pre><code>-- file: ch04/<span class="built_in">square</span>.hs
+
+<span class="built_in">square</span> :: [Double] -&gt; [Double]
+
+<span class="built_in">square</span> (x:xs) = x<span class="built_in">*</span>x : <span class="built_in">square</span> xs
+<span class="built_in">square</span> []     = []
+</code></pre><p>square函数包含两个模式.第一个模式将接收到的参数-一个列表结构,取出他的head和tail部分,并对第一个元素进行加倍操作,然后将计算所得的结果添加到列表,同时递归调用square操作剩余部分的元素,直到列表为空,递归结束.</p>
+<p>square产生一个和输入列表长度一致的列表,其中每个新元素都是原本元素的平方:</p>
+<pre><code><span class="tag">Prelude</span>&gt; <span class="pseudo">:load</span> <span class="tag">square</span><span class="class">.hs</span>
+<span class="attr_selector">[1 of 1]</span> <span class="tag">Compiling</span> <span class="tag">Main</span>             ( <span class="tag">square</span><span class="class">.hs</span>, <span class="tag">interpreted</span> )
+<span class="tag">Ok</span>, <span class="tag">modules</span> <span class="rule"><span class="attribute">loaded</span>:<span class="value"> Main.
+
+*Main&gt; let one_to_ten = [<span class="number">1.0</span> .. <span class="number">10.0</span>]
+
+*Main&gt; square one_to_ten
+[<span class="number">1.0</span>,<span class="number">4.0</span>,<span class="number">9.0</span>,<span class="number">16.0</span>,<span class="number">25.0</span>,<span class="number">36.0</span>,<span class="number">49.0</span>,<span class="number">64.0</span>,<span class="number">81.0</span>,<span class="number">100.0</span>]</span></span>
+</code></pre><p>将字符串中的的所有字母转换为大写形式:</p>
+<pre><code>-- <span class="string">file:</span> ch04/upperCase.hs
+
+<span class="keyword">import</span> Data.Char (toUpper)
+
+<span class="string">upperCase :</span>: String -&gt; String
+
+upperCase (<span class="string">x:</span> xs) = toUpper <span class="string">x :</span> upperCase xs
+upperCase []      = []
+</code></pre><p>以上两个函数遵循了同一种处理列表的公共模式:基本情形(base case)处理空列表,递归情形(recursive case)处理非空列表,首先对列表的头元素进行操作,然后递归处理列表余下的其他元素.</p>
+<h3 id="列表映射">列表映射</h3><p>square和upperCase函数都生成一个很原有列表长度相同的列表,并且每次只对一个元素进行处理,因为这种用法很常见,因此Haskell的Prelude库定义了一个map操作.</p>
+<p>map函数接收一个函数和一个列表作为参数,将输入函数应用到列表的每一个元素上从而生成一个新的列表:</p>
+<pre><code>-- <span class="keyword">file</span>: ch04/rewrite_by_map.hs
+
+<span class="keyword">import</span> <span class="type">Data</span>.<span class="built_in">Char</span> (toUpper)
+
+square2 xs = map squareOne xs
+    <span class="keyword">where</span> squareOne x = x * x
+
+upperCase2 xs = map toUpper xs
+</code></pre><p>通过map函数的类型签名观察它是如何实现的:</p>
+<pre><code><span class="type">Prelude</span>&gt; :<span class="typedef"><span class="keyword">type</span> map</span>
+<span class="title">map</span> :: (a -&gt; b) -&gt; [a] -&gt; [b]
+</code></pre><p>该签名显示,map接收两个参数,第一个参数是一个函数,接收一个a类型的值,并返回一个b类型的值.</p>
+<p>实现一个自己的map函数:</p>
+<pre><code>-- file: ch04/myMap.hs
+
+myMap :: (a -&gt; b) -&gt; [a] -&gt; [b]
+
+myMap f (x:xs) = f x : myMap f xs
+myMap _ <span class="literal">[]</span> = <span class="literal">[]</span>
+</code></pre><h3 id="筛选列表元素">筛选列表元素</h3><p>一下函数接收一个列表作为参数,并返回列表中的奇数元素.使用守卫对元素进行判断,只有符合条件的元素才会被添加进结果列表:</p>
+<pre><code>-- file: ch04/oddList.hs
+
+oddList :: <span class="string">[Int]</span> -&gt; <span class="string">[Int]</span>
+
+oddList (x:xs) | odd x     = x : oddList xs
+               | otherwise = oddList xs
+oddList <span class="string">[]</span>                 = <span class="string">[]</span>
+</code></pre><p>因为这种用法常见,因此Prelude定义了filter函数:接收一个谓词函数,并应用到列表的每个元素,只有谓词函数求值结果为True的元素被添加到结果列表:</p>
+<pre><code><span class="label">Prelude&gt; :</span>type odd
+<span class="label">odd ::</span> Integral <span class="literal">a</span> =&gt; <span class="literal">a</span> -&gt; Bool
+
+Prelude&gt; odd <span class="number">1</span>
+<span class="literal">True</span>
+
+Prelude&gt; odd <span class="number">2</span>
+<span class="literal">False</span>
+
+<span class="label">Prelude&gt; :</span>type filter
+<span class="label">filter ::</span> (<span class="literal">a</span> -&gt; Bool) -&gt; [<span class="literal">a</span>] -&gt; [<span class="literal">a</span>]
+
+Prelude&gt; filter odd [<span class="number">1</span> .. <span class="number">10</span>]
+[<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>,<span class="number">7</span>,<span class="number">9</span>]
 </code></pre></span>
       
     </div>
@@ -623,7 +732,7 @@ ghci&gt; unwords [<span class="comment">"jumps"</span>, <span class="comment">"o
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Haskell思考"><span class="nav-number">1.</span> <span class="nav-text">使用Haskell思考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的命令行程序"><span class="nav-number">2.</span> <span class="nav-text">一个简单的命令行程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#热身,方便的分离多行文本"><span class="nav-number">3.</span> <span class="nav-text">热身,方便的分离多行文本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个行终止转换程序"><span class="nav-number">4.</span> <span class="nav-text">一个行终止转换程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中缀函数"><span class="nav-number">5.</span> <span class="nav-text">中缀函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用列表"><span class="nav-number">6.</span> <span class="nav-text">使用列表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本列表操作"><span class="nav-number">6.1.</span> <span class="nav-text">基本列表操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常处理"><span class="nav-number">7.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更多列表操作"><span class="nav-number">8.</span> <span class="nav-text">更多列表操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#产生子列表"><span class="nav-number">9.</span> <span class="nav-text">产生子列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#搜索列表"><span class="nav-number">10.</span> <span class="nav-text">搜索列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#同时处理多个列表"><span class="nav-number">11.</span> <span class="nav-text">同时处理多个列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特殊字符串处理函数"><span class="nav-number">12.</span> <span class="nav-text">特殊字符串处理函数</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Haskell思考"><span class="nav-number">1.</span> <span class="nav-text">使用Haskell思考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的命令行程序"><span class="nav-number">2.</span> <span class="nav-text">一个简单的命令行程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#热身,方便的分离多行文本"><span class="nav-number">3.</span> <span class="nav-text">热身,方便的分离多行文本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个行终止转换程序"><span class="nav-number">4.</span> <span class="nav-text">一个行终止转换程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中缀函数"><span class="nav-number">5.</span> <span class="nav-text">中缀函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用列表"><span class="nav-number">6.</span> <span class="nav-text">使用列表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本列表操作"><span class="nav-number">6.1.</span> <span class="nav-text">基本列表操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常处理"><span class="nav-number">7.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更多列表操作"><span class="nav-number">8.</span> <span class="nav-text">更多列表操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#产生子列表"><span class="nav-number">9.</span> <span class="nav-text">产生子列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#搜索列表"><span class="nav-number">10.</span> <span class="nav-text">搜索列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#同时处理多个列表"><span class="nav-number">11.</span> <span class="nav-text">同时处理多个列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特殊字符串处理函数"><span class="nav-number">12.</span> <span class="nav-text">特殊字符串处理函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#循环的表示"><span class="nav-number">13.</span> <span class="nav-text">循环的表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#显式递归"><span class="nav-number">13.1.</span> <span class="nav-text">显式递归</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对列表元素进行转换"><span class="nav-number">13.2.</span> <span class="nav-text">对列表元素进行转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#列表映射"><span class="nav-number">13.3.</span> <span class="nav-text">列表映射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#筛选列表元素"><span class="nav-number">13.4.</span> <span class="nav-text">筛选列表元素</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
