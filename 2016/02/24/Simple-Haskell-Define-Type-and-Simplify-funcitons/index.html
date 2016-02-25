@@ -1,0 +1,774 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Haskell," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="定义类型并简化函数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Haskell: Define Type and Simplify funcitons">
+<meta property="og:url" content="http://yoursite.com/2016/02/24/Simple-Haskell-Define-Type-and-Simplify-funcitons/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="定义类型并简化函数">
+<meta property="og:updated_time" content="2016-02-24T10:34:29.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Haskell: Define Type and Simplify funcitons">
+<meta name="twitter:description" content="定义类型并简化函数">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Haskell: Define Type and Simplify funcitons | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Haskell: Define Type and Simplify funcitons
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-02-24T15:05:29+08:00" content="2016-02-24">
+            2016-02-24
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="定义新的数据类型">定义新的数据类型</h2><p>使用data关键字可以定义一个新的数据类型:</p>
+<pre><code>-- file: ch03/<span class="keyword">BookStore.hs
+</span><span class="label">data</span> <span class="keyword">BookInfo </span>= <span class="keyword">Book </span>Int <span class="keyword">String </span>[<span class="keyword">String]
+</span>                deriving (Show)
+</code></pre><p>data关键字后面的BookInfo就是新数据类型的名字,我们成BookInfo为类型构造器,首字母必须大写.</p>
+<p>后面的Book是值构造器的名字,类型的值就是由值构造器创建的,首字母也必须大写.</p>
+<p>Book之后的 Int String [String]是类型的组成部分,和面向对象语言的类中的域作用一致:它是一个存储值得槽.</p>
+<p>在这个例子中,Int表示一本书的ID,String表示书名,而[String]表示作者,显然作者可以为多个.</p>
+<p>BookInfo的成分和一个包含(Int,String,[String])的三元组一样,他们唯一不同的是类型.</p>
+<p>可以将值构造器看做一个函数,它创建并返回某个类型值,在上面的例子中,我们将Int,String,[String]三个类型的值应用到Book,从而创建一个BookInfo类型的值:</p>
+<pre><code>-- file: ch03/<span class="keyword">BookStore.hs
+</span><span class="label">myInfo</span> = <span class="keyword">Book </span><span class="number">9780135072455</span> <span class="string">"Algebra of Programming"</span> [<span class="string">"Richard Bird"</span>, <span class="string">"Oege de Moor"</span>]
+</code></pre><p>在ghci中测试这个类型:</p>
+<pre><code><span class="tag">Prelude</span>&gt; <span class="pseudo">:load</span> <span class="tag">BookStore</span><span class="class">.hs</span>
+<span class="attr_selector">[1 of 1]</span> <span class="tag">Compiling</span> <span class="tag">Main</span>             ( <span class="tag">BookStore</span><span class="class">.hs</span>, <span class="tag">interpreted</span> )
+<span class="tag">Ok</span>, <span class="tag">modules</span> <span class="rule"><span class="attribute">loaded</span>:<span class="value"> Main.
+
+*Main&gt; myInfo
+Book <span class="number">9780135072455</span> <span class="string">"Algebra of Programming"</span> [<span class="string">"Richard Bird"</span>,<span class="string">"Oege de Moor"</span>]</span></span>
+</code></pre><p>在ghci中创建新的值:</p>
+<pre><code>*Main&gt; <span class="keyword">Book </span><span class="number">0</span> <span class="string">"The Book of Imaginary Beings"</span> [<span class="string">"Jorge Luis Borges"</span>]
+<span class="keyword">Book </span><span class="number">0</span> <span class="string">"The Book of Imaginary Beings"</span> [<span class="string">"Jorge Luis Borges"</span>]
+</code></pre><p>在ghci中定义变量是需要使用let:</p>
+<pre><code>*Main&gt; let cities = <span class="keyword">Book </span><span class="number">173</span> <span class="string">"Use of Weapons"</span> [<span class="string">"Iain M. Banks"</span>]
+</code></pre><h2 id="类型构造器和值构造器的命名">类型构造器和值构造器的命名</h2><p>在Haskell中,类型的名字(类型构造器)和值构造器的名字是相互独立的,类型构造器只能出现在类型的定义或者类型签名当中,而值构造器只能出现在实际的代码中,因此,将类型构造器和值构造器赋予相同的名字是没有问题的.</p>
+<h2 id="类型别名">类型别名</h2><p>使用类型别名为一个已存在的类型设置一个更具描述性的名字.</p>
+<pre><code><span class="label">data</span> <span class="keyword">BookReview </span>= <span class="keyword">BookReview </span><span class="keyword">BookInfo </span>CustomerID <span class="keyword">String</span>
+</code></pre><p>上面这个例子中,并没有说明最后的那个String是干什么用的,通过类型别名可以解决这个问题:</p>
+<pre><code><span class="typedef"><span class="keyword">type</span> <span class="type">CustomerID</span> = <span class="type">Int</span></span>
+<span class="typedef"><span class="keyword">type</span> <span class="type">ReviewBody</span> = <span class="type">String</span></span>
+
+<span class="typedef"><span class="keyword">data</span> <span class="type">BetterReview</span> = <span class="type">BetterReview</span> <span class="type">BookInfo</span> <span class="type">CustomerID</span> <span class="type">ReviewBody</span></span>
+</code></pre><p>type关键字用于设置类型别名,可以为啰嗦的类型设置一个简短的名字:</p>
+<pre><code><span class="typedef"><span class="keyword">type</span> <span class="type">BookRecord</span> = <span class="container">(<span class="type">BookInfo</span>, <span class="type">BookReview</span>)</span></span>
+</code></pre><p>类型别名只是为类型提供了一个新名字,创建值得工作还是由原来类型的值的构造器进行.</p>
+<h2 id="代数数据类型">代数数据类型</h2><p>Bool是代数数据类型最简单也最常见的例子,一个代数类型可以有多于一个值构造器:</p>
+<pre><code><span class="built_in">data</span> Bool = <span class="literal">False</span> | <span class="literal">True</span>
+</code></pre><p>上面代码定义的Bool类型用于两个值构造器,一个是True,一个是False.每个值构造器使用 | 符号分割,可以说成是:Bool类型由True值或False值构成.</p>
+<p>当一个类型拥有一个以上的构造器时,这些值构造器通常称为分支或备选,同一类型的所有备选,创建出的值得类型都是相同的.</p>
+<p>代数数据类型的各个值构造器都可以接受任意个数的参数:</p>
+<pre><code><span class="typedef"><span class="keyword">type</span> <span class="type">CardHolder</span> = <span class="type">String</span></span>
+<span class="typedef"><span class="keyword">type</span> <span class="type">CardNumber</span> = <span class="type">String</span></span>
+<span class="typedef"><span class="keyword">type</span> <span class="type">Address</span> = [<span class="type">String</span>]</span>
+<span class="typedef"><span class="keyword">data</span> <span class="type">BillingInfo</span> = <span class="type">CreditCard</span> <span class="type">CardNumber</span> <span class="type">CardHolder</span> <span class="type">Address</span></span>
+                 | <span class="type">CashOnDelivery</span>
+                 | <span class="type">Invoice</span> <span class="type">CustomerID</span>
+                   <span class="keyword">deriving</span> (<span class="type">Show</span>)
+</code></pre><p>这个程序提供了三种付款方式.如果使用信用卡支持,就需要使用CreditCard作为值构造器,并输入信用卡卡号,持有人和地址作为参数.如果使用现金支付就不需要任何参数.如果选择货到付款方式,只需要提供客户ID就行了.</p>
+<p>当使用值构造器类创建BillingInfo类型的值时,必须提供这个值构造器所需的参数:</p>
+<pre><code><span class="type">Prelude</span>&gt; :load <span class="type">BookStore</span>.hs
+[<span class="number">1</span> <span class="keyword">of</span> <span class="number">1</span>] <span class="type">Compiling</span> <span class="type">Main</span>             ( <span class="type">BookStore</span>.hs, interpreted )
+<span class="type">Ok</span>, modules loaded: <span class="type">Main</span>.
+
+*<span class="type">Main</span>&gt; :<span class="typedef"><span class="keyword">type</span> <span class="type">CreditCard</span></span>
+<span class="type">CreditCard</span> :: <span class="type">CardNumber</span> -&gt; <span class="type">CardHolder</span> -&gt; <span class="type">Address</span> -&gt; <span class="type">BillingInfo</span>
+
+*<span class="type">Main</span>&gt; <span class="type">CreditCard</span> <span class="string">"2901650221064486"</span> <span class="string">"Thomas Gradgrind"</span> [<span class="string">"Dickens"</span>, <span class="string">"England"</span>]
+<span class="type">CreditCard</span> <span class="string">"2901650221064486"</span> <span class="string">"Thomas Gradgrind"</span> [<span class="string">"Dickens"</span>,<span class="string">"England"</span>]
+
+*<span class="type">Main</span>&gt; :<span class="typedef"><span class="keyword">type</span> it</span>
+<span class="title">it</span> :: <span class="type">BillingInfo</span>
+</code></pre><h2 id="如何合适的选择元组或代数数据类型">如何合适的选择元组或代数数据类型</h2><p>代数数据类型使得我们可以在结构相同但类型不同的数据之间做区分,然而对于元组来说,只要元素的结构和类型一致,那么元组的类型就是相同的.</p>
+<p>因此,如果程序使用大量的复合数据,使用data进行类型的自定义对于类型安全和可读性都有好处,小程序的话可以直接使用元组.</p>
+<h2 id="其他语言中类似代数数据类型的东西">其他语言中类似代数数据类型的东西</h2><h3 id="结构">结构</h3><p>当只有一个值构造器时,代数数据类型和元组很相似,他将一系列相关的值打包成一个复合值.这种做法相当于C++/C中的struct,而代数数据类型的成分相当于struct中的域.</p>
+<pre><code><span class="keyword">struct</span> book_info {
+    <span class="keyword">int</span> <span class="keyword">id</span>;
+    <span class="keyword">char</span> *name;
+    <span class="keyword">char</span> **authors;
+};
+</code></pre><p>C结构和Haskell代数数据类型的最大差别是,代数数据类型的成分是匿名且按位置排序的:</p>
+<pre><code><span class="label">data</span> <span class="keyword">BookInfo </span>= <span class="keyword">Book </span>Int <span class="keyword">String </span>[<span class="keyword">String]
+</span>                deriving (Show)
+</code></pre><p>按位置排序指的是,对成分的访问时按位置进行的.而不是struct那样通过名字,book_info -&gt; name.</p>
+<h3 id="枚举">枚举</h3><p>C/C++中的enum用于表示一系列符号值排列.代数数据类型里面也有类似的,称为枚举类型:</p>
+<pre><code><span class="class"><span class="keyword">enum</span> <span class="title">roygbiv</span> {</span>
+    red,
+    orange,
+    yellow,
+    green,
+    blue,
+    indigo,
+    violet,
+};
+</code></pre><p>用Haskell表示:</p>
+<pre><code>data Roygbiv = Red
+             <span class="string">| Orange</span>
+             <span class="string">| Yellow</span>
+             <span class="string">| Green</span>
+             <span class="string">| Blue</span>
+             <span class="string">| Indigo</span>
+             <span class="string">| Violet</span>
+               deriving (Eq, Show)
+</code></pre><h3 id="联合">联合</h3><p>如果一个代数数据类型有多个备选,可以把他看做是C/C++中的union.</p>
+<p>两者的区别是,union并不告诉用户当前使用的是哪个备选,用户必须自己记录这方面的信息,这意味着,如果搞错了备选信息,那么对union的使用就会出错.</p>
+<p>Haskell版本的union:</p>
+<pre><code><span class="typedef"><span class="keyword">type</span> <span class="type">Vector</span> = <span class="container">(<span class="type">Double</span>, <span class="type">Double</span>)</span></span>
+
+<span class="typedef"><span class="keyword">data</span> <span class="type">Shape</span> = <span class="type">Circle</span> <span class="type">Vector</span> <span class="type">Double</span></span>
+           | <span class="type">Poly</span> [<span class="type">Vector</span>]
+             <span class="keyword">deriving</span> (<span class="type">Show</span>)
+</code></pre><h2 id="模式匹配">模式匹配</h2><p>对于某个类型的值来说,应该可以做到以下两点:</p>
+<ol>
+<li>如果这个类型有多个值构造器,那么应该可以知道,这个值是由那个构造器创建的</li>
+<li>如果一个值构造器包含不同的成分,那么应该有办法提取这些成分</li>
+</ol>
+<p>模式匹配允许我们查看值得内部,并将值包含的数据绑定到变量上:</p>
+<pre><code>myNot <span class="literal">True</span> = <span class="literal">False</span>
+myNot <span class="literal">False</span> = <span class="literal">True</span>
+</code></pre><p>Haskell允许函数定义一系列等式,myNot的两个等式分别定义了函数对于输入参数在不同模式下的行为.对于每个等式,模式定义放在函数名之后,等号之前.</p>
+<p>为了理解模式匹配是如何工作的,来研究一下myNot False是如何工作的: 首先调用myNot,运行时检查输入参数False是否和第一个模式的值构造器匹配,答案是不匹配,于是它继续尝试匹配第二个模式,这次匹配成功了,于是第二个等式右边的值作为结果返回.</p>
+<p>这个例子计算列表所有元素之和:</p>
+<pre><code>sumList (x:xs) = x + sumList xs
+sumList <span class="string">[]</span>  = <span class="number">0</span>
+</code></pre><p>需要说明的是,在Haskell中,列表 [1, 2] 实际上只是 (1:(2:[])) 的一种简单的表示方式,其中(:)用于构造列表:</p>
+<pre><code><span class="tag">Prelude</span>&gt; <span class="attr_selector">[]</span>
+<span class="attr_selector">[]</span>
+
+<span class="tag">Prelude</span>&gt; 1:<span class="attr_selector">[]</span>
+<span class="attr_selector">[1]</span>
+
+<span class="tag">Prelude</span>&gt; 1<span class="pseudo">:2</span>:<span class="attr_selector">[]</span>
+<span class="attr_selector">[1,2]</span>
+</code></pre><p>当需要对一个列表匹配时,也可以使用(:)操作符,只不过不是用来构造列表,而是分解列表.</p>
+<p>sumList [1,2]时的过程: [1,2]首先会对第一个模式(x:xs)进行匹配,结果是模式匹配成功,并将x绑定为1,xs绑定为[2].</p>
+<p>计算进行到这一步,表达式变成了 1 + (sumList [2]),于是递归调用sumList,对[2]进行匹配.</p>
+<p>这一次也是也是在第一个模式匹配成功,变量x被绑定为2,xs被绑定为[].表达式变成了 1 + (sumList []).</p>
+<p>再次递归调用sumList,输入为[],这一次,第二个等式的[]匹配成功,返回0,整个表达式为1 + (2 + (0)),计算结果为3.</p>
+<h2 id="组成和解构">组成和解构</h2><h2 id="更进一步">更进一步</h2><h2 id="通配符模式匹配">通配符模式匹配</h2><p>如果在模式匹配中不在乎某个值的类型,可以使用下划线字符”_”进行标识,也叫作通配符:</p>
+<pre><code>nicerID      <span class="list">(<span class="keyword">Book</span> id _     _      )</span> = id
+nicerTitle   <span class="list">(<span class="keyword">Book</span> _  title _      )</span> = title
+nicerAuthors <span class="list">(<span class="keyword">Book</span> _  _     authors)</span> = authors
+</code></pre><p>通配符的另一个好处是,如果我们在模式匹配中引入了一个变量,但没有在函数体中用到的话,编译器会发出一个警告.</p>
+<h2 id="穷举匹配模式和通配符">穷举匹配模式和通配符</h2><p>再给一个类型写一组匹配模式时,很重要的一点就是一定要涵盖构造器的所有可能情况.比如要匹配一个列表,就应该写一个匹配非空(:)方程和空([])方程.</p>
+<h2 id="记录语法">记录语法</h2><p>给一个数据类型的每个成分写访问函数是令人感觉重复而乏味的:</p>
+<pre><code>nicerID      <span class="list">(<span class="keyword">Book</span> id _     _      )</span> = id
+nicerTitle   <span class="list">(<span class="keyword">Book</span> _  title _      )</span> = title
+nicerAuthors <span class="list">(<span class="keyword">Book</span> _  _     authors)</span> = authors
+</code></pre><p>我们在定义一种数据类型的同时,就可以定义好每个成分的访问器:</p>
+<pre><code><span class="typedef"><span class="keyword">data</span> <span class="type">Customer</span> = <span class="type">Customer</span> <span class="container">{
+      <span class="title">customerID</span>      :: <span class="type">CustomerID</span>
+    , <span class="title">customerName</span>    :: <span class="type">String</span>
+    , <span class="title">customerAddress</span> :: <span class="type">Address</span>
+    }</span> <span class="keyword">deriving</span> <span class="container">(<span class="type">Show</span>)</span></span>
+</code></pre><p>以上代码和下面这段我们熟悉的代码意义一致:</p>
+<pre><code>data Customer = Customer <span class="built_in">Int</span> <span class="built_in">String</span> [<span class="built_in">String</span>]
+                deriving (Show)
+
+customerID <span class="type-annotation">::</span> Customer -&gt; <span class="built_in">Int</span>
+customerID (Customer id _ _) = id
+
+customerName <span class="type-annotation">::</span> Customer -&gt; <span class="built_in">String</span>
+customerName (Customer _ name _) = name
+
+customerAddress <span class="type-annotation">::</span> Customer -&gt; [<span class="built_in">String</span>]
+customerAddress (Customer _ _ address) = address
+</code></pre><p>我们仍然可以如往常一样使用应用语法来新建一个此类型的值:</p>
+<pre><code>customer1 = Customer <span class="number">271828</span> <span class="string">"J.R. Hacker"</span>
+            [<span class="string">"255 Syntax Ct"</span>,
+             <span class="string">"Milpitas, CA 95134"</span>,
+             <span class="string">"USA"</span>]
+</code></pre><p>或者使用更详细的标识法来新建一个值,以增强可读性:</p>
+<pre><code><span class="title">customer2</span> = Customer {
+              <span class="title">customerID</span> = <span class="number">271828</span>
+            , customerAddress = [<span class="string">"1048576 Disk Drive"</span>,
+                                 <span class="string">"Milpitas, CA 95134"</span>,
+                                 <span class="string">"USA"</span>]
+            , customerName = <span class="string">"Jane Q. Citizen"</span>
+            }
+</code></pre><h2 id="参数化类型">参数化类型</h2><p>曾经提到列表类型是多态的:列表中的元素可以是任何类型.同样可以给自定义的类型添加多态性,只要在类型变量中使用类型变量就可以.</p>
+<p>Prelude中定义了一种叫做maybe的类型:它用来表示既可以有值,也可以空缺.比如数据库中的某字段可以为空.</p>
+<pre><code>data Maybe <span class="literal">a</span> = Just <span class="literal">a</span>
+             | Nothing
+译注：Maybe，Just，Nothing 都是 Prelude 中已经定义好的类型
+这段代码是不能在 ghci 里面执行的，它简单地展示了标准库是怎么定义 Maybe 这种类型的
+</code></pre><p>上面的变量a不是普通的变量,它是一个类型变量.它一位置`Maybe类型使用另一种类型作为他的参数,从而使得maybe可以作为任何类型的值.</p>
+<pre><code><span class="setting">someBool = <span class="value">Just <span class="keyword">True</span></span></span>
+<span class="setting">someString = <span class="value">Just <span class="string">"something"</span></span></span>
+</code></pre><p>maybe是一个多态或者称作泛型的类型.我们想maybe类型构造器传入某种类型作为参数, 例如 `Maybe Int,或者 `Maybe [Bool].</p>
+<p>参数化类型大致相当于C++中的Template或者Java中的泛型.</p>
+<h2 id="递归类型">递归类型</h2><p>列表这种常见的类型就是递归的:即用它自己定义自己.我们定义一个与列表类似的类型,用 Cons 替换 (:) 构造器,用Nil替换[]构造器:</p>
+<pre><code><span class="typedef"><span class="keyword">data</span> <span class="type">List</span> a = <span class="type">Cons</span> a <span class="container">(<span class="type">List</span> <span class="title">a</span>)</span></span>
+            | <span class="type">Nil</span>
+              <span class="keyword">deriving</span> (<span class="type">Show</span>)
+</code></pre><p>List在等号的左右两侧都出现,我们可以说该类型的定义引用了它自己.当我们用 Cons构造器创建一个值时,必须提供一个a作为参数一,以及一个List a类型的参数作为参数二.</p>
+<p>我们能创建的List a的最简单的值就是Nil:</p>
+<pre><code>ghci&gt; <span class="keyword">Nil</span>
+<span class="keyword">Nil</span>
+</code></pre><p>由于Nil是一个List a类型,因此我们可以将它作为Cons的第二个参数.</p>
+<pre><code>ghci&gt; Cons <span class="number">0</span> Nil
+Cons <span class="number">0</span> Nil
+</code></pre><p>然后 Cons 0 Nil 也是一个 List a 类型,同样可以作为Cons的第二个参数:</p>
+<pre><code>ghci&gt; Cons <span class="number">1</span> it
+Cons <span class="number">1</span> (Cons <span class="number">0</span> Nil)
+ghci&gt; Cons <span class="number">2</span> it
+Cons <span class="number">2</span> (Cons <span class="number">1</span> (Cons <span class="number">0</span> Nil))
+ghci&gt; Cons <span class="number">3</span> it
+Cons <span class="number">3</span> (Cons <span class="number">2</span> (Cons <span class="number">1</span> (Cons <span class="number">0</span> Nil)))
+</code></pre><p>可以得到一个很长的 Cons 链,其中每个子链的末位元素都是一个 Nil.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Haskell/" rel="tag">#Haskell</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/24/Simple-Haskell-Functional-programming/" rel="prev">Simple Haskell: Functional programming</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/23/Simple-Haskell-Type-and-Functions/" rel="next">Simple Haskell: Type and Functions</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">52</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#定义新的数据类型"><span class="nav-number">1.</span> <span class="nav-text">定义新的数据类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类型构造器和值构造器的命名"><span class="nav-number">2.</span> <span class="nav-text">类型构造器和值构造器的命名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类型别名"><span class="nav-number">3.</span> <span class="nav-text">类型别名</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代数数据类型"><span class="nav-number">4.</span> <span class="nav-text">代数数据类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何合适的选择元组或代数数据类型"><span class="nav-number">5.</span> <span class="nav-text">如何合适的选择元组或代数数据类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他语言中类似代数数据类型的东西"><span class="nav-number">6.</span> <span class="nav-text">其他语言中类似代数数据类型的东西</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#结构"><span class="nav-number">6.1.</span> <span class="nav-text">结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#枚举"><span class="nav-number">6.2.</span> <span class="nav-text">枚举</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#联合"><span class="nav-number">6.3.</span> <span class="nav-text">联合</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模式匹配"><span class="nav-number">7.</span> <span class="nav-text">模式匹配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#组成和解构"><span class="nav-number">8.</span> <span class="nav-text">组成和解构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更进一步"><span class="nav-number">9.</span> <span class="nav-text">更进一步</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#通配符模式匹配"><span class="nav-number">10.</span> <span class="nav-text">通配符模式匹配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#穷举匹配模式和通配符"><span class="nav-number">11.</span> <span class="nav-text">穷举匹配模式和通配符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#记录语法"><span class="nav-number">12.</span> <span class="nav-text">记录语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数化类型"><span class="nav-number">13.</span> <span class="nav-text">参数化类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#递归类型"><span class="nav-number">14.</span> <span class="nav-text">递归类型</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/02/23/Simple-Haskell-Type-and-Functions/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Haskell中的类型和函数.">
-<meta property="og:updated_time" content="2016-02-23T09:15:18.000Z">
+<meta property="og:updated_time" content="2016-02-24T06:49:15.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Haskell: Type and Functions">
 <meta name="twitter:description" content="Haskell中的类型和函数.">
@@ -254,7 +254,7 @@ Prelude&gt; :t (<span class="keyword">True</span>, <span class="string">'b'</spa
 <span class="number">1</span>
 Prelude&gt; snd (<span class="number">1</span>, <span class="string">'a'</span>)
 <span class="string">'a'</span>
-</code></pre><h2 id="将表达式传个函数">将表达式传个函数</h2><p>Haskell 的函数应用是左关联的。比如说，表达式 a b c d 等同于 (((a b) c) d) 。要将一个表达式用作另一个表达式的参数，那么就必须显式地使用括号来包围它，这样编译器才会知道我们的真正意思：</p>
+</code></pre><h2 id="将表达式传给函数">将表达式传给函数</h2><p>Haskell 的函数应用是左关联的。比如说，表达式 a b c d 等同于 (((a b) c) d) 。要将一个表达式用作另一个表达式的参数，那么就必须显式地使用括号来包围它，这样编译器才会知道我们的真正意思：</p>
 <pre><code>Prelude&gt; head (drop <span class="number">4</span> <span class="string">"azety"</span>)
 <span class="string">'y'</span>
 </code></pre><p>drop 4 “azety” 这个表达式被一对括号显式地包围，作为参数传入 head 函数。</p>
@@ -273,7 +273,95 @@ add <span class="tag">a</span> <span class="tag">b</span> = <span class="tag">a<
 </code></pre><p>等号左边的add a b是函数名和参数,而右边的a + b是函数体,符号 = 表示将左边的名字定义为右边的表达式.</p>
 <p>将add.hs文件保存后可以在ghci中通过:load(缩写:l)载入,然后就可以像使用其他函数一样调用add函数了.</p>
 <p>Haskell不需要return关键字来返回函数值,因为一个函数就是一个单独的表达式,而不是一组语句.</p>
-<h3 id="变量">变量</h3></span>
+<h3 id="变量">变量</h3><p>在Haskell中,可以使用变量来赋予表达式名字:一旦变量绑定了某个表达式,那么这个变量的值就不会改变,我们总能用这个变量来指代它所关联的表达式,并且每次都会得到同样的结果.</p>
+<p>与命令式编程语言不同的是,命令式编程语言中,一个变量通常用于标识一个内存位置,并且在任何时候都可以修改这个变量的值.因此在不同的时间点访问这个变量都可能得到不同的值.</p>
+<h3 id="条件求值">条件求值</h3><p>列表的drop函数,当第一个参数小于0时,drop函数返回整个输入列表,否则他就从列表左侧逐个移除元素,一直到移除的元素数量足够或者输入列表被清空为止.</p>
+<p>自己定义一个myDrop函数,用if表达式来决定该做什么,null函数用于检查列表是否为空:</p>
+<pre><code>-- <span class="keyword">file</span>: ch02/myDrop.hs
+myDrop <span class="keyword">n</span> xs = <span class="keyword">if</span> <span class="keyword">n</span> &lt;= 0 || null xs
+              then xs
+              <span class="keyword">else</span> myDrop (<span class="keyword">n</span> - 1) (tail xs)
+</code></pre><p>在if表达式中,多个分支的类型必须相同.在命令式编程中,代码由语句而不是表达式构成,因此省略if语句的else分支时程序仍然有意义.但是当代码由表达式构成时,一个缺少else分支的if语句,在条件为false时,是没有办法给出一个结果的,当然也就没有类型,因此省略else分支在Haskell中会导致表达式无意义,引起编译期异常.</p>
+<h2 id="通过实例了解求值">通过实例了解求值</h2><h3 id="惰性求值">惰性求值</h3><p>mod函数是典型的取模函数:</p>
+<pre><code>-- <span class="keyword">file</span>: ch02/isOdd.hs
+isOdd <span class="keyword">n</span> = mod <span class="keyword">n</span> 2 == 1
+</code></pre><p>在使用严格求值的语言里,函数的参数总是在应用函数之前被求值.在函数isOdd中,自表达式 mod n 2 首先被求值,即对参数取模,然后将结果赋予n,最后将n于1进行比较,相等则得到结果True,即奇数.</p>
+<p>Haskell使用了另外一种求值方式-非严格求值.在这种情况下,isOdd (1 + 2)并不会使得子表达式 1 + 2立即被求值为3,相反,编译器做出了一个承诺说,当真正需要的时候,我有办法计算出isOdd (1 + 2)的值.</p>
+<p>用于追踪未求值表达式的记录被称为块(thunk).这是实情发生的经过:编译器通过创建块来延迟表达式的求值,直到这个表达式的值真正被需要为止.如果这个表达式的值始终不被需要,那么这个表达式始终不会被求值.</p>
+<h3 id="一个更复杂的例子">一个更复杂的例子</h3><p>现在考察myDrop 2 “abcd”的结果是如何被计算的:</p>
+<pre><code><span class="tag">Prelude</span>&gt; <span class="pseudo">:load</span> "<span class="tag">myDrop</span><span class="class">.hs</span>"
+<span class="attr_selector">[1 of 1]</span> <span class="tag">Compiling</span> <span class="tag">Main</span>             ( <span class="tag">myDrop</span><span class="class">.hs</span>, <span class="tag">interpreted</span> )
+<span class="tag">Ok</span>, <span class="tag">modules</span> <span class="rule"><span class="attribute">loaded</span>:<span class="value"> Main.
+
+*Main&gt; myDrop <span class="number">2</span> <span class="string">"abcd"</span>
+<span class="string">"cd"</span></span></span>
+</code></pre><p>当执行表达式myDrop 2 “abcd”时,函数myDrop应用于值2和”abcd”,变量n被赋予2,变量xs被赋予”abcd”,将两个变量代换到myDrop的条件判断部分,就得出了以下表达式:</p>
+<pre><code>*Main&gt; :type <span class="number">2</span> &lt;= <span class="number">0</span> || null <span class="string">"abcd"</span>
+<span class="number">2</span> &lt;= <span class="number">0</span> || null <span class="string">"abcd"</span> :: Bool
+</code></pre><p>编译器需要对 2 &lt;= 0 || null “abcd”进行求值,从而决定if该执行哪个分支,这需要对(||)进行求值,而需要求值这个表达式,又需要对他的左操作符进行求值:</p>
+<pre><code>*Main&gt; <span class="number">2</span> &lt;= <span class="number">0</span>
+False
+</code></pre><p>将False代换到(||)表达式当中,得出以下结论:</p>
+<pre><code>*Main&gt; :<span class="keyword">type</span> <span class="literal">False</span> <span class="subst">||</span> <span class="built_in">null</span> <span class="string">"abcd"</span>
+<span class="literal">False</span> <span class="subst">||</span> <span class="built_in">null</span> <span class="string">"abcd"</span> <span class="tag">:: Bool</span>
+</code></pre><p>如果(||)的左操作符为True,那么(||)就不需要对右操作符进行求值.因为此处左操作符的值为False,则整个表达式的值由右操作符决定:</p>
+<pre><code>*Main&gt; <span class="literal">null</span> <span class="string">"abcd"</span>
+<span class="literal">False</span>
+</code></pre><p>最后将两个值代换到表达式中:</p>
+<pre><code>*Main&gt; <span class="literal">False</span> || <span class="literal">False</span>
+<span class="literal">False</span>
+</code></pre><p>这个结果表明,下一步要求值的if表达式的else分支,而这个分支包含一个对myDrop函数自身的递归调用:myDrop (2 - 1) (tail “abcd”) .</p>
+<h3 id="递归">递归</h3><p>当递归调用myDrop时,n被绑定为(2 - 1),而xs被绑定为 tail “abcd”,于是再次对myDrop进行求值,这次将新的值代换到if条件的判断部分:</p>
+<pre><code>*Main&gt; :type (<span class="number">2</span> - <span class="number">1</span>) &lt;= <span class="number">0</span> || null (tail <span class="string">"abcd"</span>)
+(<span class="number">2</span> - <span class="number">1</span>) &lt;= <span class="number">0</span> || null (tail <span class="string">"abcd"</span>) :: Bool
+</code></pre><p>对 (||) 的左操作符的求值过程如下:</p>
+<pre><code>*Main&gt; :type (<span class="number">2</span> - <span class="number">1</span>)
+(<span class="number">2</span> - <span class="number">1</span>) :: Num a =&gt; a
+
+*Main&gt; <span class="number">2</span> - <span class="number">1</span>
+<span class="number">1</span>
+
+*Main&gt; <span class="number">1</span> &lt;= <span class="number">0</span>
+False
+</code></pre><p>子表达式(2 - 1)只有在真正需要的时候才会被求值,同样对右操作符(tail “abcd”)的求值也会被延迟,直到真正有需要时才会被执行:</p>
+<pre><code>*Main&gt; :<span class="keyword">type</span> <span class="built_in">null</span> (tail <span class="string">"abcd"</span>)
+<span class="built_in">null</span> (tail <span class="string">"abcd"</span>) <span class="tag">:: Bool</span>
+
+*Main&gt; tail <span class="string">"abcd"</span>
+<span class="string">"bcd"</span>
+
+*Main&gt; <span class="built_in">null</span> <span class="string">"bcd"</span>
+<span class="literal">False</span>
+</code></pre><p>因为条件判断表达式的最终结果为False,所以这次执行的也是else分支,而被执行的表达式为 myDrop (1 - 1) (tail “bcd”) .</p>
+<h3 id="终止递归">终止递归</h3><p>这次递归调用将 1 - 1 绑定到 n ，而 xs 被绑定为 tail “bcd”:</p>
+<pre><code>*Main&gt; :type (<span class="number">1</span> - <span class="number">1</span>) &lt;= <span class="number">0</span> || null (tail <span class="string">"bcd"</span>)
+(<span class="number">1</span> - <span class="number">1</span>) &lt;= <span class="number">0</span> || null (tail <span class="string">"bcd"</span>) :: Bool
+</code></pre><p>再次对(||)操作符的左对象求值:</p>
+<pre><code>*Main&gt; :type (<span class="number">1</span> - <span class="number">1</span>) &lt;= <span class="number">0</span>
+(<span class="number">1</span> - <span class="number">1</span>) &lt;= <span class="number">0</span> :: Bool
+</code></pre><p>最终我们得到了一个True值:</p>
+<pre><code>*Main&gt; <span class="literal">True</span> || <span class="literal">null</span> (tail <span class="string">"bcd"</span>)
+<span class="literal">True</span>
+</code></pre><p>因为 (||) 的右操作符 null (tail “bcd”) 并不影响表达式的计算结果,因此他没有被求值,而整个条件判断部分最终值为True,于是then分支被求值:</p>
+<pre><code>*Main&gt; :<span class="keyword">type</span> tail <span class="string">"bcd"</span>
+tail <span class="string">"bcd"</span> <span class="type-annotation">::</span> [<span class="built_in">Char</span>]
+</code></pre><h3 id="从递归中返回">从递归中返回</h3><p>在求值的最后一步,结果表达式tail “bcd”处于第二次对myDrop的递归调用当中,因此,表达式tail “abcd”作为结果值,被返回给myDrop的第二次递归调用:</p>
+<pre><code>*Main&gt; myDrop <span class="list">(<span class="number">1</span> - <span class="number">1</span>)</span> <span class="list">(<span class="keyword">tail</span> <span class="string">"bcd"</span>)</span> == tail <span class="string">"bcd"</span>
+True
+</code></pre><p>接着,第二次递归调用所得的值,还是tail “bcd”,被返回给第一次递归调用:</p>
+<pre><code>*Main&gt; myDrop <span class="list">(<span class="number">2</span> - <span class="number">1</span>)</span> <span class="list">(<span class="keyword">tail</span> <span class="string">"abcd"</span>)</span> == tail <span class="string">"bcd"</span>
+True
+</code></pre><p>然后,第一次递归调用将tail “bcd”作为结果值返回给myDrop调用:</p>
+<pre><code>*Main&gt; myDrop <span class="number">2</span> <span class="string">"abcd"</span> == tail <span class="string">"bcd"</span>
+<span class="literal">True</span>
+</code></pre><p>最终计算出结果:</p>
+<pre><code><span class="keyword">*</span>Main&gt; myDrop 2 <span class="string">"abcd"</span>
+<span class="string">"cd"</span>
+
+<span class="keyword">*</span>Main&gt; tail <span class="string">"bcd"</span>
+<span class="string">"cd"</span>
+</code></pre><p>在从递归调用中退出并传递结果值得过程中,tail “bcd”并不会被求值,只有当他返回到最开始的myDrop后,ghci需要打印这个值时,才会被求值.</p>
+</span>
       
     </div>
 
@@ -289,6 +377,8 @@ add <span class="tag">a</span> <span class="tag">b</span> = <span class="tag">a<
       
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/24/Simple-Haskell-Define-Type-and-Simplify-funcitons/" rel="prev">Simple Haskell: Define Type and Simplify funcitons</a>
             
           </div>
 
@@ -356,7 +446,7 @@ add <span class="tag">a</span> <span class="tag">b</span> = <span class="tag">a<
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">50</span>
+              <span class="site-state-item-count">52</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -398,7 +488,7 @@ add <span class="tag">a</span> <span class="tag">b</span> = <span class="tag">a<
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#类型的作用"><span class="nav-number">1.</span> <span class="nav-text">类型的作用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Haskell类型系统"><span class="nav-number">2.</span> <span class="nav-text">Haskell类型系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#强类型"><span class="nav-number">2.1.</span> <span class="nav-text">强类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态类型"><span class="nav-number">2.2.</span> <span class="nav-text">静态类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类型推导"><span class="nav-number">2.3.</span> <span class="nav-text">类型推导</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#正确理解类型系统"><span class="nav-number">3.</span> <span class="nav-text">正确理解类型系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用的基本类型"><span class="nav-number">4.</span> <span class="nav-text">常用的基本类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#调用函数"><span class="nav-number">5.</span> <span class="nav-text">调用函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#复合数据类型:列表和元祖"><span class="nav-number">6.</span> <span class="nav-text">复合数据类型:列表和元祖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理列表和元组的函数"><span class="nav-number">7.</span> <span class="nav-text">处理列表和元组的函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#将表达式传个函数"><span class="nav-number">8.</span> <span class="nav-text">将表达式传个函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数类型"><span class="nav-number">9.</span> <span class="nav-text">函数类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#纯度"><span class="nav-number">10.</span> <span class="nav-text">纯度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Haskell源码,简单函数的定义"><span class="nav-number">11.</span> <span class="nav-text">Haskell源码,简单函数的定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#变量"><span class="nav-number">11.1.</span> <span class="nav-text">变量</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#类型的作用"><span class="nav-number">1.</span> <span class="nav-text">类型的作用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Haskell类型系统"><span class="nav-number">2.</span> <span class="nav-text">Haskell类型系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#强类型"><span class="nav-number">2.1.</span> <span class="nav-text">强类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#静态类型"><span class="nav-number">2.2.</span> <span class="nav-text">静态类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#类型推导"><span class="nav-number">2.3.</span> <span class="nav-text">类型推导</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#正确理解类型系统"><span class="nav-number">3.</span> <span class="nav-text">正确理解类型系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用的基本类型"><span class="nav-number">4.</span> <span class="nav-text">常用的基本类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#调用函数"><span class="nav-number">5.</span> <span class="nav-text">调用函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#复合数据类型:列表和元祖"><span class="nav-number">6.</span> <span class="nav-text">复合数据类型:列表和元祖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理列表和元组的函数"><span class="nav-number">7.</span> <span class="nav-text">处理列表和元组的函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#将表达式传给函数"><span class="nav-number">8.</span> <span class="nav-text">将表达式传给函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#函数类型"><span class="nav-number">9.</span> <span class="nav-text">函数类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#纯度"><span class="nav-number">10.</span> <span class="nav-text">纯度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Haskell源码,简单函数的定义"><span class="nav-number">11.</span> <span class="nav-text">Haskell源码,简单函数的定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#变量"><span class="nav-number">11.1.</span> <span class="nav-text">变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#条件求值"><span class="nav-number">11.2.</span> <span class="nav-text">条件求值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#通过实例了解求值"><span class="nav-number">12.</span> <span class="nav-text">通过实例了解求值</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#惰性求值"><span class="nav-number">12.1.</span> <span class="nav-text">惰性求值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一个更复杂的例子"><span class="nav-number">12.2.</span> <span class="nav-text">一个更复杂的例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#递归"><span class="nav-number">12.3.</span> <span class="nav-text">递归</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#终止递归"><span class="nav-number">12.4.</span> <span class="nav-text">终止递归</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从递归中返回"><span class="nav-number">12.5.</span> <span class="nav-text">从递归中返回</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

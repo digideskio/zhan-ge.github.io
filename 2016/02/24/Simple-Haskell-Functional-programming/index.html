@@ -1,0 +1,887 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="函数式编程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Haskell: Functional programming">
+<meta property="og:url" content="http://yoursite.com/2016/02/24/Simple-Haskell-Functional-programming/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="函数式编程">
+<meta property="og:updated_time" content="2016-02-25T09:32:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Haskell: Functional programming">
+<meta name="twitter:description" content="函数式编程">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Haskell: Functional programming | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Haskell: Functional programming
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-02-24T20:51:19+08:00" content="2016-02-24">
+            2016-02-24
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="使用Haskell思考">使用Haskell思考</h2><p>初学Haskell的人需要迈过两大难关:</p>
+<ol>
+<li>需要将自己的编程观念从命令式编程语言转换到函数式编程语言上来,这样做的原因并不是命令式编程语言不好,而是比起命令式编程语言,函数式更胜一筹.</li>
+<li>需要熟悉Haskell的标准库.</li>
+</ol>
+<h2 id="一个简单的命令行程序">一个简单的命令行程序</h2><p>在本章的大部分时间里,我们都之和无副作用的代码打交道,为了将注意力集中在实际的代码上,我们需要开发一个接口程序,连接起带副作用的代码和无副作用的代码.</p>
+<p>这个接口程序读入一个文件,将函数应用到文件,并且将结果应用到另一个文件:</p>
+<pre><code><span class="comment">-- file: ch04/InteractWith.hs</span>
+
+import System.Environment (getArgs)
+
+interactWith function inputFile outputFile = <span class="operator"><span class="keyword">do</span>
+  <span class="keyword">input</span> &lt;- readFile inputFile
+  writeFile outputFile (<span class="keyword">function</span> <span class="keyword">input</span>)
+
+<span class="keyword">main</span> = mainWith myFunction
+  <span class="keyword">where</span> mainWith <span class="keyword">function</span> = <span class="keyword">do</span>
+          args &lt;- getArgs
+          <span class="keyword">case</span> args <span class="keyword">of</span>
+            [<span class="keyword">input</span>,<span class="keyword">output</span>] -&gt; interactWith <span class="keyword">function</span> <span class="keyword">input</span> <span class="keyword">output</span>
+            _ -&gt; putStrLn <span class="string">"error: exactly two arguments needed"</span>
+
+        <span class="comment">-- replace "id" with the name of our function below</span>
+        myFunction = <span class="keyword">id</span></span>
+</code></pre><p>do关键字引入一个块,标识那些带副作用的代码,比如对文件进行读和写操作.被do包围的 &lt;- 操作符等同于赋值.</p>
+<p>当我们需要测试其他函数时,就将 id 换成其他函数的名字,那些被测试的函数的类型包含 String -&gt; String,即这些函数接收并返回字符串.</p>
+<p>然后编译这个程序:</p>
+<pre><code>$ ghc --make InteractWith
+[<span class="number">1</span> of <span class="number">1</span>] Compiling Main             ( InteractWith<span class="class">.hs</span>, InteractWith<span class="class">.o</span> )
+Linking InteractWith ...
+</code></pre><p>通过命令行运行这个程序,它接收两个文件名作为参数输入,一个用于读取,一个用于写入:</p>
+<pre><code>$ echo <span class="string">"hello world"</span> &gt; hello-<span class="keyword">in</span><span class="class">.txt</span>
+
+$ ./InteractWith hello-<span class="keyword">in</span><span class="class">.txt</span> hello-out<span class="class">.txt</span>
+
+$ cat hello-<span class="keyword">in</span><span class="class">.txt</span>
+hello world
+
+$ cat hello-out<span class="class">.txt</span>
+hello world
+</code></pre><h2 id="热身,方便的分离多行文本">热身,方便的分离多行文本</h2><p>内建函数lines能够很方便的在行边界上分离一段文本字符串,返回一个忽略了行终止符的字符串列表:</p>
+<pre><code>ghci&gt; :<span class="keyword">type</span> lines
+lines <span class="type-annotation">::</span> <span class="built_in">String</span> -&gt; [<span class="built_in">String</span>]
+ghci&gt; lines <span class="string">"line 1\nline 2"</span>
+[<span class="string">"line 1"</span>,<span class="string">"line 2"</span>]
+ghci&gt; lines <span class="string">"foo\n\nbar\n"</span>
+[<span class="string">"foo"</span>,<span class="string">""</span>,<span class="string">"bar"</span>]
+</code></pre><p>但是lines函数不会处理行末尾的回车符只会处理换行符:</p>
+<pre><code>ghci&gt; lines <span class="comment">"a\r\nb"</span>
+[<span class="comment">"a\r"</span>,<span class="comment">"b"</span>]
+</code></pre><p>因此我们需要实现一个自己的函数来支持对回车符的识别:</p>
+<pre><code>-- <span class="keyword">file</span>: ch04/SplitLines.hs
+splitLines :: <span class="keyword">String</span> -&gt; [<span class="keyword">String</span>]
+</code></pre><p>该函数类型签名标识它接收一个字符串,可能是一些包含回车符或换行符的文本内容.它返回一个字符串列表,列表的每一项表示文本的每一行内容.</p>
+<pre><code>-- <span class="attribute">file</span>: ch04/SplitLines.hs
+splitLines [] = []
+splitLines cs =
+    <span class="keyword">let</span> (pre, suf) = <span class="keyword">break</span> isLineTerminator cs
+    <span class="keyword">in</span>  pre : <span class="keyword">case</span> suf <span class="keyword">of</span>
+                <span class="function"><span class="params">(<span class="string">'\r'</span>:<span class="string">'\n'</span>:rest)</span> -&gt;</span> splitLines rest
+                <span class="function"><span class="params">(<span class="string">'\r'</span>:rest)</span>      -&gt;</span> splitLines rest
+                <span class="function"><span class="params">(<span class="string">'\n'</span>:rest)</span>      -&gt;</span> splitLines rest
+                _<span class="function">                -&gt;</span> []
+
+isLineTerminator c = c == <span class="string">'\r'</span> || c == <span class="string">'\n'</span>
+</code></pre><p>break函数可以把列表分成两部分,把一个函数作为第一个参数,这个函数必须去检查列表中的元素,并且返回一个Bool值来表示列表是否在哪个元素被一分为二.break函数返回一个二元组,即由一个返回Bool值得函数返回True之前的元素构造的列表和剩余的元素构成的列表.</p>
+<pre><code>ghci&gt; <span class="keyword">break</span> odd [<span class="number">2</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">8</span>]
+([<span class="number">2</span>,<span class="number">4</span>],[<span class="number">5</span>,<span class="number">6</span>,<span class="number">8</span>])
+ghci&gt; :module +Data.Char
+ghci&gt; <span class="keyword">break</span> isUpper <span class="string">"isUpper"</span>
+(<span class="string">"is"</span>,<span class="string">"Upper"</span>)
+</code></pre><p>splitLines的第一个子表达式表示,如果匹配到一个空的字符串,不做任何处理.</p>
+<p>在第二个自表达式中,首先对输入的字符串应用break函数,前缀就是第一个终止符之前的子字符串,后缀就是整个字符串剩余的部分.后缀中将包含可能存在的终止符.</p>
+<p>“pre :”表示将上一步的前缀结果添加到整个结果列表上,然后用一个case表达式去检查后缀,并且case表达式的结果用作(:)函数的第二个元素添加到整个结果列表上.</p>
+<p>case表达式中的第一个模式用于匹配以一个回车符紧跟一个换行符开始的字符串,变量rest被绑定的剩余的部分上.</p>
+<p>使用ghci更详细的观察集中匹配模式,首先是分割一个不包含任何终止符的字符串:</p>
+<pre><code>ghci&gt; splitLines <span class="string">"foo"</span>
+[<span class="string">"foo"</span>]
+
+ghci&gt; <span class="keyword">break</span> isLineTerminator <span class="string">"foo"</span>
+(<span class="string">"foo"</span>,<span class="string">""</span>)
+</code></pre><p>没有匹配到终止符,后缀为空.因此在splitLines函数中的case表达式将匹配到第四个分支,得到一个空列表,然后添加到整个结果列表上.</p>
+<pre><code>ghci&gt; splitLines <span class="string">"foo\r\nbar"</span>
+[<span class="string">"foo"</span>,<span class="string">"bar"</span>]
+
+ghci&gt; <span class="keyword">break</span> isLineTerminator <span class="string">"foo\r\nbar"</span>
+(<span class="string">"foo"</span>,<span class="string">"\r\nbar"</span>)
+</code></pre><p>会得到一个非空的后缀,在case表达式中会匹配到第一个分支,这个求值结果会把pre绑定到”foo”,suf绑定到”bar”,然后递归调用splitLines,这次会匹配上单独的”bar”:</p>
+<pre><code><span class="atom">ghci</span>&gt; <span class="atom">splitLines</span> <span class="string">"bar"</span>
+[<span class="string">"bar"</span>]
+</code></pre><p>结果得到一个头部元素是”foo”,尾部元素是”bar”的列表:</p>
+<pre><code><span class="atom">ghci</span>&gt; <span class="string">"foo"</span> : [<span class="string">"bar"</span>]
+[<span class="string">"foo"</span>,<span class="string">"bar"</span>]
+</code></pre><h2 id="一个行终止转换程序">一个行终止转换程序</h2><p>现在把splitLines函数和之前的InteractWith联系起来.首先拷贝一份InteractWith源码叫做FixLines.hs,然后把splitLines函数加到FixLines.hs中.</p>
+<p>因为我们的函数必须产出生成一个单独的字符串,所以必须把这个表示行的列表拼接起来,Prelude提供了一个unlines函数,他会把一个字符串组成的列表拼接起来,并且每个字符串末尾添加一个换行符:</p>
+<pre><code>-- <span class="keyword">file</span>: ch04/SplitLines.hs
+fixLines :: String -&gt; <span class="literal">String</span>
+fixLines <span class="keyword">input</span> = unlines (splitLines <span class="keyword">input</span>)
+</code></pre><p>这时把id函数替换成fixLines函数,然后就可以把fixLines.hs编译成将文本文件中的多种终止符替换成系统特定换行符的可执行程序:</p>
+<pre><code>$ ghc --make FixLines
+[<span class="number">1</span> of <span class="number">1</span>] Compiling Main             ( FixLines<span class="class">.hs</span>, FixLines<span class="class">.o</span> )
+Linking FixLines ...
+</code></pre><h2 id="中缀函数">中缀函数</h2><p>通常在Haskell中定义或应用一个函数的时候,首先写函数的名称,然后是它的参数.这种表示方法作为前缀表示法.</p>
+<p>如果一个函数或构造器带有多个参数,我们可以使用中缀模式,即我们把函数名放在它的第一个和第二个参数之间,以允许我们把该函数作为中缀操作符使用.</p>
+<p>要用中缀表示法定义使用函数或构造器,使用重音符(反引号)将该名称扩起:</p>
+<pre><code><span class="tag">a</span> `plus` <span class="tag">b</span> = <span class="tag">a</span> + <span class="tag">b</span>
+
+data <span class="tag">a</span> `Pair` <span class="tag">b</span> = <span class="tag">a</span> `Pair` <span class="tag">b</span>
+                  deriving (Show)
+
+-- we can use the constructor either prefix or infix
+foo = Pair <span class="number">1</span> <span class="number">2</span>
+bar = True `Pair` <span class="string">"quux"</span>
+</code></pre><p>中缀表示法只是为了语法上的便利而不会改变函数的行为:</p>
+<pre><code>ghci&gt; <span class="number">1</span> <span class="escape">`p</span>lus<span class="escape">` </span><span class="number">2</span>
+<span class="number">3</span>
+ghci&gt; plus <span class="number">1</span> <span class="number">2</span>
+<span class="number">3</span>
+ghci&gt; <span class="literal">True</span> <span class="escape">`P</span>air<span class="escape">` </span><span class="string">"something"</span>
+<span class="literal">True</span> <span class="escape">`P</span>air<span class="escape">` </span><span class="string">"something"</span>
+ghci&gt; Pair <span class="literal">True</span> <span class="string">"something"</span>
+<span class="literal">True</span> <span class="escape">`P</span>air<span class="escape">` </span><span class="string">"something"</span>
+</code></pre><p>在Data.List模块中的一些函数会发现很多明显的改进,isPrefixOf判断一个列表是否匹配另一个列表的开始部分:</p>
+<pre><code>ghci&gt; :module +<span class="built_in">Data</span><span class="built_in">.</span><span class="built_in">List</span>
+ghci&gt; <span class="string">"foo"</span> <span class="string">`isPrefixOf`</span> <span class="string">"foobar"</span>
+<span class="literal">True</span>
+</code></pre><h2 id="使用列表">使用列表</h2><h3 id="基本列表操作">基本列表操作</h3><p>length获取元素数量:</p>
+<pre><code>ghci&gt; :type length
+length :: [a] -&gt; Int
+ghci&gt; length []
+<span class="number">0</span>
+ghci&gt; length [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
+<span class="number">3</span>
+ghci&gt; length <span class="string">"strings are lists, too"</span>
+<span class="number">22</span>
+</code></pre><p>null判断是否为空:</p>
+<pre><code>ghci&gt; :type <span class="keyword">null</span>
+<span class="keyword">null</span> :: [a] -&gt; <span class="keyword">Bool</span>
+ghci&gt; <span class="keyword">null</span> []
+<span class="keyword">True</span>
+ghci&gt; <span class="keyword">null</span> <span class="string">"plugh"</span>
+<span class="keyword">False</span>
+</code></pre><p>获取第一个元素:</p>
+<pre><code>ghci&gt; :type head
+head :: [a] -&gt; a
+ghci&gt; head [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
+<span class="number">1</span>
+</code></pre><p>tail获取除了第一个元素的剩余元素:</p>
+<pre><code><span class="label">ghci&gt; :</span>type tail
+<span class="label">tail ::</span> [<span class="literal">a</span>] -&gt; [<span class="literal">a</span>]
+ghci&gt; tail <span class="string">"foo"</span>
+<span class="string">"oo"</span>
+</code></pre><p>last返回最后一个元素:</p>
+<pre><code>ghci&gt; :type <span class="keyword">last</span>
+<span class="keyword">last</span> :: [<span class="operator">a</span>] -&gt; <span class="operator">a</span>
+ghci&gt; <span class="keyword">last</span> <span class="string">"bar"</span>
+<span class="string">'r'</span>
+</code></pre><p>init返回除了最后一个元素的所有元素:</p>
+<pre><code><span class="label">ghci&gt; :</span>type init
+<span class="label">init ::</span> [<span class="literal">a</span>] -&gt; [<span class="literal">a</span>]
+ghci&gt; init <span class="string">"bar"</span>
+<span class="string">"ba"</span>
+</code></pre><p>有些函数应用到空列表是会报错.</p>
+<h2 id="异常处理">异常处理</h2><p>使用head操作空列表是会报错,如果操作前进行非空检查,则可以有效避免错误:</p>
+<pre><code>myDumbExample xs = <span class="keyword">if</span> <span class="built_in">length</span> xs &gt; <span class="number">0</span>
+                   <span class="keyword">then</span> head xs
+                   <span class="keyword">else</span> <span class="string">'Z'</span>
+</code></pre><p>或者使用null来更有效的判断列表非空:</p>
+<pre><code><span class="comment">-- file: ch04/EfficientList.hs</span>
+mySmartExample xs = <span class="keyword">if</span> <span class="operator">not</span> (<span class="constant">null</span> xs)
+                    <span class="keyword">then</span> head xs
+                    <span class="keyword">else</span> <span class="string">'Z'</span>
+
+myOtherExample (x:_) = x
+myOtherExample [] = <span class="string">'Z'</span>
+</code></pre><h2 id="更多列表操作">更多列表操作</h2><p>(++)表示追加函数:</p>
+<pre><code>ghci&gt; :type (++)
+(++) :: <span class="string">[a]</span> -&gt; <span class="string">[a]</span> -&gt; <span class="string">[a]</span>
+ghci&gt; <span class="string">"foo"</span> ++ <span class="string">"bar"</span>
+<span class="string">"foobar"</span>
+ghci&gt; <span class="string">[]</span> ++ <span class="string">[1,2,3]</span>
+<span class="string">[1,2,3]</span>
+ghci&gt; <span class="string">[True]</span> ++ <span class="string">[]</span>
+<span class="string">[True]</span>
+</code></pre><p>concat讲一个嵌套列表展开成一个单一列表:</p>
+<pre><code>ghci&gt; :type concat
+concat :: [[a]] -&gt; [a]
+ghci&gt; concat [[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>], [<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>]]
+[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>]
+</code></pre><p>每次concat调用会去掉最外层的嵌套:</p>
+<pre><code>ghci&gt; concat <span class="string">[[[1,2],[3]]</span>, <span class="string">[[4],[5],[6]]</span>]
+<span class="string">[[1,2],[3],[4],[5],[6]]</span>
+ghci&gt; concat (concat <span class="string">[[[1,2],[3]]</span>, <span class="string">[[4],[5],[6]]</span>])
+[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>]
+</code></pre><p>reverse翻转列表元素顺序:</p>
+<pre><code>ghci&gt; :<span class="built_in">type</span> <span class="built_in">reverse</span>
+<span class="built_in">reverse</span> :: [a] -&gt; [a]
+ghci&gt; <span class="built_in">reverse</span> <span class="string">"foo"</span>
+<span class="string">"oof"</span>
+</code></pre><p>对于包含Bool值得列表,and 和 or相当于编列列表并进行两两求值:</p>
+<pre><code>ghci&gt; :type <span class="keyword">and</span>
+<span class="keyword">and</span> :: [<span class="keyword">Bool</span>] -&gt; <span class="keyword">Bool</span>
+ghci&gt; <span class="keyword">and</span> [<span class="keyword">True</span>,<span class="keyword">False</span>,<span class="keyword">True</span>]
+<span class="keyword">False</span>
+ghci&gt; <span class="keyword">and</span> []
+<span class="keyword">True</span>
+ghci&gt; :type <span class="keyword">or</span>
+<span class="keyword">or</span> :: [<span class="keyword">Bool</span>] -&gt; <span class="keyword">Bool</span>
+ghci&gt; <span class="keyword">or</span> [<span class="keyword">False</span>,<span class="keyword">False</span>,<span class="keyword">False</span>,<span class="keyword">True</span>,<span class="keyword">False</span>]
+<span class="keyword">True</span>
+ghci&gt; <span class="keyword">or</span> []
+<span class="keyword">False</span>
+</code></pre><p>all和any可以操作任何类型的列表,第一个参数接收一个谓词函数,列表作为第二个参数,如果谓词函数对每个元素的判断都为真,all函数返回True,如果至少有一个为真,any返回True.</p>
+<pre><code>ghci&gt; :type all
+all :: (a -&gt; Bool) -&gt; [a] -&gt; Bool
+ghci&gt; all odd [<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>]
+True
+ghci&gt; all odd [<span class="number">3</span>,<span class="number">1</span>,<span class="number">4</span>,<span class="number">1</span>,<span class="number">5</span>,<span class="number">9</span>,<span class="number">2</span>,<span class="number">6</span>,<span class="number">5</span>]
+False
+ghci&gt; all odd []
+True
+ghci&gt; :type any
+any :: (a -&gt; Bool) -&gt; [a] -&gt; Bool
+ghci&gt; any even [<span class="number">3</span>,<span class="number">1</span>,<span class="number">4</span>,<span class="number">1</span>,<span class="number">5</span>,<span class="number">9</span>,<span class="number">2</span>,<span class="number">6</span>,<span class="number">5</span>]
+True
+ghci&gt; any even []
+False
+</code></pre><h2 id="产生子列表">产生子列表</h2><p>take获取列表前几个元素组成的子列表,drop则丢弃前几个元素返回剩余元素的子列表:</p>
+<pre><code>ghci&gt; :type take
+take :: Int -&gt; <span class="string">[a]</span> -&gt; <span class="string">[a]</span>
+ghci&gt; take <span class="number">3</span> <span class="string">"foobar"</span>
+<span class="string">"foo"</span>
+ghci&gt; take <span class="number">2</span> <span class="string">[1]</span>
+<span class="string">[1]</span>
+ghci&gt; :type drop
+drop :: Int -&gt; <span class="string">[a]</span> -&gt; <span class="string">[a]</span>
+ghci&gt; drop <span class="number">3</span> <span class="string">"xyzzy"</span>
+<span class="string">"zy"</span>
+ghci&gt; drop <span class="number">1</span> <span class="string">[]</span>
+<span class="string">[]</span>
+</code></pre><p>splitAt函数组合了take和drop的功能,根据给定的索引将原列表切成两个子列表,组成一个二元组返回:</p>
+<pre><code><span class="label">ghci&gt; :</span>type splitAt
+<span class="label">splitAt ::</span> Int -&gt; [<span class="literal">a</span>] -&gt; ([<span class="literal">a</span>], [<span class="literal">a</span>])
+ghci&gt; splitAt <span class="number">3</span> <span class="string">"foobar"</span>
+(<span class="string">"foo"</span>,<span class="string">"bar"</span>)
+</code></pre><p>takeWhile和dropWhile函数带着谓词函数:takeWhile从开头遍历列表,抽取谓词函数判断为True的元素构成一个新列表,dropWhile则是丢弃谓词函数判断为True的元素并返回剩余元素的列表,两者都是在到达第一个False即停止.</p>
+<pre><code>ghci&gt; :type takeWhile
+takeWhile :: (a -&gt; Bool) -&gt; [a] -&gt; [a]
+ghci&gt; takeWhile odd [<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">11</span>]
+[<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>]
+ghci&gt; :type dropWhile
+dropWhile :: (a -&gt; Bool) -&gt; [a] -&gt; [a]
+ghci&gt; dropWhile even [<span class="number">2</span>,<span class="number">4</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">9</span>,<span class="number">10</span>,<span class="number">12</span>]
+[<span class="number">7</span>,<span class="number">9</span>,<span class="number">10</span>,<span class="number">12</span>]
+</code></pre><p>break提取列表中使谓词函数失败的元素组成二元组的首项,而span提取列表中使谓词函数成功的元素组成二元组的首项:</p>
+<pre><code>ghci&gt; :type span
+span :: (a -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+ghci&gt; span even [<span class="number">2</span>,<span class="number">4</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">9</span>,<span class="number">10</span>,<span class="number">11</span>]
+([<span class="number">2</span>,<span class="number">4</span>,<span class="number">6</span>],[<span class="number">7</span>,<span class="number">9</span>,<span class="number">10</span>,<span class="number">11</span>])
+ghci&gt; :type <span class="keyword">break</span>
+<span class="keyword">break</span> :: (a -&gt; Bool) -&gt; [a] -&gt; ([a], [a])
+ghci&gt; <span class="keyword">break</span> even [<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>]
+([<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>],[<span class="number">6</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>])
+</code></pre><h2 id="搜索列表">搜索列表</h2><p>elem用于判断一个值是否存在于列表, notElem相反:</p>
+<pre><code>ghci&gt; :type elem
+elem :: (Eq a) =&gt; a -&gt; [a] -&gt; Bool
+ghci&gt; <span class="number">2</span> `elem` [<span class="number">5</span>,<span class="number">3</span>,<span class="number">2</span>,<span class="number">1</span>,<span class="number">1</span>]
+True
+ghci&gt; <span class="number">2</span> `notElem` [<span class="number">5</span>,<span class="number">3</span>,<span class="number">2</span>,<span class="number">1</span>,<span class="number">1</span>]
+False
+</code></pre><p>filter需要提供一个谓词函数,返回列表中判断为True的元素:</p>
+<pre><code>ghci&gt; :type filter
+filter :: (a -&gt; Bool) -&gt; [a] -&gt; [a]
+ghci&gt; filter odd [<span class="number">2</span>,<span class="number">4</span>,<span class="number">1</span>,<span class="number">3</span>,<span class="number">6</span>,<span class="number">8</span>,<span class="number">5</span>,<span class="number">7</span>]
+[<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>,<span class="number">7</span>]
+</code></pre><p>isPrefixOf用于判断左边的列表是否出现在右边列表的开始处:</p>
+<pre><code><span class="label">ghci&gt; :</span>module +Data.List
+<span class="label">ghci&gt; :</span>type isPrefixOf
+<span class="label">isPrefixOf ::</span> (Eq <span class="literal">a</span>) =&gt; [<span class="literal">a</span>] -&gt; [<span class="literal">a</span>] -&gt; Bool
+ghci&gt; <span class="string">"foo"</span> <span class="escape">`i</span>sPrefixOf<span class="escape">` </span><span class="string">"foobar"</span>
+<span class="literal">True</span>
+ghci&gt; [<span class="number">1</span>,<span class="number">2</span>] <span class="escape">`i</span>sPrefixOf<span class="escape">` </span>[]
+<span class="literal">False</span>
+</code></pre><p>isInfixOf判断左边的列表是否是右边列表的子列表:</p>
+<pre><code>ghci&gt; :module +Data.List
+ghci&gt; [<span class="number">2</span>,<span class="number">6</span>] `isInfixOf` [<span class="number">3</span>,<span class="number">1</span>,<span class="number">4</span>,<span class="number">1</span>,<span class="number">5</span>,<span class="number">9</span>,<span class="number">2</span>,<span class="number">6</span>,<span class="number">5</span>,<span class="number">3</span>,<span class="number">5</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">7</span>,<span class="number">9</span>]
+True
+ghci&gt; <span class="string">"funk"</span> `isInfixOf` <span class="string">"sonic youth"</span>
+False
+</code></pre><p>isSuffixOf用于判断左边的列表时候出现在右边列表的尾部:</p>
+<pre><code>ghci&gt; :module +<span class="built_in">Data</span><span class="built_in">.</span><span class="built_in">List</span>
+ghci&gt; <span class="string">".c"</span> <span class="string">`isSuffixOf`</span> <span class="string">"crashme.c"</span>
+<span class="literal">True</span>
+</code></pre><h2 id="同时处理多个列表">同时处理多个列表</h2><p>zip函数把两个列表压缩成一个单一的由二元组组成的列表,较长列表中多余的元素会被丢弃:</p>
+<pre><code>ghci&gt; :type zip
+zip :: [a] -&gt; [b] -&gt; [(a, b)]
+ghci&gt; zip [<span class="number">12</span>,<span class="number">72</span>,<span class="number">93</span>] <span class="string">"zippity"</span>
+[(<span class="number">12</span>,<span class="string">'z'</span>),(<span class="number">72</span>,<span class="string">'i'</span>),(<span class="number">93</span>,<span class="string">'p'</span>)]
+</code></pre><p>zipWith需要提供一个函数,用于操作分别从两个列表提取的一对元素,同样较长列表的多余元素会被丢弃:</p>
+<pre><code>ghci&gt; :type zipWith
+zipWith :: (a -&gt; b -&gt; c) -&gt; [a] -&gt; [b] -&gt; [c]
+ghci&gt; zipWith (+) [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>] [<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>]
+[<span class="number">5</span>,<span class="number">7</span>,<span class="number">9</span>]
+</code></pre><h2 id="特殊字符串处理函数">特殊字符串处理函数</h2><p>lines与unlines函数,unlines函数总是在他处理的结果的尾部放一个换行符:</p>
+<pre><code><span class="atom">ghci</span>&gt; <span class="atom">lines</span> <span class="string">"foo\nbar"</span>
+[<span class="string">"foo"</span>,<span class="string">"bar"</span>]
+<span class="atom">ghci</span>&gt; <span class="atom">unlines</span> [<span class="string">"foo"</span>, <span class="string">"bar"</span>]
+<span class="string">"foo\nbar\n"</span>
+</code></pre><p>words利用任何空白字符分割一个字符串,对应的是unwords函数,使用空格将一个字符串列表串联起来:</p>
+<pre><code>ghci&gt; words <span class="comment">"the  \r  quick \t  brown\n\n\nfox"</span>
+[<span class="comment">"the"</span>,<span class="comment">"quick"</span>,<span class="comment">"brown"</span>,<span class="comment">"fox"</span>]
+ghci&gt; unwords [<span class="comment">"jumps"</span>, <span class="comment">"over"</span>, <span class="comment">"the"</span>, <span class="comment">"lazy"</span>, <span class="comment">"dog"</span>]
+<span class="comment">"jumps over the lazy dog"</span>
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/24/Simple-Haskell-Define-Type-and-Simplify-funcitons/" rel="next">Simple Haskell: Define Type and Simplify funcitons</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">52</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">26</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Haskell思考"><span class="nav-number">1.</span> <span class="nav-text">使用Haskell思考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的命令行程序"><span class="nav-number">2.</span> <span class="nav-text">一个简单的命令行程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#热身,方便的分离多行文本"><span class="nav-number">3.</span> <span class="nav-text">热身,方便的分离多行文本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个行终止转换程序"><span class="nav-number">4.</span> <span class="nav-text">一个行终止转换程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中缀函数"><span class="nav-number">5.</span> <span class="nav-text">中缀函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用列表"><span class="nav-number">6.</span> <span class="nav-text">使用列表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本列表操作"><span class="nav-number">6.1.</span> <span class="nav-text">基本列表操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常处理"><span class="nav-number">7.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更多列表操作"><span class="nav-number">8.</span> <span class="nav-text">更多列表操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#产生子列表"><span class="nav-number">9.</span> <span class="nav-text">产生子列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#搜索列表"><span class="nav-number">10.</span> <span class="nav-text">搜索列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#同时处理多个列表"><span class="nav-number">11.</span> <span class="nav-text">同时处理多个列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特殊字符串处理函数"><span class="nav-number">12.</span> <span class="nav-text">特殊字符串处理函数</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
