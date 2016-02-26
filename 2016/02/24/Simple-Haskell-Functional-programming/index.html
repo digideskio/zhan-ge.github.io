@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="Scala," />
+  <meta name="keywords" content="Haskell," />
 
 
 
@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/02/24/Simple-Haskell-Functional-programming/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="函数式编程">
-<meta property="og:updated_time" content="2016-02-25T14:48:14.000Z">
+<meta property="og:updated_time" content="2016-02-26T09:23:36.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Haskell: Functional programming">
 <meta name="twitter:description" content="函数式编程">
@@ -607,7 +607,177 @@ Prelude&gt; odd <span class="number">2</span>
 
 Prelude&gt; filter odd [<span class="number">1</span> .. <span class="number">10</span>]
 [<span class="number">1</span>,<span class="number">3</span>,<span class="number">5</span>,<span class="number">7</span>,<span class="number">9</span>]
-</code></pre></span>
+</code></pre><h3 id="处理集合并得出结果">处理集合并得出结果</h3><p>将一个集合(collection)缩减(reduce)成一个值也是常见的需求.</p>
+<p>比如对列表的元素求和:</p>
+<pre><code><span class="comment">-- file: ch04/mySum.hs</span>
+
+mySum xs = helper <span class="number">0</span> xs
+    <span class="keyword">where</span> helper acc (x:xs) = helper (acc + x) xs
+          helper acc []     = acc
+</code></pre><p>helper函数通过尾递归进行计算,acc是累加器,它记录了当前列表元素的的总和.</p>
+<p>Adler-32算法:将连个16位校验和串联成一个32位校验和.第一个校验和是所有输入比特之和,而第二个校验和则是第一个校验和所有中间值之和,每次计算时,校验和都需要取模65521.</p>
+<p>使用Haskell实现Adler-32算法:</p>
+<pre><code><span class="label">-- file:</span> ch04/Adler32.hs
+
+import Data.Char (ord)
+import Data.Bits (shiftL, (.&amp;.), (.|.))
+
+base = <span class="number">65521</span>
+
+adler32 xs = helper <span class="number">1</span> <span class="number">0</span> xs
+<span class="label">    where helper a b (x:</span>xs) = let <span class="literal">a</span>' = (<span class="literal">a</span> + (ord x .&amp;. <span class="number">0</span>xff)) <span class="escape">`m</span>od<span class="escape">` </span>base
+                                  b' = (<span class="literal">a</span>' + b) <span class="escape">`m</span>od<span class="escape">` </span>base
+                              in helper <span class="literal">a</span>' b' xs
+          helper <span class="literal">a</span> b []     = (b <span class="escape">`s</span>hiftL<span class="escape">` </span><span class="number">16</span>) .|. <span class="literal">a</span>
+</code></pre><p>shiftL 函数实现逻辑左移,(.&amp;.) 实现二进制位的并操作,(.|.) 实现二进制位的或操作,ord 函数则返回给定字符对应的编码值.</p>
+<p>可以抽象出一种通用的抽象,称之为折叠(fold):对一个列表中的所有元素做某种处理,并且一边处理元素,一边更新累积器,最后在处理完整个列表之后,返回累计器的值.</p>
+<p>有两种不同类型的折叠,foldl从左边开始进行折叠,而foldr从右边开始折叠.</p>
+<h3 id="左折叠">左折叠</h3><p>foldl的定义:</p>
+<pre><code>-- file: ch04/foldl<span class="class">.hs</span>
+
+foldl :: (<span class="tag">a</span> -&gt; <span class="tag">b</span> -&gt; a) -&gt; <span class="tag">a</span> -&gt; [b] -&gt; <span class="tag">a</span>
+
+foldl step zero (x:xs) = foldl step (step zero x) xs
+foldl _ zero []        = zero
+</code></pre><p>foldl接收一个步骤(step)函数,一个累计器的初始化值,以及一个列表作为参数.步骤函数每次使用累计器和列表中的一个元素作为参数,并计算出新的累积器值,这个过程称为步进,然后将新的累加器作为参数,再次进行同样的计算,直到整个列表被处理完为止.</p>
+<p>以下是foldl函数重写mySum函数:</p>
+<pre><code>-- file: ch04/foldlSum.hs
+foldlSum xs = foldl <span class="keyword">step</span> <span class="number">0</span> xs
+    <span class="keyword">where</span> <span class="keyword">step</span> acc x = acc + x
+</code></pre><p>因为step函数执行的操作只不过是将两个输入参数相加,因此,可以直接将一个加法函数代替step函数,并移除多余的where语句:</p>
+<pre><code>-- <span class="keyword">file</span>: ch04/niceSum.hs
+niceSum :: [<span class="type">Integer</span>] -&gt; <span class="type">Integer</span>
+niceSum xs = foldl (+) <span class="number">0</span> xs
+</code></pre><p>为了进一步看清楚foldl的执行模式,以下代码展示了niceSum [1,2,3]执行时的过程:</p>
+<pre><code>niceSum [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]
+    == foldl (+) <span class="number">0</span>                   (<span class="number">1</span>:<span class="number">2</span>:<span class="number">3</span>:[])
+    == foldl (+) (<span class="number">0</span> + <span class="number">1</span>)             (<span class="number">2</span>:<span class="number">3</span>:[])
+    == foldl (+) ((<span class="number">0</span> + <span class="number">1</span>) + <span class="number">2</span>)       (<span class="number">3</span>:[])
+    == foldl (+) (((<span class="number">0</span> + <span class="number">1</span>) + <span class="number">2</span>) + <span class="number">3</span>) []
+    == (((<span class="number">0</span> + <span class="number">1</span>) + <span class="number">2</span>) + <span class="number">3</span>)
+</code></pre><p>新的niceSum定义比之前的mySum定义节省了很多代码:新版本没有使用显示递归,因为foldl可以代替我们搞定循环.现在程序只要求我们回答两个问题:累积器的初始化值是什么,怎么更新累积器的值(+函数).</p>
+<h3 id="从右边开始折叠">从右边开始折叠</h3><p>和foldl相对的就是foldr,它从列表的右边开始执行:</p>
+<pre><code>-- file: ch04/foldr<span class="class">.hs</span>
+
+foldr :: (<span class="tag">a</span> -&gt; <span class="tag">b</span> -&gt; b) -&gt; <span class="tag">b</span> -&gt; [a] -&gt; <span class="tag">b</span>
+
+foldr step zero (x:xs) = step x (foldr step zero xs)
+foldr _ zero []        = zero
+</code></pre><p>使用foldr改写niceSum函数:</p>
+<pre><code>-- <span class="keyword">file</span>: ch04/niceSumFoldr.hs
+
+niceSumFoldr :: [<span class="built_in">Int</span>] -&gt; <span class="built_in">Int</span>
+niceSumFoldr xs = foldr (+) <span class="number">0</span> xs
+</code></pre><p>这个 niceSumFoldr 函数在输入为 [1, 2, 3] 时，产生以下计算序列:</p>
+<pre><code>niceSumFoldr [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]
+    == foldr (+) <span class="number">0</span> (<span class="number">1</span>:<span class="number">2</span>:<span class="number">3</span>:[])
+    == <span class="number">1</span> +           foldr (+) <span class="number">0</span> (<span class="number">2</span>:<span class="number">3</span>:[])
+    == <span class="number">1</span> + (<span class="number">2</span> +      foldr (+) <span class="number">0</span> (<span class="number">3</span>:[]))
+    == <span class="number">1</span> + (<span class="number">2</span> + (<span class="number">3</span> + foldr (+) <span class="number">0</span> []))
+    == <span class="number">1</span> + (<span class="number">2</span> + (<span class="number">3</span> + <span class="number">0</span>))
+</code></pre><p>可以观察到foldr与foldl的不同:foldl将初始化值放在左边,括号也是从左边开始包围.foldr将初始化值放在右边,而括号也是从右边开始包围.</p>
+<h2 id="匿名(lambda)函数">匿名(lambda)函数</h2><p>在前面定义的函数中,很多函数都带有一个简单的辅助函数:</p>
+<pre><code>-- <span class="keyword">file</span>: ch04/isInAny.hs
+
+<span class="keyword">import</span> <span class="type">Data</span>.List (isInfixOf)
+
+isInAny needle haystack = <span class="built_in">any</span> inSequence haystack
+    <span class="keyword">where</span> inSequence s = needle `isInfixOf` s
+</code></pre><p>Haskell中匿名函数以反斜杠 \ 为开始,后跟函数的参数(可以包含模式),而函数体定义在 -&gt; 符号之后,反斜杠读作lambda.</p>
+<p>使用lambda改写isInAny:</p>
+<pre><code>-- file: ch04/isInAny2<span class="built_in">.</span>hs
+
+<span class="keyword">import</span> <span class="built_in">Data</span><span class="built_in">.</span><span class="built_in">List</span> (isInfixOf)
+
+isInAny2 needle haystack = any (<span class="subst">\</span>s <span class="subst">-&gt; </span>needle <span class="string">`isInfixOf`</span> s) haystack
+</code></pre><p>使用括号包围整个lambda函数,以便Haskell知道函数结束的位置.</p>
+<h2 id="部分函数应用和柯里化">部分函数应用和柯里化</h2><p>类型签名中的多个 -&gt; 符号可能使人迷惑:</p>
+<pre><code><span class="type">Prelude</span>&gt; :<span class="typedef"><span class="keyword">type</span> dropWhile</span>
+<span class="title">dropWhile</span> :: (a -&gt; <span class="type">Bool</span>) -&gt; [a] -&gt; [a]
+</code></pre><p>似乎 -&gt; 用于隔开函数的多个参数(括号里的 a 和 Bool ),有用于隔开函数参数和函数返回值类型((a -&gt; Bool) -&gt; [a] 和 [a]).</p>
+<p>但是 -&gt; 符号只表示一种用途:它表示一个函数接收一个参数,并返回一个值.其中 -&gt; 左边是参数的类型,右边是返回值的类型.</p>
+<p>理解该符号的意义非常重要:Haskell中,所有函数都只接受一个参数.尽管dropWhile看上去像是接收两个参数的函数,但实际上它只接收一个参数,而这个函数的返回值是另一个函数,这个被当做返回值返回的函数也只接收一个参数.</p>
+<p>下面是一个完全合法的表达式:</p>
+<pre><code>Prelude&gt; :<span class="keyword">module</span> +<span class="type">Data</span>.<span class="built_in">Char</span>
+
+Prelude <span class="type">Data</span>.<span class="built_in">Char</span>&gt; :<span class="keyword">type</span> dropWhile isSpace
+dropWhile isSpace :: [<span class="built_in">Char</span>] -&gt; [<span class="built_in">Char</span>]
+</code></pre><p>表达式dropWhile isSpace的值是一个函数,这个函数移除了一个字符串的所有前缀空白,可以把它应用到一个高阶函数:</p>
+<pre><code><span class="label">Prelude</span> <span class="preprocessor">Data</span>.Char&gt; <span class="preprocessor">map</span> (dropWhile isSpace) [<span class="string">" a"</span>, <span class="string">"f"</span>, <span class="string">"    e"</span>]
+[<span class="string">"a"</span>,<span class="string">"f"</span>,<span class="string">"e"</span>]
+</code></pre><p>每当将一个参数传递给函数时,这个函数的类型签名最前面的一个元素就会被”移除掉”.使用zip3函数作为实例,这个函数接收3个列表,并将他们压缩成一个包含三元组的列表:</p>
+<pre><code><span class="name">Prelude</span>&gt; :<span class="atom">type</span> <span class="atom">zip3</span>
+<span class="atom">zip3</span> :: [<span class="atom">a</span>] -&gt; [<span class="atom">b</span>] -&gt; [<span class="atom">c</span>] -&gt; [(<span class="atom">a</span>, <span class="atom">b</span>, <span class="atom">c</span>)]
+
+<span class="name">Prelude</span>&gt; <span class="atom">zip3</span> <span class="string">"foo"</span> <span class="string">"bar"</span> <span class="string">"quux"</span>
+[(<span class="string">'f'</span>,<span class="string">'b'</span>,<span class="string">'q'</span>),(<span class="string">'o'</span>,<span class="string">'a'</span>,<span class="string">'u'</span>),(<span class="string">'o'</span>,<span class="string">'r'</span>,<span class="string">'u'</span>)]
+</code></pre><p>如果将一个参数应用到zip3函数,那么他将返回一个接收两个参数的函数.无论之后将什么参数传递给这个复合函数,第一次传入的参数的值都不会改变.</p>
+<pre><code>Prelude&gt; :<span class="keyword">type</span> zip3
+zip3 <span class="type-annotation">::</span> [a] -&gt; [b] -&gt; [c] -&gt; [(a, b, c)]
+
+Prelude&gt; :<span class="keyword">type</span> zip3 <span class="string">"foo"</span>
+zip3 <span class="string">"foo"</span> <span class="type-annotation">::</span> [b] -&gt; [c] -&gt; [(<span class="built_in">Char</span>, b, c)]
+
+Prelude&gt; :<span class="keyword">type</span> zip3 <span class="string">"foo"</span> <span class="string">"bar"</span>
+zip3 <span class="string">"foo"</span> <span class="string">"bar"</span> <span class="type-annotation">::</span> [c] -&gt; [(<span class="built_in">Char</span>, <span class="built_in">Char</span>, c)]
+
+Prelude&gt; :<span class="keyword">type</span> zip3 <span class="string">"foo"</span> <span class="string">"bar"</span> <span class="string">"quux"</span>
+zip3 <span class="string">"foo"</span> <span class="string">"bar"</span> <span class="string">"quux"</span> <span class="type-annotation">::</span> [(<span class="built_in">Char</span>, <span class="built_in">Char</span>, <span class="built_in">Char</span>)]
+</code></pre><p>如果传入参数的数量少于函数能够接收的参数的数量,则被称为函数的部分应用(partial application of the function),函数正被他的其中几个参数应用.</p>
+<p>上面的例子中,zip3 “foo”就是一个部分应用函数,它以”foo”作为第一个参数,部分应用了zip3函数.同理zip3 “foo” “bar”.</p>
+<p>只要给部分函数补充上足够的参数,它就能够成功求值:</p>
+<pre><code>Prelude&gt; let zip3foo = zip3 <span class="string">"foo"</span>
+
+Prelude&gt; zip3foo <span class="string">"bar"</span> <span class="string">"quux"</span>
+[(<span class="string">'f'</span>,<span class="string">'b'</span>,<span class="string">'q'</span>),(<span class="string">'o'</span>,<span class="string">'a'</span>,<span class="string">'u'</span>),(<span class="string">'o'</span>,<span class="string">'r'</span>,<span class="string">'u'</span>)]
+
+Prelude&gt; let zip3foobar = zip3 <span class="string">"foo"</span> <span class="string">"bar"</span>
+
+Prelude&gt; zip3foobar <span class="string">"quux"</span>
+[(<span class="string">'f'</span>,<span class="string">'b'</span>,<span class="string">'q'</span>),(<span class="string">'o'</span>,<span class="string">'a'</span>,<span class="string">'u'</span>),(<span class="string">'o'</span>,<span class="string">'r'</span>,<span class="string">'u'</span>)]
+
+Prelude&gt; zip3foobar [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]
+[(<span class="string">'f'</span>,<span class="string">'b'</span>,<span class="number">1</span>),(<span class="string">'o'</span>,<span class="string">'a'</span>,<span class="number">2</span>),(<span class="string">'o'</span>,<span class="string">'r'</span>,<span class="number">3</span>)]
+</code></pre><h2 id="节">节</h2><p>Haskell提供了一种方便的符号快捷方式,用于对中序函数进行部分应用:它使用括号包围一个操作符,通过在括号里提供一个做操作对象或右操作对象,可以产生一个部分应用函数,这种类型的部分函数应用称为节(section).</p>
+<pre><code>Prelude&gt; (<span class="number">1</span>+) <span class="number">2</span>
+<span class="number">3</span>
+
+Prelude&gt; <span class="built_in">map</span> (*<span class="number">3</span>) [<span class="number">24</span>, <span class="number">36</span>]
+[<span class="number">72</span>,<span class="number">108</span>]
+
+Prelude&gt; <span class="built_in">map</span> (<span class="number">2</span>^) [<span class="number">3</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>]
+[<span class="number">8</span>,<span class="number">32</span>,<span class="number">128</span>,<span class="number">512</span>]
+</code></pre><p>如果向节提供左操作对象,那么得出的部分应用就会将得到的参数应用为右操作对象,反之亦然.</p>
+<h2 id="As-模式">As-模式</h2><p>Data.List 模块里定义的 tails 函数是 tail 的推广,他返回一个列表的所有”尾巴”:</p>
+<pre><code>Prelude&gt; :m +<span class="built_in">Data</span>.<span class="built_in">List</span>
+
+Prelude <span class="built_in">Data</span>.<span class="built_in">List</span>&gt; tail <span class="string">"foobar"</span>
+<span class="string">"oobar"</span>
+
+Prelude <span class="built_in">Data</span>.<span class="built_in">List</span>&gt; tail (tail <span class="string">"foobar"</span>)
+<span class="string">"obar"</span>
+
+Prelude <span class="built_in">Data</span>.<span class="built_in">List</span>&gt; tails <span class="string">"foobar"</span>
+[<span class="string">"foobar"</span>,<span class="string">"oobar"</span>,<span class="string">"obar"</span>,<span class="string">"bar"</span>,<span class="string">"ar"</span>,<span class="string">"r"</span>,<span class="string">""</span>]
+</code></pre><p>tails 返回一个包含字符串的列表,这个列表保存了输入字符串的所有后缀,以及一个额外的空列表(放在结果列表的最后),tails 的返回值总是带有额外的空列表，即使它的输入为空时：</p>
+<pre><code>Prelude Data.List&gt; tails <span class="string">""</span>
+<span class="string">[[]]</span>
+</code></pre><p>如果需要一个行为和tails类似,但不包含空列表后缀的函数,可以如下定义:</p>
+<pre><code><span class="comment">-- file: ch04/suffixes.hs</span>
+
+suffixes :: [a] -&gt; <span class="string">[[a]]</span>
+suffixes xs@(_:xs<span class="string">') = xs : suffixes xs'</span>
+suffixes [] = []
+</code></pre><p>源码里面用到了新引入的 @ 符号，模式 xs@(<em>:xs’) 被称为 as-模式,它的意思是:如果输入值能匹配 @ 符号右边的模式（这里是 (</em>:xs’) ),那么就将这个值绑定到 @ 符号左边的变量中（这里是 xs ）.</p>
+<p>在这个例子里,如果输入值能够匹配模式 (<em>:xs’) ,那么这个输入值这就被绑定为 xs ,它的 tail 部分被绑定为 xs’ ,而它的 head 部分因为使用通配符 </em> 进行匹配,所以这部分没有被绑定到任何变量.</p>
+<p>一个不适用AS模式的定义:</p>
+<pre><code><span class="comment">-- file: noAsPattern.hs</span>
+
+noAsPattern :: [a] -&gt; <span class="string">[[a]]</span>
+noAsPattern (x:xs) = (x:xs) : noAsPattern xs
+noAsPattern [] = []
+</code></pre><p>可以发现,使用as-模式的定义同时完成了模式匹配和变量绑定两份工作,而不适用as-模式的定义,则需要在对列表进行结构之后,在函数体里对列表重新进行组合.</p>
+<h2 id="通过组合函数进行代码复用">通过组合函数进行代码复用</h2></span>
       
     </div>
 
@@ -615,7 +785,7 @@ Prelude&gt; filter odd [<span class="number">1</span> .. <span class="number">10
       
         <div class="post-tags">
           
-            <a href="/tags/Scala/" rel="tag">#Scala</a>
+            <a href="/tags/Haskell/" rel="tag">#Haskell</a>
           
         </div>
       
@@ -623,6 +793,8 @@ Prelude&gt; filter odd [<span class="number">1</span> .. <span class="number">10
       
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/26/Simple-Haskell-Prepare-1/" rel="prev">Simple Haskell: Prepare 1</a>
             
           </div>
 
@@ -690,7 +862,7 @@ Prelude&gt; filter odd [<span class="number">1</span> .. <span class="number">10
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">52</span>
+              <span class="site-state-item-count">54</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -732,7 +904,7 @@ Prelude&gt; filter odd [<span class="number">1</span> .. <span class="number">10
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Haskell思考"><span class="nav-number">1.</span> <span class="nav-text">使用Haskell思考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的命令行程序"><span class="nav-number">2.</span> <span class="nav-text">一个简单的命令行程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#热身,方便的分离多行文本"><span class="nav-number">3.</span> <span class="nav-text">热身,方便的分离多行文本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个行终止转换程序"><span class="nav-number">4.</span> <span class="nav-text">一个行终止转换程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中缀函数"><span class="nav-number">5.</span> <span class="nav-text">中缀函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用列表"><span class="nav-number">6.</span> <span class="nav-text">使用列表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本列表操作"><span class="nav-number">6.1.</span> <span class="nav-text">基本列表操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常处理"><span class="nav-number">7.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更多列表操作"><span class="nav-number">8.</span> <span class="nav-text">更多列表操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#产生子列表"><span class="nav-number">9.</span> <span class="nav-text">产生子列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#搜索列表"><span class="nav-number">10.</span> <span class="nav-text">搜索列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#同时处理多个列表"><span class="nav-number">11.</span> <span class="nav-text">同时处理多个列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特殊字符串处理函数"><span class="nav-number">12.</span> <span class="nav-text">特殊字符串处理函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#循环的表示"><span class="nav-number">13.</span> <span class="nav-text">循环的表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#显式递归"><span class="nav-number">13.1.</span> <span class="nav-text">显式递归</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对列表元素进行转换"><span class="nav-number">13.2.</span> <span class="nav-text">对列表元素进行转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#列表映射"><span class="nav-number">13.3.</span> <span class="nav-text">列表映射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#筛选列表元素"><span class="nav-number">13.4.</span> <span class="nav-text">筛选列表元素</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Haskell思考"><span class="nav-number">1.</span> <span class="nav-text">使用Haskell思考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的命令行程序"><span class="nav-number">2.</span> <span class="nav-text">一个简单的命令行程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#热身,方便的分离多行文本"><span class="nav-number">3.</span> <span class="nav-text">热身,方便的分离多行文本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个行终止转换程序"><span class="nav-number">4.</span> <span class="nav-text">一个行终止转换程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中缀函数"><span class="nav-number">5.</span> <span class="nav-text">中缀函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用列表"><span class="nav-number">6.</span> <span class="nav-text">使用列表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基本列表操作"><span class="nav-number">6.1.</span> <span class="nav-text">基本列表操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常处理"><span class="nav-number">7.</span> <span class="nav-text">异常处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更多列表操作"><span class="nav-number">8.</span> <span class="nav-text">更多列表操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#产生子列表"><span class="nav-number">9.</span> <span class="nav-text">产生子列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#搜索列表"><span class="nav-number">10.</span> <span class="nav-text">搜索列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#同时处理多个列表"><span class="nav-number">11.</span> <span class="nav-text">同时处理多个列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#特殊字符串处理函数"><span class="nav-number">12.</span> <span class="nav-text">特殊字符串处理函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#循环的表示"><span class="nav-number">13.</span> <span class="nav-text">循环的表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#显式递归"><span class="nav-number">13.1.</span> <span class="nav-text">显式递归</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对列表元素进行转换"><span class="nav-number">13.2.</span> <span class="nav-text">对列表元素进行转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#列表映射"><span class="nav-number">13.3.</span> <span class="nav-text">列表映射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#筛选列表元素"><span class="nav-number">13.4.</span> <span class="nav-text">筛选列表元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理集合并得出结果"><span class="nav-number">13.5.</span> <span class="nav-text">处理集合并得出结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#左折叠"><span class="nav-number">13.6.</span> <span class="nav-text">左折叠</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从右边开始折叠"><span class="nav-number">13.7.</span> <span class="nav-text">从右边开始折叠</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匿名(lambda)函数"><span class="nav-number">14.</span> <span class="nav-text">匿名(lambda)函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#部分函数应用和柯里化"><span class="nav-number">15.</span> <span class="nav-text">部分函数应用和柯里化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节"><span class="nav-number">16.</span> <span class="nav-text">节</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#As-模式"><span class="nav-number">17.</span> <span class="nav-text">As-模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#通过组合函数进行代码复用"><span class="nav-number">18.</span> <span class="nav-text">通过组合函数进行代码复用</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

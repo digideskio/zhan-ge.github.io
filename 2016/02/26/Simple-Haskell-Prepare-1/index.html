@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="搭建Haskell开发环境">
+<meta name="description" content="趣学Haskell:准备">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Haskell: Prepare">
-<meta property="og:url" content="http://yoursite.com/2016/02/23/Simple-Haskell-Prepare/index.html">
+<meta property="og:title" content="Simple Haskell: Prepare 1">
+<meta property="og:url" content="http://yoursite.com/2016/02/26/Simple-Haskell-Prepare-1/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="搭建Haskell开发环境">
-<meta property="og:updated_time" content="2016-02-23T08:39:46.000Z">
+<meta property="og:description" content="趣学Haskell:准备">
+<meta property="og:updated_time" content="2016-02-26T14:55:12.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Haskell: Prepare">
-<meta name="twitter:description" content="搭建Haskell开发环境">
+<meta name="twitter:title" content="Simple Haskell: Prepare 1">
+<meta name="twitter:description" content="趣学Haskell:准备">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Haskell: Prepare | Hexo </title>
+  <title> Simple Haskell: Prepare 1 | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Haskell: Prepare
+              Simple Haskell: Prepare 1
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2016-02-23T14:17:49+08:00" content="2016-02-23">
-            2016-02-23
+          <time itemprop="dateCreated" datetime="2016-02-26T17:26:28+08:00" content="2016-02-26">
+            2016-02-26
           </time>
         </span>
 
@@ -185,135 +185,85 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="Mac下搭建Haskell">Mac下搭建Haskell</h2><p>Haskell Platform 是一个大包的Haskell开发环境,包含GHC已经一些三方库,已经包管理工具cabal,类似Python中的pip.<br>在Haskell官方直接下载即可,下载后按照提示进行安装.安装完成后配置程序路径:</p>
-<pre><code>vim ~/.bash_profile
-<span class="comment"># Setting PATH for Haskell</span>
-<span class="built_in">export</span> PATH=<span class="string">"<span class="variable">$HOME</span>/Library/Haskell/bin:<span class="variable">$PATH</span>"</span>
-:wq
-<span class="built_in">source</span> ~/.bash_profile
-<span class="built_in">which</span> ghc
-/usr/<span class="built_in">local</span>/bin/ghc
-<span class="built_in">which</span> ghci
-/usr/<span class="built_in">local</span>/bin/ghc
-<span class="built_in">which</span> cabal
-/usr/<span class="built_in">local</span>/bin/cabal
-cabal update
-cabal install ghc-mod
-cabal info ghc-mod
-</code></pre><p>然后开启Intellij IDEA,添加Haskell插件或HaskForce插件,重启IDEA,创建一个新的Haskell工程,此时需要设置ghc-mod和JDK路径,然后就可以使用IDEA进行开发了.</p>
-<p>其中,ghc是生成本地代码的优化编译器,ghci是一个交互解释器和调试器,runghc是一个以脚本形式(不需要首先编译)运行Haskell程序.</p>
-<p>在ghci中,命令行提示会随着加载的模块变化而变化,有时会变得很长影响输入,可以使用如下命令进行修改:</p>
-<pre><code>Prelude&gt; :<span class="keyword">set</span> prompt <span class="string">"ghci&gt;"</span>
-ghci&gt;
-</code></pre><p>调用:module方法预加载一个模块:</p>
-<pre><code><span class="tag">ghci</span>&gt; <span class="pseudo">:module</span> + <span class="tag">Data</span><span class="class">.Ratio</span>
-</code></pre><p>然后就可以使用Data.Ratio中的功能了,该模块提供一些有理数的计算.</p>
-<h2 id="运算符">运算符</h2><p>可以吧ghci当做一个计算器使用:加(+),减(-),乘(*),除(/),乘方(^),同时支持使用前缀方式运算: (+) 2 2</p>
-<p>布尔值使用True和False表示,(&amp;&amp;)表示逻辑与,(||)表示逻辑或,同时Haskell中并没有定义数字1等值于True,或者数字0等值于False.</p>
-<p>Haskell中的等于比较分别为:==,&gt;=,&lt;=,/=,最后一个不等于并不是一般语言中常用的!=,而其常用的”非”则用 not 表示,True == not False</p>
-<p>调用:info方法则可以查看各种操作的优先级,比如:</p>
-<pre><code>ghci&gt; :info (+)
-class (Eq <span class="tag">a</span>, Show a) =&gt; Num <span class="tag">a</span> where
-  (+) :: <span class="tag">a</span> -&gt; <span class="tag">a</span> -&gt; <span class="tag">a</span>
-  ...
-    -- Defined <span class="keyword">in</span> GHC<span class="class">.Num</span>
-infixl <span class="number">6</span> +
-
-ghci&gt; :info (*)
-class (Eq <span class="tag">a</span>, Show a) =&gt; Num <span class="tag">a</span> where
-  ...
-  (*) :: <span class="tag">a</span> -&gt; <span class="tag">a</span> -&gt; <span class="tag">a</span>
-  ...
-    -- Defined <span class="keyword">in</span> GHC<span class="class">.Num</span>
-infixl <span class="number">7</span> *
-</code></pre><p>这里的”infixl 6 +”表示”+”的优先级为6,”infixl 7 <em>“表示”</em>“的优先级为7,数字越大表示优先级越高.</p>
-<pre><code>ghci&gt; :info (^)
-(^) :: (Num <span class="tag">a</span>, Integral b) =&gt; <span class="tag">a</span> -&gt; <span class="tag">b</span> -&gt; <span class="tag">a</span>   -- Defined <span class="keyword">in</span> GHC<span class="class">.Real</span>
-infixr <span class="number">8</span> ^
-</code></pre><p>乘方的优先级则为8,同时和上面的不同是,infixl与infixr,前者表示左结合,后者表示右结合.</p>
-<h2 id="列表">列表</h2><p>Haskell中的列表与Python类似,但是Haskell中的”,”作为分隔符,不能在右括号前多出一个逗号,同时列表中的元素类型必须相同.</p>
-<pre><code>ghci&gt; [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
-[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
-</code></pre><p>如果使用列举符号(..)来表示一系列元素,Haskell则会自动对列举的内容进行填充,列举只能用于一些可列举的类型,字符串则不适合列举:</p>
-<pre><code>ghci&gt; [<span class="number">1.</span><span class="number">.10</span>]
-[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>]
-ghci&gt; [<span class="number">1.0</span>,<span class="number">1.25</span>.<span class="number">.2</span><span class="number">.0</span>]
-[<span class="number">1.0</span>,<span class="number">1.25</span>,<span class="number">1.5</span>,<span class="number">1.75</span>,<span class="number">2.0</span>]
-ghci&gt; [<span class="number">1</span>,<span class="number">4.</span><span class="number">.15</span>]
-[<span class="number">1</span>,<span class="number">4</span>,<span class="number">7</span>,<span class="number">10</span>,<span class="number">13</span>]
-ghci&gt; [<span class="number">10</span>,<span class="number">9.</span><span class="number">.1</span>]
-[<span class="number">10</span>,<span class="number">9</span>,<span class="number">8</span>,<span class="number">7</span>,<span class="number">6</span>,<span class="number">5</span>,<span class="number">4</span>,<span class="number">3</span>,<span class="number">2</span>,<span class="number">1</span>]
-</code></pre><p>如果没有填写结尾的话比如:[1..],这时会生成一个无穷列表而造成崩溃.</p>
-<p>列表合并:</p>
-<pre><code>ghci&gt; [<span class="number">3</span>,<span class="number">1</span>,<span class="number">3</span>] ++ [<span class="number">3</span>,<span class="number">7</span>]
-[<span class="number">3</span>,<span class="number">1</span>,<span class="number">3</span>,<span class="number">3</span>,<span class="number">7</span>]
-ghci&gt; [] ++ [False,True] ++ [True]
-[False,True,True]
-</code></pre><p>添加元素:</p>
-<pre><code>ghci&gt; <span class="number">1</span> : [<span class="number">2</span>,<span class="number">3</span>]
-[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]
-ghci&gt; <span class="number">1</span> : []
-[<span class="number">1</span>]
-</code></pre><h2 id="字符串和字符">字符串和字符</h2><p>Haskell使用双引号表示一个字符串:</p>
-<pre><code>ghci&gt; <span class="comment">"This is a String."</span>
-<span class="comment">"This is a String."</span>
-</code></pre><p>字符串的转义字符基本与其他语言一致:</p>
-<pre><code><span class="comment">ghci</span>&gt; <span class="comment">putStrLn</span> <span class="comment">"Here's</span> <span class="comment">a</span> <span class="comment">newline</span> <span class="literal">-</span><span class="literal">-</span>&gt;<span class="comment">\n</span>&lt;<span class="literal">-</span><span class="literal">-</span> <span class="comment">See?"</span>
-<span class="comment">Here's</span> <span class="comment">a</span> <span class="comment">newline</span> <span class="literal">-</span><span class="literal">-</span>&gt;
-&lt;<span class="literal">-</span><span class="literal">-</span> <span class="comment">See?</span>
-</code></pre><p>单字符使用单引号表示:</p>
-<pre><code>ghci&gt; <span class="comment">'a'</span>
-<span class="comment">'a'</span>
-</code></pre><p>字符串实质上一一个单字符的列表:</p>
-<pre><code>ghci&gt; let <span class="tag">a</span> = [<span class="string">'l'</span>, <span class="string">'o'</span>, <span class="string">'t'</span>, <span class="string">'s'</span>, <span class="string">' '</span>, <span class="string">'o'</span>, <span class="string">'f'</span>, <span class="string">' '</span>, <span class="string">'w'</span>, <span class="string">'o'</span>, <span class="string">'r'</span>, <span class="string">'k'</span>]
-ghci&gt; <span class="tag">a</span>
-<span class="string">"lots of work"</span>
-ghci&gt; <span class="tag">a</span> == <span class="string">"lots of work"</span>
+        <span itemprop="articleBody"><h2 id="调用函数">调用函数</h2><p>(*)也是一个函数,只是在调用时将参数放在符号的两侧,称为 中缀函数.</p>
+<p>大部分函数作为 前缀函数 存在,调用方法为: 函数名 + 空格 + 参数列表(由空格隔开) .</p>
+<p>在Haskell中,函数拥有最高优先级:</p>
+<pre><code>ghci&gt; succ <span class="number">9</span> + max <span class="number">5</span> <span class="number">4</span> + <span class="number">1</span>
+<span class="number">16</span>
+</code></pre><p>等同于:</p>
+<pre><code>ghci&gt; (succ <span class="number">9</span>) + (max <span class="number">5</span> <span class="number">4</span>) + <span class="number">1</span>
+</code></pre><p>如果函数有两个参数,此时可以将函数用反引号(‘)将他扩起,然后以中缀函数的形式进行调用:</p>
+<pre><code>ghci&gt; <span class="number">1</span> <span class="escape">`d</span>iv<span class="escape">` </span><span class="number">2</span>
+</code></pre><h2 id="定义一个函数">定义一个函数</h2><p>函数的定义格式: 函数名 + 空格 + 参数列表(空格分开) = 函数行为</p>
+<pre><code><span class="attribute">doubleMe x </span>=<span class="string"> x + x</span>
+</code></pre><p>一个包含条件表达式的函数:</p>
+<pre><code>doubleSmallNumber x = <span class="keyword">if</span> x &gt; <span class="number">100</span> 
+                      then x
+                      <span class="keyword">else</span> x * <span class="number">2</span>
+</code></pre><p>Haskell中if是一个必须返回值得表达式而非语句,所有时刻都要用else分支,并且多分支的返回类型一致.</p>
+<h2 id="列表入门">列表入门</h2><p>列表作为但类型不限长度的数据结构.</p>
+<p>拼接列表:</p>
+<pre><code>[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>] ++ [<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>]
+<span class="number">1</span> : [<span class="number">2</span>,<span class="number">3</span>]
+</code></pre><p>访问列表元素,下标从0开始:</p>
+<pre><code><span class="string">"helloworld"</span> !! <span class="number">3</span>
+l
+[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>] !! <span class="number">2</span>
+<span class="number">3</span>
+</code></pre><p>比较列表,会按照元素顺序逐个比较:</p>
+<pre><code>[<span class="number">3</span>,<span class="number">2</span>,<span class="number">1</span>] &gt; [<span class="number">2</span>,<span class="number">1</span>,<span class="number">0</span>]
 True
-</code></pre><p>“”表示空字符串,与[]同义.</p>
-<p>同样可以使用列表方法操作字符串:</p>
-<pre><code>ghci&gt; <span class="string">'a'</span>:<span class="string">"bc"</span>
-<span class="string">"abc"</span>
-ghci&gt; <span class="string">"foo"</span> ++ <span class="string">"bar"</span>
-<span class="string">"foobar"</span>
-</code></pre><h2 id="类型">类型</h2><p>Haskell中所有的类型都是以大写字符开头,所有变量名都是以小写字母开头.</p>
-<p>修改ghci,让它在返回表达式求值时同时返回打印结果的类型,使用ghci的:set命令:</p>
-<pre><code>Prelude&gt; :<span class="built_in">set</span> +t
-
-Prelude&gt; <span class="string">'c'</span>    <span class="comment">-- 输入表达式</span>
-<span class="string">'c'</span>             <span class="comment">-- 输出值</span>
-<span class="keyword">it</span> :: Char      <span class="comment">-- 输出值的类型</span>
-
-Prelude&gt; <span class="string">"foo"</span>
-<span class="string">"foo"</span>
-<span class="keyword">it</span> :: [Char]
-</code></pre><p>上面结果中显示的”it:”是一个特殊标量,表示最后一次求值结果的变量名,只是ghci的一个辅助功能.x :: y 表示表达式 x 的类型为 y.而[char]表示的就是String.</p>
-<p>Haskell的整数表示为Integer,其长度仅受限于操作系统的内存大小.</p>
-<p>分数使用%构建,分子在左边,分母在右边:</p>
-<pre><code>Prelude&gt; :m +Data.Ratio        <span class="comment">// :m 为 :module的缩写</span>
-Prelude Data.Ratio&gt; <span class="number">11</span> % <span class="number">29</span>
-<span class="number">11</span> % <span class="number">29</span>
-it :: Ratio Integer            <span class="comment">// 表示类型为: 由整数构成的分数</span>
-</code></pre><p>使用 :unset +t 命令取消对类型的打印,而使用 :type a 命令可以显式的打印变量a的类型</p>
-<h2 id="行计数程序">行计数程序</h2><p>使用Haskell编写一个行计数程序:</p>
-<pre><code><span class="comment">-- file: ch01/WC.hs</span>
-<span class="comment">-- lines beginning with "--" are comments.</span>
-
-main = interact wordCount
-    where wordCount input = <span class="operator"><span class="keyword">show</span> (<span class="keyword">length</span> (<span class="keyword">lines</span> <span class="keyword">input</span>)) ++ <span class="string">"\n"</span></span>
-</code></pre><p>再创建一个 quux.txt,包含以下内容:</p>
-<pre><code><span class="label">Teignmouth</span>, England
-<span class="label">Paris</span>, France
-<span class="label">Ulm</span>, Germany
-<span class="label">Auxerre</span>, France
-<span class="keyword">Brunswick, </span>Germany
-<span class="keyword">Beaumont-en-Auge, </span>France
-<span class="label">Ryazan</span>, Russia
-</code></pre><p>然后在shell下执行: </p>
-<pre><code>$ runghc WC &lt; quux<span class="class">.txt</span>
-<span class="number">7</span>
-</code></pre><p>得到结果为7行.</p>
-</span>
+[<span class="number">3</span>,<span class="number">4</span>,<span class="number">2</span>] == [<span class="number">3</span>,<span class="number">4</span>,<span class="number">2</span>]
+</code></pre><h2 id="生成列表">生成列表</h2><pre><code>[<span class="number">1.</span><span class="number">.10</span>]
+[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>]
+['a'..'z']
+<span class="string">"abcdefghijklmnopqrstuvwxyz"</span>
+['A'..'Z']
+<span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZ"</span>
+[<span class="number">2</span>,<span class="number">4.</span><span class="number">.12</span>]
+[<span class="number">2</span>,<span class="number">4</span>,<span class="number">6</span>,<span class="number">8</span>,<span class="number">10</span>,<span class="number">12</span>]
+</code></pre><p>cycle函数接收一个列表作为参数并返回一个无线列表:</p>
+<pre><code>ghci&gt; take <span class="number">10</span> (cycle [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>])
+[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">1</span>]
+ghci&gt; take <span class="number">12</span> <span class="string">"LOL "</span>
+<span class="string">"LOL LOL LOL "</span>
+</code></pre><p>repeat函数接收一个值作为参数,并返回一个仅包含该值得无线列表:</p>
+<pre><code>take <span class="number">10</span> (repeat <span class="number">6</span>)
+[<span class="number">6</span>,<span class="number">6</span>,<span class="number">6</span>,<span class="number">6</span>,<span class="number">6</span>,<span class="number">6</span>,<span class="number">6</span>,<span class="number">6</span>,<span class="number">6</span>,<span class="number">6</span>]
+</code></pre><p>replicate函数接收两个参数,第一个作为重复次数,第二个作为要重复的元素,生成一个定长列表:</p>
+<pre><code>replicate <span class="number">3</span> <span class="number">10</span>
+[<span class="number">10</span>,<span class="number">10</span>,<span class="number">10</span>]
+</code></pre><h2 id="列表推导式">列表推导式</h2><p>用列表推导式生成前十个偶数:</p>
+<pre><code>[x * <span class="number">2</span> | x &lt;- [<span class="number">1.</span><span class="number">.10</span>]]
+[<span class="number">2</span>,<span class="number">4</span>,<span class="number">6</span>,<span class="number">8</span>,<span class="number">10</span>,<span class="number">12</span>,<span class="number">14</span>,<span class="number">16</span>,<span class="number">18</span>,<span class="number">20</span>]
+</code></pre><p>符号(|)后面的部分,首先生成一个有前十个数字组成的列表,表达式 x &lt;- [1..10] 去个该列表的每个元素,即将列表中的每个元素值逐个绑定到变量x上,符号(|)前的部分值推导式的输出,表示所取的值与结果的映射关系.</p>
+<p>如果需要给这个推导式添加一个谓语函数,比如只取大于12的元素,可以在推导式的最后面用逗号隔开,添加一个谓语函数:</p>
+<pre><code>ghci&gt; [x * <span class="number">2</span> | x &lt;- [<span class="number">1.</span><span class="number">.10</span>], x * <span class="number">2</span> &gt;= <span class="number">12</span>]
+[<span class="number">12</span>,<span class="number">14</span>,<span class="number">16</span>,<span class="number">18</span>,<span class="number">20</span>]
+</code></pre><p>或者50到100中所有除7后余数为3的元素:</p>
+<pre><code>ghci&gt; [x | x &lt;- [<span class="number">50.</span><span class="number">.100</span>], x `mod` <span class="number">7</span> == <span class="number">3</span>]
+[<span class="number">52</span>,<span class="number">59</span>,<span class="number">66</span>,<span class="number">73</span>,<span class="number">80</span>,<span class="number">87</span>,<span class="number">94</span>]
+</code></pre><p>或者想要一个推导式,能够是列表中所有大于10的奇数变成”BANG”,小于10的奇数变成”BOOM”,其他统统扔掉,我们定义一个函数:</p>
+<pre><code><span class="title">boomBangs</span> xs = [<span class="keyword">if</span> x &lt; <span class="number">10</span> <span class="keyword">then</span> <span class="string">"BOOM"</span> <span class="keyword">else</span> <span class="string">"BANG"</span> | x &lt;- xs, odd x]
+</code></pre><p>上面的函数如果在ghci中定义则需要在函数名前添加一个let关键字.</p>
+<p>odd函数判断一个数是否为奇数,是则返回True,否则为False,一个元素只有在满足谓词函数时才会被保留,如果有多个谓词函数,中间用逗号分隔即可:</p>
+<pre><code>ghci&gt; [x | x &lt;- [<span class="number">10.</span><span class="number">.20</span>], x /= <span class="number">13</span>, x /= <span class="number">15</span>, x /= <span class="number">17</span>]
+</code></pre><p>上面的推导式求得10到20中不等于13,15,17的数.</p>
+<p>或者从多个列表中取元素,如果从多个列表中取元素时,将得到这些列表中元素的所有组合:</p>
+<pre><code>ghci&gt; [x + y, x &lt;- [<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>], y &lt;- [<span class="number">10</span>,<span class="number">100</span>,<span class="number">1000</span>]]
+</code></pre><p>或者编写一个自己的length函数,函数首先将列表中的元素替换为1,然后求和,或者列表的长度:</p>
+<pre><code><span class="built_in">length</span>` xs = <span class="built_in">sum</span> [<span class="number">1</span> | _ &lt;- xs]
+</code></pre><h2 id="元组">元组</h2><p>元素类型不同,数量固定.两个相等的元组必须长度相同,元素类型及类型顺序相同.没有单元素的元组.</p>
+<p>fst回去元组头项,snd获取尾项,仅用于二元组.</p>
+<p>zip函数接收两个列表作为参数,生成一个有二元组构成的列表.</p>
+<p>使用元组和列表推导式求直角三角形:三条边长度为整数,并小于等于10,三边和为24.</p>
+<p>首先列出三边均小于等于10的整数三元组,:</p>
+<pre><code>triples = [ (a,b,c) | a &lt;- [<span class="number">1.</span><span class="number">.10</span>], b &lt;- [<span class="number">1.</span><span class="number">.10</span>], c &lt;- [<span class="number">1.</span><span class="number">.10</span>]]
+</code></pre><p>然后添加一个条件使其满足勾股定理,a^2 + b^2 = c^2,且c&gt;a&gt;b,斜边比直角边长:</p>
+<pre><code>rightTriples = [ (a,b,c) | a &lt;- [<span class="number">1.</span><span class="number">.10</span>], b &lt;- [<span class="number">1.</span><span class="number">.10</span>], c &lt;- [<span class="number">1.</span><span class="number">.10</span>], a^<span class="number">2</span> + b^<span class="number">2</span> == c^<span class="number">2</span>]
+</code></pre><p>最后添加条件周长为24:</p>
+<pre><code>rightTriples = [ (a,b,c) | a &lt;- [<span class="number">1.</span><span class="number">.10</span>], b &lt;- [<span class="number">1.</span><span class="number">.10</span>], c &lt;- [<span class="number">1.</span><span class="number">.10</span>], a^<span class="number">2</span> + b^<span class="number">2</span> == c^<span class="number">2</span>, a + b + c == <span class="number">24</span>]
+</code></pre></span>
       
     </div>
 
@@ -330,13 +280,13 @@ main = interact wordCount
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2016/02/23/Simple-Haskell-Type-and-Functions/" rel="prev">Simple Haskell: Type and Functions</a>
+              <a href="/2016/02/26/Simple-Haskell-Type-System/" rel="prev">Simple Haskell: Type System</a>
             
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/01/22/Simple-Scala-Sequences-s-Methods/" rel="next">Simple Scala: Sequences's Methods</a>
+              <a href="/2016/02/24/Simple-Haskell-Functional-programming/" rel="next">Simple Haskell: Functional programming</a>
             
           </div>
         </div>
@@ -440,7 +390,7 @@ main = interact wordCount
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mac下搭建Haskell"><span class="nav-number">1.</span> <span class="nav-text">Mac下搭建Haskell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运算符"><span class="nav-number">2.</span> <span class="nav-text">运算符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#列表"><span class="nav-number">3.</span> <span class="nav-text">列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#字符串和字符"><span class="nav-number">4.</span> <span class="nav-text">字符串和字符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#类型"><span class="nav-number">5.</span> <span class="nav-text">类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#行计数程序"><span class="nav-number">6.</span> <span class="nav-text">行计数程序</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#调用函数"><span class="nav-number">1.</span> <span class="nav-text">调用函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义一个函数"><span class="nav-number">2.</span> <span class="nav-text">定义一个函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#列表入门"><span class="nav-number">3.</span> <span class="nav-text">列表入门</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生成列表"><span class="nav-number">4.</span> <span class="nav-text">生成列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#列表推导式"><span class="nav-number">5.</span> <span class="nav-text">列表推导式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#元组"><span class="nav-number">6.</span> <span class="nav-text">元组</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
