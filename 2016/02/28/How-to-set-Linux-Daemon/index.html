@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="fabric,python," />
+  <meta name="keywords" content="Linux," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="python远程部署工具fabric。">
+<meta name="description" content="Linux守护进程设置">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Python: How to use Fabric">
-<meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Python-How-to-use-Fabric/index.html">
+<meta property="og:title" content="How to set Linux Daemon">
+<meta property="og:url" content="http://yoursite.com/2016/02/28/How-to-set-Linux-Daemon/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="python远程部署工具fabric。">
-<meta property="og:updated_time" content="2015-09-29T08:21:44.000Z">
+<meta property="og:description" content="Linux守护进程设置">
+<meta property="og:updated_time" content="2016-02-28T13:32:10.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Python: How to use Fabric">
-<meta name="twitter:description" content="python远程部署工具fabric。">
+<meta name="twitter:title" content="How to set Linux Daemon">
+<meta name="twitter:description" content="Linux守护进程设置">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Python: How to use Fabric | Hexo </title>
+  <title> How to set Linux Daemon | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Python: How to use Fabric
+              How to set Linux Daemon
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-09-29T16:16:27+08:00" content="2015-09-29">
-            2015-09-29
+          <time itemprop="dateCreated" datetime="2016-02-28T20:44:06+08:00" content="2016-02-28">
+            2016-02-28
           </time>
         </span>
 
@@ -185,96 +185,186 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="安装Fabric">安装Fabric</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install fabric</span><br></pre></td></tr></table></figure>
-<h2 id="命令">命令</h2><pre><code>run     (fabric<span class="class">.operations</span><span class="class">.run</span>)
-sudo    (fabric<span class="class">.operations</span><span class="class">.sudo</span>)
-local   (fabric<span class="class">.operations</span><span class="class">.local</span>)
-get     (fabric<span class="class">.operations</span><span class="class">.get</span>)
-put     (fabric<span class="class">.operations</span><span class="class">.put</span>)
-prompt  (fabric<span class="class">.operations</span><span class="class">.prompt</span>)
-reboot  (fabric<span class="class">.operations</span><span class="class">.reboot</span>)
-</code></pre><h2 id="Example">Example</h2><pre><code>DateFormat.py
-// 根据时间获取上个小时log文件名中的时间，单独处理<span class="number">0</span>点时刻
-<span class="comment"># coding=utf8</span>
-<span class="keyword">import</span> datetime
+        <span itemprop="articleBody"><h2 id="前台任务与后台任务">前台任务与后台任务</h2><p>在终端启动一个服务程序后,该程序会占用一个终端窗口,称为 前台任务.只有该程序运行完成或者终止程序,才能执行其他命令.</p>
+<pre><code>$ node server<span class="class">.js</span> &amp;
+</code></pre><p>在程序后添加符号 &amp; 就可以把它改为后台任务.如果要让一个前台任务变成后台任务,可以先按 ctrl + z,然后执行bg命令,让最后一个暂停的后台任务继续执行.</p>
+<p>后台任务的两个特点:</p>
+<ol>
+<li>集成当前对话的标准输出和标准错误.因此,后台任务的所有输出依然会同步的在命令行下显示.</li>
+<li>不再继承当前会话的标准输入.即无法再向该任务输入命令,如果试图读入标准输入,会暂停执行(halt).</li>
+</ol>
+<p>前台任务与后台任务的本质区别只有一个:是否继承标准输入.所以执行后台任务时,用户还可以输入其他命令.</p>
+<h2 id="Sighup信号">Sighup信号</h2><p>变成后台任务后,一个进程是否成了守护进程呢? 或者说用户退出session后,后台任务是否还会继续执行呢?</p>
+<p>Linux系统中是这样设计的:</p>
+<ol>
+<li>用户准备退出session</li>
+<li>系统向该session发出sighup信号</li>
+<li>session将sighup信号发给所有子进程</li>
+<li>子进程收到sighup信号后自动退出</li>
+</ol>
+<p>上面的流程解释了为什么前台任务会随着session的关闭而退出,因为他收到了sighup信号.那么后台任务会收到sighup信号呢?</p>
+<p>这由shell的huponexit参数决定:</p>
+<pre><code>$ shopt <span class="string">| grep huponexit</span>
+</code></pre><p>执行上面的命令就会看到huponexit参数的值.</p>
+<p>大多数Linux系统中,这个参数默认关闭.因此,session退出的时候,不会吧sighup信号发给后台任务,因此后台任务不会随着session关闭而退出.</p>
+<h2 id="disown命令">disown命令</h2><p>通过后台任务启动守护进程并不保险,因为有的Linux系统的huponexit参数可能是打开的(on).</p>
+<p>更保险的办法是使用disown命令.它可以将指定任务从后台任务列表(jobs命令的返回结果)之中移除.一个后台任务只要不在这个列表中,session就肯定不会向它发出sighup信号.</p>
+<pre><code><span class="variable">$ </span>node server.js &amp;
+<span class="variable">$ </span>disown
+</code></pre><p>执行上面的命令后,server.js进程就被移出了后台任务列表.可以执行jobs命令进行验证,输出结果中不会有这个进程.</p>
+<p>disown的用法如下:</p>
+<pre><code><span class="comment"># 移出最近一个正在执行的后台任务</span>
+<span class="variable">$ </span>disown
 
-<span class="function"><span class="keyword">def</span> <span class="title">date_format</span><span class="params">(flag=<span class="string">''</span>)</span>:</span>
-    fm = <span class="string">'%Y-%m-%d'</span> <span class="keyword">if</span> flag <span class="keyword">else</span> <span class="string">'%Y%m%d'</span>
-    h = datetime.datetime.now().hour
-    <span class="keyword">if</span> h == <span class="number">0</span>:
-        dt = datetime.date.today() - datetime.timedelta(days=<span class="number">1</span>)
-        dt = dt.strftime(fm)
-        h = <span class="number">23</span>
-    <span class="keyword">else</span>:
-        dt = datetime.date.today()
-        dt = dt.strftime(fm)
-        h = datetime.datetime.now().hour - <span class="number">1</span>
-    <span class="keyword">if</span> h &lt; <span class="number">10</span>:
-        h = <span class="string">''</span>.join([<span class="string">'0'</span>, str(h)])
-    <span class="keyword">else</span>:
-        h = str(h)
-    <span class="keyword">if</span> flag:
-        <span class="keyword">return</span> <span class="string">'-'</span>.join([dt, h])
-    <span class="keyword">else</span>:
-        <span class="keyword">return</span> dt + h
+<span class="comment"># 移出所有正在执行的后台任务</span>
+<span class="variable">$ </span>disown -r
 
-LogFileLoad.py
-// Fabric执行文件
+<span class="comment"># 移出所有后台任务</span>
+<span class="variable">$ </span>disown -a
 
-<span class="comment">#coding=utf8</span>
-<span class="keyword">import</span> os, sys
-<span class="keyword">import</span> random
-<span class="keyword">import</span> datetime
-<span class="keyword">from</span> fabric.api <span class="keyword">import</span> *
-<span class="keyword">from</span> fabric.colors <span class="keyword">import</span> red, green, yellow
-<span class="keyword">from</span> fabric.operations <span class="keyword">import</span> *
+<span class="comment"># 不移出后台任务，但是让它们不会收到SIGHUP信号</span>
+<span class="variable">$ </span>disown -h
 
-// 远程主机设置
-env.hosts = [<span class="string">'root@192.168.0.1:22'</span>, <span class="string">'root@192.168.0.1:22'</span>,
-             <span class="string">'root@192.168.0.1:22'</span>]
-// 远程主机设置密码设置
-env.passwords = {
-    <span class="string">'root@192.168.0.1:22'</span>:<span class="string">'123abc'</span>,
-    <span class="string">'root@192.168.0.1:22'</span>:<span class="string">'123abc'</span>,
-    <span class="string">'root@192.168.0.1:22'</span>:<span class="string">'123abc'</span>
-    }
+<span class="comment"># 根据jobId，移出指定的后台任务</span>
+<span class="variable">$ </span>disown <span class="variable">%2</span>
+<span class="variable">$ </span>disown -h <span class="variable">%2</span>
+</code></pre><h2 id="标准I/O">标准I/O</h2><p>使用disown命令之后,还有一个问题.那即是,退出session之后,如果后台进程与标准IO有交互,它还会挂掉.</p>
+<p>还是以上面的脚本为例,下面加上一行:</p>
+<pre><code><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">'http'</span>);
 
-// Test <span class="keyword">for</span> connection
-<span class="function"><span class="keyword">def</span> <span class="title">test</span><span class="params">()</span>:</span>
-    run(<span class="string">'uname -s'</span>)
+http.createServer(<span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>) </span>{
+  <span class="built_in">console</span>.log(<span class="string">'server starts...'</span>); <span class="comment">// 加入此行</span>
+  res.writeHead(<span class="number">200</span>, {<span class="string">'Content-Type'</span>: <span class="string">'text/plain'</span>});
+  res.end(<span class="string">'Hello World'</span>);
+}).listen(<span class="number">5000</span>);
+</code></pre><p>启动上面的脚本,使用disown命令:</p>
+<pre><code><span class="variable">$ </span>node server.js &amp;
+<span class="variable">$ </span>disown
+</code></pre><p>然后退出session范文5000端口,就会发现连不上.</p>
+<p>这是因为后台任务的标准IO集成当前session,disown命令并没有改变这一点.一旦后台任务读写标准IO,就会发现他已经不存在了,就会报错终止执行.</p>
+<p>为了解决这个问题,需要对后台任务的标准IO进行重定向:</p>
+<pre><code>$ node server<span class="class">.js</span> &gt; stdout<span class="class">.txt</span> <span class="number">2</span>&gt; stderr<span class="class">.txt</span> &lt; /dev/null &amp;
+$ disown
+</code></pre><p>上面这样执行基本上就不会有问题了.</p>
+<h2 id="nohup命令">nohup命令</h2><p>还有比disown更方便的命令,就是nohup.</p>
+<pre><code>$ nohup node server<span class="class">.js</span> &amp;
+</code></pre><p>nohup对server.js进程做了三件事:</p>
+<ol>
+<li>阻止sighup信号发到这个进程</li>
+<li>关闭标准输入.该进程不再能够就收任何输入,即使运行在前台.</li>
+<li>重定向标准输入和标准错误到nohup.out文件.</li>
+</ol>
+<p>也即是说,nohup命令实际上将子进程与他所在的session分离了.</p>
+<p>注意,nohup命令不会吧进程变成后台任务,必须加上 &amp; 符号.</p>
+<h2 id="Screen命令与Tmux命令">Screen命令与Tmux命令</h2><p>另一种思路是使用terminal multiplexer(终端复用器:在一个终端中管理多个session),典型的就是screen和tmux命令.</p>
+<p>他们可以在当店session中创建另一个session.这样的话,当前session一旦结束,不影响其他session.而且,以后重新登录还可以连上早先新建的session.</p>
+<p>screen的用法如下:</p>
+<pre><code><span class="comment"># 新建一个 session</span>
+<span class="variable">$ </span>screen
+<span class="variable">$ </span>node server.js
+</code></pre><p>然后,按下 ctrl + A 和 ctrl + D,回到原来的session.下次登录时再切回去.</p>
+<pre><code><span class="variable">$ </span>screen -r
+</code></pre><p>如果新建多个后台session就需要为他们指定名字:</p>
+<pre><code><span class="variable">$ </span>screen -<span class="constant">S</span> name
 
-<span class="function"><span class="keyword">def</span> <span class="title">format_log_file_name_by_time</span><span class="params">()</span>:</span>
-    <span class="comment"># Format log file name by datetime like access_2015031204.log .</span>
-    dt = date_format()
-    file_name = [<span class="string">'access_'</span>, dt, <span class="string">'.log'</span>]
-    file_name = <span class="string">''</span>.join(file_name)
+<span class="comment"># 切回指定 session</span>
+<span class="variable">$ </span>screen -r name
+<span class="variable">$ </span>screen -r pid_number
 
-    <span class="keyword">return</span> file_name
+<span class="comment"># 列出所有 session</span>
+<span class="variable">$ </span>screen -ls
+</code></pre><p>如果要停掉某个session,可以先切回它,然后按下 ctrl + C 和 ctrl + D.</p>
+<p>tmux比screen功能更多更强大,他的基本用法如下:</p>
+<pre><code><span class="variable">$ </span>tmux
+<span class="variable">$ </span>node server.js
 
+<span class="comment"># 返回原来的session</span>
+<span class="variable">$ </span>tmux detach
+</code></pre><p>除了tmux detach,另一种方法是按下 ctrl + B 和 D, 也可以回到原来的session.</p>
+<pre><code><span class="comment"># 下次登录时，返回后台正在运行服务session</span>
+<span class="variable">$ </span>tmux attach
+</code></pre><p>如果先建多个session,同样需要为每个session指定名字:</p>
+<pre><code><span class="preprocessor"># 新建 session</span>
+$ tmux <span class="keyword">new</span> -s session_name
 
-<span class="function"><span class="keyword">def</span> <span class="title">load</span><span class="params">()</span>:</span>
-    remote_log_path = <span class="string">"/nginx/www/logs/log/"</span>
-    remote_log_full_path = <span class="string">''</span>.join(
-        [remote_log_path, format_log_file_name_by_time()])
+<span class="preprocessor"># 切换到指定 session</span>
+$ tmux attach -t session_name
 
-    <span class="comment"># Need change to absolute path equal the script's path.</span>
-    local_path = os.getcwd()
-    local_path = <span class="string">'/'</span>.join([local_path, date_format(<span class="string">'-'</span>)])
-    <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(local_path):
-        os.mkdir(local_path)
+<span class="preprocessor"># 列出所有 session</span>
+$ tmux list-sessions
 
-    local_log_file_name = <span class="string">'.'</span>.join(                                 //随机生成本地文件名
-        [str(int(time.time())) + str(random.randint(<span class="number">1000</span>, <span class="number">9999</span>)), <span class="string">'log'</span>])
-    local_full_path = <span class="string">'/'</span>.join([local_path, local_log_file_name])
+<span class="preprocessor"># 退出当前 session，返回前一个 session </span>
+$ tmux detach
 
-    <span class="keyword">print</span> <span class="string">"%s -&gt; %s ..."</span> % (remote_log_full_path, local_full_path)
-    get(remote_log_full_path, local_full_path)                      //下载文件
+<span class="preprocessor"># 杀死指定 session</span>
+$ tmux kill-session -t session-name
+</code></pre><h2 id="Node工具">Node工具</h2><p>对于Node应用来说,可以不用上面的方法,有一些专门来启动的工具:forever,nodemon,pm2.</p>
+<p>forever功能很简单,就是保证进程退出时,应用会自动启动:</p>
+<pre><code><span class="comment"># 作为前台任务启动</span>
+$ <span class="keyword">forever</span> server.js
 
-<span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:
-    load()
+<span class="comment"># 作为服务进程启动 </span>
+$ <span class="keyword">forever</span> <span class="built_in">start</span> app.js
 
-fab -f LogFileLoad.py load
-</code></pre><p>测试通过后即可通过crontab部署，注意，在crontab时需将脚本中的相对路径全部改为绝对路径。<br>更多使用方法可以参考<a href="http://paperplane.ruhoh.com/fabric/fabric-api/" title="链接" target="_blank" rel="external">链接</a>。</p>
+<span class="comment"># 停止服务进程</span>
+$ <span class="keyword">forever</span> <span class="built_in">stop</span> Id
+
+<span class="comment"># 重启服务进程</span>
+$ <span class="keyword">forever</span> restart Id
+
+<span class="comment"># 监视当前目录的文件变动，一有变动就重启</span>
+$ <span class="keyword">forever</span> -w server.js
+
+<span class="comment"># -m 参数指定最多重启次数</span>
+$ <span class="keyword">forever</span> -m <span class="number">5</span> server.js 
+
+<span class="comment"># 列出所有进程</span>
+$ <span class="keyword">forever</span> list
+</code></pre><p>nodemon一般只在开发时使用,他的长处在于watch功能,一旦文件发生变化就会自动重启进程.</p>
+<pre><code><span class="preprocessor"># 默认监视当前目录的文件变化</span>
+$ nodemon <span class="keyword">server</span>.js
+
+＃ 监视指定文件的变化   
+$ nodemon --watch app --watch libs <span class="keyword">server</span>.js  
+</code></pre><p>pm2的功能最强大,除了重启进程之外还能收集日志和监控:</p>
+<pre><code><span class="comment"># 启动应用</span>
+<span class="variable">$ </span>pm2 start app.js
+
+<span class="comment"># 指定同时起多少个进程（由CPU核心数决定），组成一个集群</span>
+<span class="variable">$ </span>pm2 start app.js -i max
+
+<span class="comment"># 列出所有任务</span>
+<span class="variable">$ </span>pm2 list
+
+<span class="comment"># 停止指定任务</span>
+<span class="variable">$ </span>pm2 stop <span class="number">0</span>
+
+＃ 重启指定任务
+<span class="variable">$ </span>pm2 restart <span class="number">0</span>
+
+<span class="comment"># 删除指定任务</span>
+<span class="variable">$ </span>pm2 delete <span class="number">0</span>
+
+<span class="comment"># 保存当前的所有任务，以后可以恢复</span>
+<span class="variable">$ </span>pm2 save
+
+<span class="comment"># 列出每个进程的统计数据</span>
+<span class="variable">$ </span>pm2 monit
+
+<span class="comment"># 查看所有日志</span>
+<span class="variable">$ </span>pm2 logs
+
+<span class="comment"># 导出数据</span>
+<span class="variable">$ </span>pm2 dump
+
+<span class="comment"># 重启所有进程</span>
+<span class="variable">$ </span>pm2 kill
+<span class="variable">$ </span>pm2 resurect
+
+<span class="comment"># 启动web界面 http://localhost:9615</span>
+<span class="variable">$ </span>pm2 web
+</code></pre><h2 id="Systemd">Systemd</h2><p>除了专用工具外,Linux还有自己的守护进程管理工具Systemd.它是操作系统的一部分,直接与内核交互,性能出色,功能极其强大.</p>
+<p><a href="http://www.ruanyifeng.com/blog/2016/02/linux-daemon.html" title="阮一峰的网络日志" target="_blank" rel="external">来源:阮一峰的网络日志</a></p>
 </span>
       
     </div>
@@ -283,9 +373,7 @@ fab -f LogFileLoad.py load
       
         <div class="post-tags">
           
-            <a href="/tags/fabric/" rel="tag">#fabric</a>
-          
-            <a href="/tags/python/" rel="tag">#python</a>
+            <a href="/tags/Linux/" rel="tag">#Linux</a>
           
         </div>
       
@@ -294,13 +382,11 @@ fab -f LogFileLoad.py load
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/09/29/Simple-Python-How-to-use-Pandas/" rel="prev">Simple Python: How to use Pandas</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/09/29/Reading-List/" rel="next">Reading List</a>
+              <a href="/2016/02/26/Simple-Haskell-Type-System/" rel="next">Simple Haskell: Type System</a>
             
           </div>
         </div>
@@ -404,7 +490,7 @@ fab -f LogFileLoad.py load
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Fabric"><span class="nav-number">1.</span> <span class="nav-text">安装Fabric</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#命令"><span class="nav-number">2.</span> <span class="nav-text">命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Example"><span class="nav-number">3.</span> <span class="nav-text">Example</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#前台任务与后台任务"><span class="nav-number">1.</span> <span class="nav-text">前台任务与后台任务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sighup信号"><span class="nav-number">2.</span> <span class="nav-text">Sighup信号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#disown命令"><span class="nav-number">3.</span> <span class="nav-text">disown命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#标准I/O"><span class="nav-number">4.</span> <span class="nav-text">标准I/O</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nohup命令"><span class="nav-number">5.</span> <span class="nav-text">nohup命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Screen命令与Tmux命令"><span class="nav-number">6.</span> <span class="nav-text">Screen命令与Tmux命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Node工具"><span class="nav-number">7.</span> <span class="nav-text">Node工具</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Systemd"><span class="nav-number">8.</span> <span class="nav-text">Systemd</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
