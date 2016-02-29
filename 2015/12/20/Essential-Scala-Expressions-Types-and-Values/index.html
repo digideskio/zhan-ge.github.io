@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="Essential Scala:Expressions, Types, and Values.">
+<meta name="description" content="类型和值">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Essential Scala: Expressions, Types, and Values">
 <meta property="og:url" content="http://yoursite.com/2015/12/20/Essential-Scala-Expressions-Types-and-Values/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Essential Scala:Expressions, Types, and Values.">
-<meta property="og:updated_time" content="2016-01-22T04:35:57.000Z">
+<meta property="og:description" content="类型和值">
+<meta property="og:updated_time" content="2016-02-29T09:49:44.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Essential Scala: Expressions, Types, and Values">
-<meta name="twitter:description" content="Essential Scala:Expressions, Types, and Values.">
+<meta name="twitter:description" content="类型和值">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -196,7 +196,97 @@
 <h2 id="Objects">Objects</h2><p>一个对象是一组数据和对数据的操作.比如2是一个对象,数据是整数2,操作是一些类似=-等等.这些操作被称为method,而数据作为field.</p>
 <h2 id="方法调用">方法调用</h2><p>我们通过方法调用来影响对象,同时有些方法会接收一些参数来控制方法的执行.</p>
 <h2 id="Operators">Operators</h2><p>因为Scala中的所有值都是对象,我们可以在一些原始类型上比如Int或Boolean上调用方法.与Java的差别就是Java中这些值并非对象.<br>作为对象,这些类似 + 或 - 的的操作同样也属于method.</p>
-<h2 id="Literal_Objects">Literal Objects</h2></span>
+<h2 id="Literal_Objects">Literal Objects</h2><p>Numbers,Booleans,Chracters,Strings</p>
+<p>Null: null在Java代码中经常用到,但是在Scala被认为是不好的代码实践. null值不能被编译器检查,而容易才运行时抛出NullPointerExceptions异常.</p>
+<p>Unit: 写作 (), 是java中void的scala实现.</p>
+<h2 id="Object_Literals">Object Literals</h2><pre><code><span class="class"><span class="keyword">object</span> <span class="title">Test</span> {</span>}
+</code></pre><p>使用声明创建一个空对象.声明不同于表达式,表达式是进行求值,而声明是将一个值绑定到一个变量名.</p>
+<h3 id="Methods">Methods</h3><pre><code>object Test2 {
+  <span class="function"><span class="keyword">def</span> <span class="title">name</span>:</span> String = <span class="string">"Probably the best object ever"</span>
+}
+</code></pre><p>声明一个方法.</p>
+<p>方法声明语法:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">name</span><span class="params">(parameter: type, ...)</span>:</span> resultType = bodyExpression
+</code></pre><p>或:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">name</span>:</span> resultType = bodyExpression
+</code></pre><ol>
+<li>name是方法名</li>
+<li>可选的parameters是传递给方法的参数名</li>
+<li>type是方法参数的类型</li>
+<li>resultType是方法返回结果的类型</li>
+<li>bodyExpression是该方法的求值过程表达式</li>
+</ol>
+<h3 id="Fields">Fields</h3><p>一个Object同样可以包含其他对象,称为字段.</p>
+<p>字段声明语法:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">name</span>:</span> <span class="class"><span class="keyword">type</span> =</span> valueExpression
+</code></pre><p>或:</p>
+<pre><code><span class="keyword">var</span> name: <span class="class"><span class="keyword">type</span> =</span> valueExpression
+</code></pre><ol>
+<li>name是字段名</li>
+<li>可选的type用于声明字段的类型</li>
+<li>valueExpression是求值表达式,将值绑定到字段名</li>
+</ol>
+<p>val类型的值为immutable,不可修改,var是mutable,可以进行修改.尽量用val而不是var,避免可变性.</p>
+<h3 id="Methods_versus_fields">Methods versus fields</h3><p>方法与字段的区别: 字段是讲一个值绑定到变量名,方法是将一个产生值得”计算”绑定到变量名.</p>
+<pre><code><span class="class"><span class="keyword">object</span> <span class="title">Test7</span> {</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">simpleField</span> =</span> {
+        println(<span class="string">"Evaluating simpleField"</span>)
+        <span class="number">42</span>
+    }
+    <span class="function"><span class="keyword">def</span> <span class="title">noParameterMethod</span> =</span> {
+        println(<span class="string">"Evaluating noParameterMethod"</span>)
+        <span class="number">42</span>
+    } 
+}
+</code></pre><p>运行:</p>
+<pre><code>Test7
+<span class="comment">// Evaluating simpleField</span>
+<span class="comment">// res: Test7.type = Test7$@b22e8c9</span>
+</code></pre><p>当Object第一次被加载的时候,Scala会通过字段的定义对字段进行求值,并且只进行一次计算后存储到Object,后续再次进行调用时不会再次进行求值:</p>
+<pre><code>Test7<span class="class">.simpleField</span> <span class="comment">// res: Int = 42</span>
+Test7<span class="class">.simpleField</span> <span class="comment">// res: Int = 42</span>
+</code></pre><p>多次调用,仅返回第一次求得的值而不会再打印求值过程中出现的”Evaluating simpleField”.</p>
+<p>但是method中的语句会在我们每次调用时都进行求值:</p>
+<pre><code>Test7<span class="class">.noParameterMethod</span>
+<span class="comment">// Evaluating noParameterMethod </span>
+<span class="comment">// res: Int = 42</span>
+Test7<span class="class">.noParameterMethod</span>
+<span class="comment">// Evaluating noParameterMethod </span>
+<span class="comment">// res: Int = 42</span>
+</code></pre><h2 id="Writing_Methods">Writing Methods</h2><ol>
+<li>定义输入和输出(类型)</li>
+<li>准备测试用例</li>
+<li>编写声明语句</li>
+<li>编译运行进行检查</li>
+<li>编写主体</li>
+<li>再次编译运行检查</li>
+</ol>
+<h2 id="条件语句">条件语句</h2><pre><code><span class="function"><span class="title">if</span><span class="params">(<span class="number">1</span> &lt; <span class="number">2</span>)</span></span> <span class="string">"Yes"</span> <span class="keyword">else</span> <span class="string">"No"</span>
+<span class="comment">// res: String = Yes</span>
+
+<span class="function"><span class="title">if</span><span class="params">(<span class="number">1</span> &lt; <span class="number">2</span>)</span></span> <span class="function"><span class="title">println</span><span class="params">(<span class="string">"Yes"</span>)</span></span> <span class="keyword">else</span> <span class="function"><span class="title">println</span><span class="params">(<span class="string">"No"</span>)</span></span>
+<span class="comment">// Yes</span>
+</code></pre><p>条件语句声明格式:</p>
+<pre><code><span class="keyword">if</span> (condition) 
+  <span class="literal">true</span>Expression
+<span class="keyword">else</span>
+  <span class="literal">false</span>Expression
+</code></pre><ol>
+<li>condition是一个Boolean类型的表达式</li>
+<li>如果condition为True,计算trueExpression表达式</li>
+<li>如果condition为False,计算falseExpression表达式</li>
+</ol>
+<h2 id="Blocks">Blocks</h2><p>Block把多个计算表达式组合在一起.由多个表达式构成,由分号或换行分割并由大括号包围.</p>
+<p>块表达式声明语法:</p>
+<pre><code><span class="collection">{
+   declarationOrExpression ...
+   expression
+}</span>
+</code></pre><ol>
+<li>可选的声明或表达式</li>
+<li>表达式,并且该表达式的类型与块类型一致</li>
+</ol>
+</span>
       
     </div>
 
@@ -281,7 +371,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-count">59</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -295,7 +385,7 @@
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">27</span>
+              <span class="site-state-item-count">28</span>
               <span class="site-state-item-name">标签</span>
               </a>
           </div>
@@ -323,7 +413,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一个程序"><span class="nav-number">2.</span> <span class="nav-text">第一个程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Compile-time_and_Run-time"><span class="nav-number">3.</span> <span class="nav-text">Compile-time and Run-time</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Expressions,_Types,_and_Values"><span class="nav-number">4.</span> <span class="nav-text">Expressions, Types, and Values</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Objects"><span class="nav-number">5.</span> <span class="nav-text">Objects</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法调用"><span class="nav-number">6.</span> <span class="nav-text">方法调用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Operators"><span class="nav-number">7.</span> <span class="nav-text">Operators</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Literal_Objects"><span class="nav-number">8.</span> <span class="nav-text">Literal Objects</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一个程序"><span class="nav-number">2.</span> <span class="nav-text">第一个程序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Compile-time_and_Run-time"><span class="nav-number">3.</span> <span class="nav-text">Compile-time and Run-time</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Expressions,_Types,_and_Values"><span class="nav-number">4.</span> <span class="nav-text">Expressions, Types, and Values</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Objects"><span class="nav-number">5.</span> <span class="nav-text">Objects</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#方法调用"><span class="nav-number">6.</span> <span class="nav-text">方法调用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Operators"><span class="nav-number">7.</span> <span class="nav-text">Operators</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Literal_Objects"><span class="nav-number">8.</span> <span class="nav-text">Literal Objects</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Object_Literals"><span class="nav-number">9.</span> <span class="nav-text">Object Literals</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Methods"><span class="nav-number">9.1.</span> <span class="nav-text">Methods</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fields"><span class="nav-number">9.2.</span> <span class="nav-text">Fields</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Methods_versus_fields"><span class="nav-number">9.3.</span> <span class="nav-text">Methods versus fields</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Writing_Methods"><span class="nav-number">10.</span> <span class="nav-text">Writing Methods</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#条件语句"><span class="nav-number">11.</span> <span class="nav-text">条件语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Blocks"><span class="nav-number">12.</span> <span class="nav-text">Blocks</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

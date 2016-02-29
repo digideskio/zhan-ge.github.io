@@ -1,0 +1,630 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Architecture," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="社交产品的后台架构">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Architecting Backend For Social Product">
+<meta property="og:url" content="http://yoursite.com/2016/02/29/Architecting-Backend-For-Social-Product/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="社交产品的后台架构">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Architecting_Backend_For_Social_Product.jpg">
+<meta property="og:updated_time" content="2016-02-29T08:35:19.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Architecting Backend For Social Product">
+<meta name="twitter:description" content="社交产品的后台架构">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Architecting Backend For Social Product | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Architecting Backend For Social Product
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-02-29T14:03:02+08:00" content="2016-02-29">
+            2016-02-29
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="Goals">Goals</h2><ol>
+<li>确保用户的内容总是很容易被发现的</li>
+<li>确保推送的内容是相关的,不仅是在语义上,而且还从用户设备的角度来看</li>
+<li>确保实时更新,推送,分析</li>
+<li>尽可能节省用户资源</li>
+<li>无论服务器负载,用户体验应保持不变</li>
+<li>确保整体应用安全</li>
+</ol>
+<p>总的来说,我们要解决一个巨大的挑战,我们要面对巨大海量并且实时增长的用户内容,越来越多的用户,永不间断的内容流,同时确保出色的性能.我们必须学习一些关键的架构元素,这将影响到系统设计.一下是一些关键的决定和分析.</p>
+<h2 id="Data_Storage">Data Storage</h2><p>数据存储和数据模型是一个关键决定.一个社交产品可以处理多种类型的数据,因此它是至关重要的,在我们分析理解数据之前,要为每种类型的数据选择一个模型和存储.</p>
+<p>第一步是要确定哪些是最经常查询的数据,或者哪些不是经常要查询的数据(归档数据分析).对于高频率使用的数据必须是支持高可用的,同时支持高速读写和横向扩展.现在我们的实例都在使用MySQL,即使我们的用例并没有要求我们必须使用关系型数据库.随着数据的增长,读写将成为应用程序的性能瓶颈.我们应该为每秒数十亿的查询准备好.</p>
+<p>现在把数据进行分类:</p>
+<ol>
+<li>元数据,静态数据,比如用户配置文件</li>
+<li>语义数据</li>
+<li>用户生成的内容</li>
+<li>session数据</li>
+</ol>
+<p>我们很难找到一个存储支持这么多种类型的数据并提供很好的性能.因此我们需要为每种不同的数据类型找到合适的存储.</p>
+<h3 id="Static_Data">Static Data</h3><p>对于静态数据来说我们最好是选择基于文档的数据库,并且同时支持基于 键/值 的查询.可以选择基于文档的数据库比如MongoDB,其最大优势提供了文档级别的ACID.</p>
+<p>它可以在多个分布式数据中心的范围内进行缩放,支持我们使用副本以保持很好的冗余,从而解决可用性问题.</p>
+<p>分片是一个重要的考虑因素,是保证规模和速度的重要成分.</p>
+<h3 id="Connected_or_Relational_Data_(Core_Data)">Connected or Relational Data (Core Data)</h3><p>我们数据的主要部分将会自然连接.比如,A是B的朋友,C同时是A和B的朋友,这种高度语义的数据最适合被建模为 图.我们应该把这样的数据存储在类似Neo4j的图数据库.优势明显:它允许我们存储节点之间的关系与节点本身,从而省略了计算节点间连接关系的额外步骤.图数据库模型有助于我们捕捉到各属性的关系.当试图搜索相互连接的数据时,属性丰富的关系则成为绝对的关键.GraphDB支持ACID自动索引.</p>
+<p>同时还要支持同样的可用性和扩展性.我们可以有成百上千的交易,同时成百上千的读取和写入.它的规模应该能够处理十亿每秒的数据集读取.</p>
+<p>我们需要一个支持读写动态缩放的系统.需要考虑的其他因素是分片,这是我们系统的临界模型.</p>
+<p>Neo4j已经设计了横向扩展和复制功能以保证高可用.但现在仍然不支持分片,我们需要更多的分析,然后选择一个最合适的.类似的可选图数据库还有FlockDB,AllegroGraph,InfiniteGraph.</p>
+<h3 id="Binary_data_(UGC)">Binary data (UGC)</h3><p>我们也需要处理大量与用户相关的二进制数据.但处理二进制数据时很难考虑他们打大小.向上面讨论的,我们的系统需要一个很高的吞吐量,选择存储时规模和可用性是非常关键的因素.我们不能依靠本地的文件系统来存储二进制数据.必须要考虑可用性和可扩展性.比如亚马逊的S3,这是保证可用性非常流行的弹性对象存储.</p>
+<p>我们还可以考虑谷歌的云存储和云文件托管,但S3在这里的优势很明显.S3已经支持数据分区,并需要注意的是,我们存储的数据都需要一个标识,以便他可以在其他地方进行索引.</p>
+<h2 id="Session_Data">Session Data</h2><p>认识和理解我们要考虑会话数据的原因是非常重要的.会话数据将帮助我们保持用户状态.我们需要一种新的方式来更新用户的实际会话,如果用户的会话终止,我们仍然可以帮助用户从他上次断开的地方开始.</p>
+<p>考虑纯粹的键值存储Redis.所有的推荐和离线作业都应有只运行在非服务节点上.</p>
+<h2 id="Indexing">Indexing</h2><p>索引使我们系统的关键.用户可以搜索任何内容,这是我们的主要用例之一.为了保证搜索性能,必须非常认真的对待索引.</p>
+<p>做一个有意义的搜索系统必须设计一个实时指标. 考虑 Apache Storm 和 Apache Solr.</p>
+<h2 id="Queuing_&amp;_Push_Notifications">Queuing &amp; Push Notifications</h2><p>每次一个事件在我们的应用中被触发时,我们就需要向他的追随者/朋友等等发送各种形式的通知.重要的是,我们的系统不能错过任何这些信号,并且能够在发生故障后恢复这些事件.为了达到这种效果,我们必须找到一个队列解决方案.考虑ActiveMQ.</p>
+<h2 id="Caching_Strategy">Caching Strategy</h2><p>我们的系统目标是十亿RPS,智能缓存是最重要的.我们的设计需要多个层的逻辑缓存和智能淘汰.</p>
+<h3 id="Application_Level_Caching_(Content_Cache)">Application Level Caching (Content Cache)</h3><p>为了最大限度的减少缓存未命中,确保缓存始终是最新的的可用数据,我们必须寻找一个从未过期的缓存,并始终保持.这基本上意味着在我们一般使用的情况下,将永远不需要查询数据库,因此节省大量资源.我们还应该保证我们的缓存数据总是以一种不需要任何消息的格式,并且应该准备好呈现.这基本上意味着我们将在线负载转换为离线负载,从而节省了延迟.</p>
+<p>要做到这些,我们必须保证每次数据被摄入系统,我们需要做的:</p>
+<ol>
+<li>原内容不在服务状态做任何规范化处理,然后存储到缓存,设置足够的过期时间</li>
+<li>原内容同时存储到数据库</li>
+</ol>
+<p>我们完全可以依赖Redis作为缓存,它是一种具有良好的故障恢复的内存缓存.</p>
+<h3 id="Proxy_Cache">Proxy Cache</h3><p>在反向代理级别进行缓存也很重要.它有助于减少一些负载到我们的服务器,从而保持延迟.</p>
+<h3 id="Second_Level_Cache_(Code_Level_Caching)">Second Level Cache (Code Level Caching)</h3><h3 id="Client_Cache">Client Cache</h3><h2 id="Content_Compressions">Content Compressions</h2><p>使用gzip.</p>
+<h2 id="Content_Transcoding">Content Transcoding</h2><h2 id="Transport_Protocols">Transport Protocols</h2><h2 id="Security">Security</h2><h2 id="Components">Components</h2><ol>
+<li>Load Balancer</li>
+<li>Proxy Server</li>
+<li>Ingestion Engine</li>
+<li>REST Server</li>
+<li>Event Processor</li>
+<li>Recommendation Engine</li>
+</ol>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Architecting_Backend_For_Social_Product.jpg" alt="Components" title="Components"></p>
+<p><a href="http://highscalability.com/blog/2015/7/22/architecting-backend-for-a-social-product.html" title="Architecting Backend For Social Product" target="_blank" rel="external">Origin: Architecting Backend For Social Product</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Architecture/" rel="tag">#Architecture</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/29/Essential-Scala-Objects-and-Classes/" rel="prev">Essential Scala: Objects and Classes</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/29/Strategic-Scala-Style-Principle-of-Least-Power/" rel="next">Strategic Scala Style: Principle of Least Power</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">59</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Goals"><span class="nav-number">1.</span> <span class="nav-text">Goals</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Data_Storage"><span class="nav-number">2.</span> <span class="nav-text">Data Storage</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Static_Data"><span class="nav-number">2.1.</span> <span class="nav-text">Static Data</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Connected_or_Relational_Data_(Core_Data)"><span class="nav-number">2.2.</span> <span class="nav-text">Connected or Relational Data (Core Data)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Binary_data_(UGC)"><span class="nav-number">2.3.</span> <span class="nav-text">Binary data (UGC)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Session_Data"><span class="nav-number">3.</span> <span class="nav-text">Session Data</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Indexing"><span class="nav-number">4.</span> <span class="nav-text">Indexing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Queuing_&_Push_Notifications"><span class="nav-number">5.</span> <span class="nav-text">Queuing & Push Notifications</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Caching_Strategy"><span class="nav-number">6.</span> <span class="nav-text">Caching Strategy</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Application_Level_Caching_(Content_Cache)"><span class="nav-number">6.1.</span> <span class="nav-text">Application Level Caching (Content Cache)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Proxy_Cache"><span class="nav-number">6.2.</span> <span class="nav-text">Proxy Cache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Second_Level_Cache_(Code_Level_Caching)"><span class="nav-number">6.3.</span> <span class="nav-text">Second Level Cache (Code Level Caching)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Client_Cache"><span class="nav-number">6.4.</span> <span class="nav-text">Client Cache</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Content_Compressions"><span class="nav-number">7.</span> <span class="nav-text">Content Compressions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Content_Transcoding"><span class="nav-number">8.</span> <span class="nav-text">Content Transcoding</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Transport_Protocols"><span class="nav-number">9.</span> <span class="nav-text">Transport Protocols</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Security"><span class="nav-number">10.</span> <span class="nav-text">Security</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Components"><span class="nav-number">11.</span> <span class="nav-text">Components</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
