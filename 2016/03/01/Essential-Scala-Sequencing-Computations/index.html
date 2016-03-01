@@ -1,0 +1,832 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="序列计算">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Essential Scala: Sequencing Computations">
+<meta property="og:url" content="http://yoursite.com/2016/03/01/Essential-Scala-Sequencing-Computations/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="序列计算">
+<meta property="og:updated_time" content="2016-03-01T14:42:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Essential Scala: Sequencing Computations">
+<meta name="twitter:description" content="序列计算">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Essential Scala: Sequencing Computations | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Essential Scala: Sequencing Computations
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-01T12:24:05+08:00" content="2016-03-01">
+            2016-03-01
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>这节将会学习两个新的语言特性: generics和functions. 和用这些特性创建的两个抽象: functors和monads.</p>
+<pre><code><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">IntList</span> {</span> 
+    <span class="function"><span class="keyword">def</span> <span class="title">length</span>:</span> <span class="type">Int</span> = <span class="keyword">this</span> <span class="keyword">match</span> {
+        <span class="keyword">case</span> <span class="type">End</span> =&gt; <span class="number">0</span>
+        <span class="keyword">case</span> <span class="type">Pair</span>(hd, tl) =&gt; <span class="number">1</span> + tl.length
+    }
+    <span class="function"><span class="keyword">def</span> <span class="title">double</span>:</span> <span class="type">IntList</span> = <span class="keyword">this</span> <span class="keyword">match</span> {
+        <span class="keyword">case</span> <span class="type">End</span> =&gt; <span class="type">End</span>
+        <span class="keyword">case</span> <span class="type">Pair</span>(hd, tl) =&gt; <span class="type">Pair</span>(hd * <span class="number">2</span>, tl.double)
+    }
+    <span class="function"><span class="keyword">def</span> <span class="title">product</span>:</span> <span class="type">Int</span> = <span class="keyword">this</span> <span class="keyword">match</span> {
+        <span class="keyword">case</span> <span class="type">End</span> =&gt; <span class="number">1</span>
+        <span class="keyword">case</span> <span class="type">Pair</span>(hd, tl) =&gt; hd * tl.product
+    }
+    <span class="function"><span class="keyword">def</span> <span class="title">sum</span>:</span> <span class="type">Int</span> = <span class="keyword">this</span> <span class="keyword">match</span> {
+        <span class="keyword">case</span> <span class="type">End</span> =&gt; <span class="number">0</span>
+        <span class="keyword">case</span> <span class="type">Pair</span>(hd, tl) =&gt; hd + tl.sum
+    } 
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">End</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">IntList</span>
+</span><span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Pair</span>(</span>head: <span class="type">Int</span>, tail: <span class="type">IntList</span>) <span class="keyword">extends</span> <span class="type">IntList</span>
+</code></pre><p>这些代码有两个问题,首先是我们的列表限制只能存储Int,第二是里面有很多重复.</p>
+<h2 id="Generics_泛型">Generics 泛型</h2><p>泛型类型允许我们基于类型进行抽象.</p>
+<h3 id="Pandora’s_Box">Pandora’s Box</h3><p>我们创建一个集合,只存储单个的值.我们并不关心box中存储的值的类型,但是当我们把值取出时能够确认类型.</p>
+<pre><code>final case class Box[A](value: A) 
+
+<span class="function"><span class="title">Box</span><span class="params">(<span class="number">2</span>)</span></span>
+<span class="comment">// res0: Box[Int] = Box(2)</span>
+
+res0<span class="class">.value</span>
+<span class="comment">// res1: Int = 2</span>
+
+<span class="function"><span class="title">Box</span><span class="params">(<span class="string">"hi"</span>)</span></span> <span class="comment">// 当我们省略参数类型时,Scala会进行自动推断</span>
+<span class="comment">// res2: Box[String] = Box(hi)</span>
+
+res2<span class="class">.value</span>
+<span class="comment">// res3: String = hi</span>
+</code></pre><p>语法 [A] 表示类型参数,我们同样给你给方法添加这样的类型参数:</p>
+<pre><code>def generic[<span class="link_label">A</span>](<span class="link_url">in: A</span>): A = in 
+
+generic[<span class="link_label">String</span>](<span class="link_url">"foo"</span>)
+// res: String = foo
+
+generic(1) // 同样,当我们省略参数类型时,Scala会进行自动推断
+// res: Int = 1
+</code></pre><p>类型参数和方法参数的工作原理类似.当我们调用方法时,我们在方法调用中将值和方法参数名绑定在一起.</p>
+<p>当我们使用类型参数调用一个方法或构造一个类时,类型参数绑定到方法体或class的具体类型.因此,当我们调用generic(1)时,类型参数A已经在generic体内绑定到Int.</p>
+<p>类型参数语法:</p>
+<pre><code>// 我们使用由类型名构造的列表来声明泛型类型,通常使用一个大写字母来代表一个泛型类型
+
+// 泛型类型同样可以用于声明class或trait,并且在整个声明中可见
+case class Name[<span class="link_label">A</span>](<span class="link_url">...</span>){ ... } 
+trait Name[A]{ ... }
+
+// 同样用于方法声明,仅方法内部可见
+def name[<span class="link_label">A</span>](<span class="link_url">...</span>){ ... }
+</code></pre><h3 id="泛型代数数据类型">泛型代数数据类型</h3><pre><code><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">Calculation</span>
+</span><span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Success</span>(</span>result: <span class="type">Double</span>) <span class="keyword">extends</span> <span class="type">Calculation</span> 
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Failure</span>(</span>reason: <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">Calculation</span>
+</code></pre><p>我们要将以上代码泛型化,以便返回的结果不仅只有Double和String.</p>
+<p>一个 A 类型的 Result要么是一个 A 类型的Success,要么是一个带有String类型原因的Failure:</p>
+<pre><code>sealed trait Result[A]
+case class Success[<span class="link_label">A</span>](<span class="link_url">result: A</span>) extends Result[A]
+case class Failure[<span class="link_label">A</span>](<span class="link_url">reason: String</span>) extends Result[A]
+</code></pre><p>注意,Success和Failure在继承Result时都提供的泛型类型参数A,Success中有一个A类型的参数result,而Failure中只是向Result进行了泛型类型参数声明.</p>
+<p>Invariant Generic Sum Type Pattern 用法:</p>
+<pre><code>sealed trait A[T]
+final case class B[<span class="link_label">T</span>](<span class="link_url"></span>) extends A[T] 
+final case class C[<span class="link_label">T</span>](<span class="link_url"></span>) extends A[T]
+</code></pre><h2 id="Functions">Functions</h2><p>Functions支持我们对方法进行抽象,将方法转换成值然后在程序中进行传递.</p>
+<pre><code>sealed trait IntList { 
+    <span class="function"><span class="keyword">def</span> <span class="title">length</span>:</span> Int = this match {
+        case End =&gt; <span class="number">0</span>
+        case Pair(hd, tl) =&gt; <span class="number">1</span> + tl.length
+    }
+    <span class="function"><span class="keyword">def</span> <span class="title">double</span>:</span> IntList = this match {
+        case End =&gt; End
+        case Pair(hd, tl) =&gt; Pair(hd * <span class="number">2</span>, tl.double)
+    }
+    <span class="function"><span class="keyword">def</span> <span class="title">product</span>:</span> Int = this match {
+        case End =&gt; <span class="number">1</span>
+        case Pair(hd, tl) =&gt; hd * tl.product 
+    }
+    <span class="function"><span class="keyword">def</span> <span class="title">sum</span>:</span> Int = this match {
+        case End =&gt; <span class="number">0</span>
+        case Pair(hd, tl) =&gt; hd + tl.sum 
+    }
+}
+</code></pre><p>所有这些方法都有同样的生成模式,如果能够去掉重复的部分将会很nice.</p>
+<p>我们把注意力放到返回值类型为Int的方法上:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">abstraction</span><span class="params">(end: Int, f: ???)</span>:</span> Int = this match {
+    case End =&gt; end
+    case Pair(hd, tl) =&gt; f(hd, tl.abstraction(f, end)) 
+}
+</code></pre><p>方法与函数类似:传入参数然后计算出一个结果值.但不同的是,函数本身就是一个值,我们可以将函数传给一个方法或另一个函数,或者从方法中返回一个函数.</p>
+<h3 id="函数类型">函数类型</h3><p>表达式 (A, B) =&gt; C 表示A和B是参数类型,C为返回值类型.在上面的例子中,我们希望函数 f 接收两个Int类型的参数然后返回一个Int,就可以写作 (Int, Int) =&gt; Int .</p>
+<p>函数类型声明语法:</p>
+<pre><code><span class="comment">(A, B, ...)</span> =&gt; C
+</code></pre><ol>
+<li>A和B分别是函数的参数类型</li>
+<li>C是函数的返回值类型</li>
+</ol>
+<p>如果该函数只有一个参数时,则可以写成:</p>
+<pre><code><span class="literal">A</span> =&gt; C
+</code></pre><h3 id="函数字面值">函数字面值</h3><p>Scala同样提供了特定的函数字面值语法以创建新的函数.</p>
+<pre><code>val sayHi = <span class="function"><span class="params">()</span> =&gt;</span> <span class="string">"Hi!"</span>
+<span class="regexp">//</span> <span class="attribute">sayHi</span>: <span class="function"><span class="params">()</span> =&gt;</span> String = &lt;function0&gt;
+sayHi()
+<span class="regexp">//</span> <span class="attribute">res</span>: String = Hi!
+val add1 = <span class="function"><span class="params">(x: Int)</span> =&gt;</span> x + <span class="number">1</span>
+// <span class="attribute">add1</span>: Int =&gt; Int = &lt;function1&gt;
+add1(<span class="number">10</span>)
+<span class="regexp">//</span> <span class="attribute">res</span>: Int = <span class="number">11</span>
+val sum = <span class="function"><span class="params">(x: Int, y:Int)</span> =&gt;</span> x + y
+<span class="regexp">//</span> <span class="attribute">sum</span>: <span class="function"><span class="params">(Int, Int)</span> =&gt;</span> Int = &lt;function2&gt;
+sum(<span class="number">10</span>, <span class="number">20</span>)
+<span class="regexp">//</span> <span class="attribute">res</span>: Int = <span class="number">30</span>
+</code></pre><p>我们一般会省略类型注释,让Scala自己进行推断,但如果需要的话也可以添加上:</p>
+<pre><code>(x: <span class="keyword">Int</span>) =&gt; (x + <span class="number">1</span>): <span class="keyword">Int</span>
+</code></pre><p>函数字面值声明语法:</p>
+<pre><code>(parameter: <span class="typedef"><span class="keyword">type</span>, ...) =&gt; expression</span>
+</code></pre><ol>
+<li>可选的parameter即需要传递给函数的参数名</li>
+<li>typy即参数的类型</li>
+<li>expression即函数的计算过程</li>
+</ol>
+<h2 id="Generic_Folds_for_Generic_Data">Generic Folds for Generic Data</h2><h3 id="Fold">Fold</h3><p>首先定义一个泛型列表,上面的例子中只能包含Int类型数据:</p>
+<pre><code>sealed trait LinkedList[A]
+final case class Pair[<span class="link_label">A</span>](<span class="link_url">head: A, tail: LinkedList[A]</span>) extends LinkedList[A] 
+final case class End[<span class="link_label">A</span>](<span class="link_url"></span>) extends LinkedList[A]
+</code></pre><p>Int行列表版本的fold方法为:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">fold</span>[<span class="title">A</span>]<span class="params">(end: A, f: <span class="params">(Int, A)</span> =&gt; A)</span>:</span> A = this match {
+    case End =&gt; end
+    case Pair(hd, tl) =&gt; f(hd, tl.fold(end, f)) 
+}
+</code></pre><p>实现泛型版本的fold:</p>
+<pre><code>sealed trait LinkedList[A] {
+<span class="code">    def fold[B](end: B, f: (A, B) =&gt; B): B = this match {</span>
+<span class="code">        case End() =&gt; end</span>
+<span class="code">        case Pair(hd, tl) =&gt; f(hd, tl.fold(end, f))</span>
+<span class="code">    } </span>
+}
+final case class Pair[<span class="link_label">A</span>](<span class="link_url">head: A, tail: LinkedList[A]</span>) extends LinkedList[A] 
+final case class End[<span class="link_label">A</span>](<span class="link_url"></span>) extends LinkedList[A]
+</code></pre><h3 id="Working_With_Functions">Working With Functions</h3><p>我们可以使用多种窍门编写函数:</p>
+<ol>
+<li>通过紧凑语法编写函数</li>
+<li>将方法转换为函数</li>
+<li>高阶函数</li>
+</ol>
+<p>比较简单的情况下使用占位符语法:</p>
+<pre><code>((_: <span class="built_in">Int</span>) * <span class="number">2</span>)
+// res: <span class="built_in">Int</span> =&gt; <span class="built_in">Int</span> = &lt;function1&gt;
+</code></pre><p>表达式 ((_: Int) <em> 2) 会被编译器解释为 (a: Int) =&gt; a </em> 2, 在编译器能够正确推断类型时使用占位符语法则比较符合语言习惯:</p>
+<pre><code>_ + _       <span class="comment">// expands to `(a, b) =&gt; a + b` </span>
+<span class="function"><span class="title">foo</span><span class="params">(_)</span></span>      <span class="comment">// expands to `(a) =&gt; foo(a)` </span>
+<span class="function"><span class="title">foo</span><span class="params">(_, b)</span></span>   <span class="comment">// expands to `(a) =&gt; foo(a, b)` </span>
+_(foo)      <span class="comment">// expands to `(a) =&gt; a(foo)`</span>
+<span class="comment">// and so on...</span>
+</code></pre><p>仅被推荐用作比较小的函数.</p>
+<p>同样可以将一个方法装换为一个函数,跟占位符语法比较相似的一点是使用一个下划线跟在方法调用后面:</p>
+<pre><code><span class="keyword">object</span> <span class="type">Sum</span> {
+    def sum(x: <span class="type">Int</span>, y: <span class="type">Int</span>) = x + y
+}
+
+// 调用方法二不传入参数
+<span class="type">Sum</span>.sum
+// &lt;console&gt;:<span class="number">9</span>: error: missing arguments <span class="keyword">for</span> <span class="keyword">method</span> sum <span class="keyword">in</span> <span class="keyword">object</span> <span class="type">Sum</span>;
+// follow this <span class="keyword">method</span> <span class="keyword">with</span> `_' <span class="keyword">if</span> you want to treat it <span class="keyword">as</span> a partially applied function // <span class="type">Sum</span>.sum
+//
+
+(<span class="type">Sum</span>.sum _)
+// res: (<span class="type">Int</span>, <span class="type">Int</span>) =&gt; <span class="type">Int</span> = &lt;function2&gt;
+</code></pre><p>有些场景Scala能够推断我们需要一个函数,这时甚至可以省略掉下划线,Scala会自动将方法转换为函数:</p>
+<pre><code><span class="class"><span class="keyword">object</span> <span class="title">MathStuff</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">add1</span>(</span>num: <span class="type">Int</span>) = num + <span class="number">1</span>
+}
+<span class="type">Counter</span>(<span class="number">2</span>).adjust(<span class="type">MathStuff</span>.add1) 
+<span class="comment">// res: Counter = Counter(3)</span>
+</code></pre><p>方法能够同时拥有多个参数列表,只需要将参数列表使用小括号进行分割即可:</p>
+<pre><code>def <span class="function"><span class="title">example</span><span class="params">(x: Int)</span><span class="params">(y: Int)</span></span> = x + y 
+<span class="comment">// example: (x: Int)(y: Int)Int</span>
+<span class="function"><span class="title">example</span><span class="params">(<span class="number">1</span>)</span><span class="params">(<span class="number">2</span>)</span></span> <span class="comment">// res: Int = 3</span>
+</code></pre><p>使用这种方式重写fold方法将更具可读性:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">fold</span>[<span class="title">B</span>]<span class="params">(end: B)</span><span class="params">(pair: <span class="params">(A, B)</span> =&gt; B)</span>:</span> B = this match {
+    case End() =&gt; end
+    case Pair(hd, tl) =&gt; pair(hd, tl.fold(end, pair)) 
+}
+
+fold(<span class="number">0</span>){ (total, elt) =&gt; total + elt }
+
+//之前的调用方式
+fold(<span class="number">0</span>, (total, elt) =&gt; total + elt)
+</code></pre><h2 id="Modelling_Data_with_Generic_Types">Modelling Data with Generic Types</h2><p>比如一个方法要返回两种类型:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">intAndString</span></span><span class="symbol">:</span> ??? = <span class="regexp">//</span> ...
+<span class="function"><span class="keyword">def</span> <span class="title">booleanAndDouble</span></span><span class="symbol">:</span> ??? = <span class="regexp">//</span> ...
+</code></pre><p>这时可以使用Pair:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">intAndString</span>:</span> Pair[Int, String] = // ...
+<span class="function"><span class="keyword">def</span> <span class="title">booleanAndDouble</span>:</span> Pair[Boolean, Double] = // ...
+</code></pre><p>Tuples</p>
+<p>如果一个方法根据参数返回一个或多个类型:</p>
+<pre><code>def <span class="function"><span class="title">intOrString</span><span class="params">(input: Boolean)</span></span> = <span class="function"><span class="title">if</span><span class="params">(input == true)</span></span> <span class="number">123</span> <span class="keyword">else</span> <span class="string">"abc"</span>
+<span class="comment">// intOrString: (input: Boolean)Any</span>
+</code></pre><p>如果按照这种方式写,编译器会把返回值结果自动推断为Any,然而,我们可以推荐一种新的数据类型:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">intOrString</span><span class="params">(input: Boolean)</span>:</span> Sum[Int, String] = 
+    <span class="keyword">if</span>(input == true) {
+        Left[Int, String](<span class="number">123</span>) } 
+    <span class="keyword">else</span> {
+        Right[Int, String](<span class="string">"abc"</span>)
+    }
+</code></pre><h2 id="Sequencing_Computation">Sequencing Computation</h2><p>Map:</p>
+<pre><code>sealed trait LinkedList[A] {
+    <span class="function"><span class="keyword">def</span> <span class="title">map</span>[<span class="title">B</span>]<span class="params">(fn: A =&gt; B)</span>:</span> LinkedList[B] = this match {
+        case Pair(hd, tl) =&gt; Pair(fn(hd), tl.map(fn)) 
+        case End() =&gt; End[B]()
+    } 
+}
+</code></pre><p>FlatMap:</p>
+<pre><code>sealed trait Maybe[A] {
+<span class="code">    def flatMap[B](fn: A =&gt; Maybe[B]): Maybe[B] = this match {</span>
+<span class="code">        case Full(v) =&gt; fn(v)</span>
+<span class="code">        case Empty() =&gt; Empty[B]()</span>
+<span class="code">    } </span>
+}
+final case class Full[<span class="link_label">A</span>](<span class="link_url">value: A</span>) extends Maybe[A] 
+final case class Empty[<span class="link_label">A</span>](<span class="link_url"></span>) extends Maybe[A]
+</code></pre><p>如果一个类型 F[A] 带有一个map方法,叫做functor, 如果一个functor带有一个flatMap方法,叫做monad.</p>
+<h2 id="Variance_变型">Variance 变型</h2><p>上面的章节已经讲过Variance annotations,支持我们通过类型参数来控制子类之间的关系.</p>
+<p>之前定义过的一个Maybe类:</p>
+<pre><code>sealed trait Maybe[A]
+final case class Full[<span class="link_label">A</span>](<span class="link_url">value: A</span>) extends Maybe[A] 
+final case class Empty[<span class="link_label">A</span>](<span class="link_url"></span>) extends Maybe[A]
+</code></pre><p>但是我喜欢把Empty位置上没有用的类型参数去掉:</p>
+<pre><code><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">Maybe</span>[</span><span class="type">A</span>]
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Full</span>[</span><span class="type">A</span>](value: <span class="type">A</span>) <span class="keyword">extends</span> <span class="type">Maybe</span>[<span class="type">A</span>] 
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">Empty</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Maybe</span>[</span>???]
+</code></pre><p>Object不能有类型参数.但是在继承的时候仍然要标识类型参数,如果单纯的使用Unit或Nothing则不能通过编译.</p>
+<pre><code>scala&gt; :paste
+<span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">Maybe</span>[</span><span class="type">A</span>]
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Full</span>[</span><span class="type">A</span>](value: <span class="type">A</span>) <span class="keyword">extends</span> <span class="type">Maybe</span>[<span class="type">A</span>]
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">Empty</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Maybe</span>[</span><span class="type">Nothing</span>]
+^<span class="type">D</span>
+
+defined <span class="class"><span class="keyword">trait</span> <span class="title">Maybe</span> 
+</span>defined <span class="class"><span class="keyword">class</span> <span class="title">Full</span> 
+</span>defined module <span class="type">Empty</span>
+
+scala&gt; <span class="function"><span class="keyword">val</span> <span class="title">possible</span>:</span> <span class="type">Maybe</span>[<span class="type">Int</span>] = <span class="type">Empty</span> 
+&lt;console&gt;:<span class="number">9</span>: error: <span class="class"><span class="keyword">type</span> <span class="title">mismatch</span>;</span>
+ found   : <span class="type">Empty</span>.<span class="keyword">type</span>
+ required: <span class="type">Maybe</span>[<span class="type">Int</span>]
+    <span class="function"><span class="keyword">val</span> <span class="title">possible</span>:</span> <span class="type">Maybe</span>[<span class="type">Int</span>] = <span class="type">Empty</span>
+</code></pre><p>这里出现的问题是 Empty是 Maybe[Nothing]类型,但该类型并不属于 Maybe[Int]的子类型.</p>
+<h3 id="Invariance,_Covariance,_and_Contravariance">Invariance, Covariance, and Contravariance</h3><p>如果我们有一个类型Foo[A],同时A是B的子类,那么Foo[A]是Foo[B]的子类型吗? 这取决于Foo类型的Covariance.</p>
+<p>A type Foo[T] is invariant in terms of T, meaning that the types Foo[A] and Foo[B] are unrelated regardless of the rela onship between A and B. This is the default variance of any generic type in Scala.</p>
+<p>A type Foo[+T] is covariant in terms of T, meaning that Foo[A] is a supertype of Foo[B] if A is a supertype of B. Most Scala collec on classes are covariant in terms of their contents. We’ll see these next chapter.</p>
+<p>A type Foo[-T] is contravariant in terms of T, meaning that Foo[A] is a subtype of Foo[B] if A is a supertype of B. The only example of contravariance that I am aware of is func on arguments.</p>
+<p>详细解释参考 协变 与 逆变.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/29/Essential-Scala-Modelling-Data-with-Traits/" rel="next">Essential Scala: Modelling Data with Traits</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">60</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Generics_泛型"><span class="nav-number">1.</span> <span class="nav-text">Generics 泛型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Pandora’s_Box"><span class="nav-number">1.1.</span> <span class="nav-text">Pandora’s Box</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#泛型代数数据类型"><span class="nav-number">1.2.</span> <span class="nav-text">泛型代数数据类型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Functions"><span class="nav-number">2.</span> <span class="nav-text">Functions</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#函数类型"><span class="nav-number">2.1.</span> <span class="nav-text">函数类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数字面值"><span class="nav-number">2.2.</span> <span class="nav-text">函数字面值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Generic_Folds_for_Generic_Data"><span class="nav-number">3.</span> <span class="nav-text">Generic Folds for Generic Data</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Fold"><span class="nav-number">3.1.</span> <span class="nav-text">Fold</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Working_With_Functions"><span class="nav-number">3.2.</span> <span class="nav-text">Working With Functions</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Modelling_Data_with_Generic_Types"><span class="nav-number">4.</span> <span class="nav-text">Modelling Data with Generic Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sequencing_Computation"><span class="nav-number">5.</span> <span class="nav-text">Sequencing Computation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Variance_变型"><span class="nav-number">6.</span> <span class="nav-text">Variance 变型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Invariance,_Covariance,_and_Contravariance"><span class="nav-number">6.1.</span> <span class="nav-text">Invariance, Covariance, and Contravariance</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

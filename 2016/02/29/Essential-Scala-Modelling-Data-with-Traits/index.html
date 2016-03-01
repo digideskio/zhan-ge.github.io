@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/02/29/Essential-Scala-Modelling-Data-with-Traits/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="使用Trait构造数据">
-<meta property="og:updated_time" content="2016-02-29T11:08:43.000Z">
+<meta property="og:updated_time" content="2016-03-01T04:11:48.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Essential Scala: Modelling Data with Traits">
 <meta name="twitter:description" content="使用Trait构造数据">
@@ -204,7 +204,165 @@
 <li>trait不能有构造器,不能直接从一个trait创建对象,可以从一个trait创建一个class,然后从一个class创建对象.</li>
 <li>trait可以定义抽象方法:只有名字和类型签名但是没有具体实现.</li>
 </ol>
-<h2 id="This_or_That_and_Nothing_Else:_Sealed_Traits">This or That and Nothing Else: Sealed Traits</h2></span>
+<h2 id="This_or_That_and_Nothing_Else:_Sealed_Traits">This or That and Nothing Else: Sealed Traits</h2><p>在许多用例中,我们可以枚举能够继承一个trait的所有class. 比如构建网站用户时可以设定匿名用户和已登录用户,这两种用户基本涵盖了用户类别的所有可能,因此我们可以创建一个sealed trait,来让编译器帮助我们进行类型检查:</p>
+<pre><code>sealed trait Visitor {
+    <span class="function"><span class="keyword">def</span> <span class="title">id</span>:</span> String
+    <span class="function"><span class="keyword">def</span> <span class="title">createdAt</span>:</span> Date
+    <span class="function"><span class="keyword">def</span> <span class="title">age</span>:</span> Long = new Date().getTime() - createdAt.getTime()
+}
+</code></pre><p>在使用sealed trait时必须将其子类型也定义在同一个文件内,一旦一个trait被声明为sealed,模式匹配中必须涵盖该trait的所有子类型,否则会发出警告.</p>
+<pre><code><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">Visitor</span> {</span> <span class="comment">/* ... */</span> }
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span>(</span><span class="comment">/* ... */</span>) <span class="keyword">extends</span> <span class="type">Visitor</span> 
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Anonymous</span>(</span><span class="comment">/* ... */</span>) <span class="keyword">extends</span> <span class="type">Visitor</span>
+</code></pre><p>闭合特质的声明语法:</p>
+<pre><code>sealed <span class="class"><span class="keyword">trait</span> <span class="title">TraitName</span> {</span> 
+    ...
+}
+
+<span class="comment">// 所有继承自该trait的子类型必须定义在同一个文件内</span>
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Name</span>(...) <span class="keyword">extends</span> <span class="title">TraitName</span> {</span> 
+    ...
+}
+</code></pre><h2 id="Modelling_Data_with_Traits">Modelling Data with Traits</h2><h3 id="The_Product_Type_Pattern">The Product Type Pattern</h3><p>第一种模式是为一个包含其他类型数据的数据格式进行建模.</p>
+<p>产品类型模式的一般语法:</p>
+<pre><code><span class="comment">// If A has a b(with type B) and a c(with type C) write</span>
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span>(</span>b: <span class="type">B</span>, c: <span class="type">C</span>)
+
+<span class="class"><span class="keyword">trait</span> <span class="title">A</span> {</span> 
+  <span class="function"><span class="keyword">def</span> <span class="title">b</span>:</span> <span class="type">B</span> 
+  <span class="function"><span class="keyword">def</span> <span class="title">c</span>:</span> <span class="type">C</span>
+}
+</code></pre><h3 id="The_Sum_Type_Pattern">The Sum Type Pattern</h3><p>这种模式是,一个数据结构属于多个不同的类型.比如”A是一个B,或是一个C”.</p>
+<pre><code><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">A</span>
+</span><span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">B</span>(</span>) <span class="keyword">extends</span> <span class="type">A</span> 
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">C</span>(</span>) <span class="keyword">extends</span> <span class="type">A</span>
+</code></pre><h2 id="Working_With_Data">Working With Data</h2><h3 id="Structural_Recursion_using_Polymorphism">Structural Recursion using Polymorphism</h3><p>使用多态结构化递归.</p>
+<p>如果在trait中声明一个抽象方法,然后在继承自它的两个子类中分别以不同的方式实现该方法,当我们调用该方法是实际上调用的是该实例对应的具体实现.</p>
+<pre><code>sealed <span class="class"><span class="keyword">trait</span> <span class="title">A</span> {</span> 
+    <span class="keyword">def</span> <span class="string">foo:</span> String
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">B</span>() <span class="keyword">extends</span> <span class="title">A</span> {</span>
+    <span class="keyword">def</span> <span class="string">foo:</span> String = <span class="string">"It's B!"</span>
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">C</span>() <span class="keyword">extends</span> <span class="title">A</span> {</span>
+    <span class="keyword">def</span> <span class="string">foo:</span> String = <span class="string">"It's C!"</span>
+}
+</code></pre><p>当声明一个类型为A的值时,我们可以到具体的实现却是用的B或C:</p>
+<pre><code><span class="label">scala</span>&gt; val anA: A = <span class="keyword">B() </span>
+<span class="label">anA</span>: A = <span class="keyword">B()
+</span><span class="label">scala</span>&gt; anA.foo
+<span class="label">res1</span>: <span class="keyword">String </span>= <span class="keyword">It's </span><span class="keyword">B!
+</span><span class="label">scala</span>&gt; val anA: A = C() 
+<span class="label">anA</span>: A = C()
+<span class="label">scala</span>&gt; anA.foo
+<span class="label">res2</span>: <span class="keyword">String </span>= <span class="keyword">It's </span>C!
+</code></pre><p>同样可以在trait中定义一个实现,然后在子类中使用override关键字重写该实现:</p>
+<pre><code><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">A</span> {</span> 
+    <span class="function"><span class="keyword">def</span> <span class="title">foo</span>:</span> <span class="type">String</span> = <span class="string">"It's A!"</span>
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">B</span>(</span>) <span class="keyword">extends</span> <span class="type">A</span> {
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">foo</span>:</span> <span class="type">String</span> = <span class="string">"It's B!"</span>
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">C</span>(</span>) <span class="keyword">extends</span> <span class="type">A</span> {
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">foo</span>:</span> <span class="type">String</span> = <span class="string">"It's C!"</span>
+}
+</code></pre><p>行为会和之前保持一致,仍然会选择具体类的实现:</p>
+<pre><code>scala&gt; val anA: A = <span class="function"><span class="title">B</span><span class="params">()</span></span> 
+anA: A = <span class="function"><span class="title">B</span><span class="params">()</span></span>
+scala&gt; anA<span class="class">.foo</span>
+res3: String = It<span class="string">'s B!</span>
+</code></pre><p>记住如果在trait中提供了一个默认的实现,那就要保证该实现对所有的子类型都适用.</p>
+<h3 id="Structural_Recursion_using_Pattern_Matching">Structural Recursion using Pattern Matching</h3><p>使用模式匹配格式化递归.</p>
+<p>The Product Type Pa ern Matching Pattern:</p>
+<pre><code>// <span class="type">If</span> A has a b(<span class="keyword">with</span> <span class="keyword">type</span> B) <span class="keyword">and</span> a c(<span class="keyword">with</span> <span class="keyword">type</span> C), 
+// <span class="keyword">and</span> we want to write a <span class="keyword">method</span> f that accepts an A <span class="keyword">and</span> returns an F, write
+def f(a: A): F = a match {
+    <span class="keyword">case</span> A(b, c) =&gt; ??? 
+}
+</code></pre><p>The Sum Type Pa ern Matching Pattern:</p>
+<pre><code>// <span class="type">If</span> A <span class="keyword">is</span> a B <span class="keyword">or</span> C, <span class="keyword">and</span> we want to write a <span class="keyword">method</span> f accepting an A <span class="keyword">and</span> returning an F, 
+// define a pattern matching <span class="keyword">case</span> <span class="keyword">for</span> B <span class="keyword">and</span> C.
+def f(a: A): F = a match {
+    <span class="keyword">case</span> B() =&gt; ???
+    <span class="keyword">case</span> C() =&gt; ??? 
+}
+</code></pre><h3 id="A_Complete_Example">A Complete Example</h3><p>数据描述,一个Feline是一个Lion,Tiger,Panther或者Cat.我们将会简化数据的描述,一个Cat只有一个String名为favoriteFood:</p>
+<pre><code>sealed trait Feline
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Lion</span>() <span class="keyword">extends</span> <span class="title">Feline</span></span>
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Tiger</span>() <span class="keyword">extends</span> <span class="title">Feline</span></span>
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Panther</span>() <span class="keyword">extends</span> <span class="title">Feline</span></span>
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Cat</span>(<span class="title">favouriteFood</span>: <span class="title">String</span>) <span class="keyword">extends</span> <span class="title">Feline</span></span>
+</code></pre><p>现在我们同时使用泛型和模式匹配来实现一个方法. dinner方法将会在问题中返回适合feline的食物,Cat的dinner是favoriteFood,Lion的是antelope,Tiger是 tiger food,Panters是licorice.</p>
+<p>然后定义食物类型:</p>
+<pre><code><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">Food</span>
+</span><span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">Antelope</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Food</span>
+</span><span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">TigerFood</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Food</span>
+</span><span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">Licorice</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Food</span>
+</span><span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">CatFood</span>(</span>food: <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">Food</span>
+</code></pre><p>然后定义dinner方法返回Food,首先使用泛型:</p>
+<pre><code><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">Feline</span> {</span> 
+    <span class="function"><span class="keyword">def</span> <span class="title">dinner</span>:</span> <span class="type">Food</span>
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Lion</span>(</span>) <span class="keyword">extends</span> <span class="type">Feline</span> {
+    <span class="function"><span class="keyword">def</span> <span class="title">dinner</span>:</span> <span class="type">Food</span> = <span class="type">Antelope</span>
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Tiger</span>(</span>) <span class="keyword">extends</span> <span class="type">Feline</span> {
+    <span class="function"><span class="keyword">def</span> <span class="title">dinner</span>:</span> <span class="type">Food</span> = <span class="type">TigerFood</span>
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Panther</span>(</span>) <span class="keyword">extends</span> <span class="type">Feline</span> {
+    <span class="function"><span class="keyword">def</span> <span class="title">dinner</span>:</span> <span class="type">Food</span> = <span class="type">Licorice</span>
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Cat</span>(</span>favouriteFood: <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">Feline</span> {
+    <span class="function"><span class="keyword">def</span> <span class="title">dinner</span>:</span> <span class="type">Food</span> = <span class="type">CatFood</span>(favouriteFood)
+}
+</code></pre><p>现在使用模式匹配,使用模式匹配实现时有两种选择,一种是直接在Feline中用一个单独的方法实现,一种是在另一个object中实现:</p>
+<pre><code>sealed trait Feline { 
+    <span class="function"><span class="keyword">def</span> <span class="title">dinner</span>:</span> Food = this match {
+        case Lion() =&gt; Antelope
+        case Tiger() =&gt; TigerFood
+        case Panther() =&gt; Licorice
+        case Cat(favouriteFood) =&gt; CatFood(favouriteFood)
+    } 
+}
+object Diner {
+    <span class="function"><span class="keyword">def</span> <span class="title">dinner</span><span class="params">(feline: Feline)</span>:</span> Food = feline match {
+        case Lion() =&gt; Antelope
+        case Tiger() =&gt; TigerFood
+        case Panther() =&gt; Licorice
+        case Cat(food) =&gt; CatFood(food)
+    } 
+}
+</code></pre><h3 id="Choosing_Which_Pattern_to_Use">Choosing Which Pattern to Use</h3><p>现在我们有三种方式实现结构化递归:</p>
+<ol>
+<li>泛型</li>
+<li>在trait中模式匹配</li>
+<li>在一个单独的object中模式匹配</li>
+</ol>
+<p>如果一个方法依赖于class的参数或内置方法,则在class内部进行实现.</p>
+<p>如果一个方法依赖于其他外部数据(比如需要Cook产生dinner),则在class的外部实现.</p>
+<p>如果需要多种具体实现,则需要使用模式匹配并在class的外部实现.</p>
+<h3 id="Object-Oriented_vs_Func_onal_Extensibility">Object-Oriented vs Func onal Extensibility</h3><table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:center">Add new method</th>
+<th style="text-align:center">Add new data</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OO</td>
+<td style="text-align:center">Change existing code</td>
+<td style="text-align:center">Existing code unchanged</td>
+</tr>
+<tr>
+<td>FP</td>
+<td style="text-align:center">Exising code unchanged</td>
+<td style="text-align:center">Change existing code</td>
+</tr>
+</tbody>
+</table>
+</span>
       
     </div>
 
@@ -220,6 +378,8 @@
       
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/01/Essential-Scala-Sequencing-Computations/" rel="prev">Essential Scala: Sequencing Computations</a>
             
           </div>
 
@@ -287,7 +447,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">59</span>
+              <span class="site-state-item-count">60</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -329,7 +489,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Traits"><span class="nav-number">1.</span> <span class="nav-text">Traits</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Trait和Class的不同"><span class="nav-number">1.1.</span> <span class="nav-text">Trait和Class的不同</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#This_or_That_and_Nothing_Else:_Sealed_Traits"><span class="nav-number">2.</span> <span class="nav-text">This or That and Nothing Else: Sealed Traits</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Traits"><span class="nav-number">1.</span> <span class="nav-text">Traits</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Trait和Class的不同"><span class="nav-number">1.1.</span> <span class="nav-text">Trait和Class的不同</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#This_or_That_and_Nothing_Else:_Sealed_Traits"><span class="nav-number">2.</span> <span class="nav-text">This or That and Nothing Else: Sealed Traits</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Modelling_Data_with_Traits"><span class="nav-number">3.</span> <span class="nav-text">Modelling Data with Traits</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The_Product_Type_Pattern"><span class="nav-number">3.1.</span> <span class="nav-text">The Product Type Pattern</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The_Sum_Type_Pattern"><span class="nav-number">3.2.</span> <span class="nav-text">The Sum Type Pattern</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Working_With_Data"><span class="nav-number">4.</span> <span class="nav-text">Working With Data</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Structural_Recursion_using_Polymorphism"><span class="nav-number">4.1.</span> <span class="nav-text">Structural Recursion using Polymorphism</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Structural_Recursion_using_Pattern_Matching"><span class="nav-number">4.2.</span> <span class="nav-text">Structural Recursion using Pattern Matching</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#A_Complete_Example"><span class="nav-number">4.3.</span> <span class="nav-text">A Complete Example</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Choosing_Which_Pattern_to_Use"><span class="nav-number">4.4.</span> <span class="nav-text">Choosing Which Pattern to Use</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Object-Oriented_vs_Func_onal_Extensibility"><span class="nav-number">4.5.</span> <span class="nav-text">Object-Oriented vs Func onal Extensibility</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
