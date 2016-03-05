@@ -1,0 +1,1051 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Scala中的设计模式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: Design Patterns">
+<meta property="og:url" content="http://yoursite.com/2016/03/04/Simple-Scala-Design-Patterns/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Scala中的设计模式">
+<meta property="og:updated_time" content="2016-03-05T15:34:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: Design Patterns">
+<meta name="twitter:description" content="Scala中的设计模式">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: Design Patterns | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: Design Patterns
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-04T18:17:23+08:00" content="2016-03-04">
+            2016-03-04
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="设计模式原则">设计模式原则</h2><h3 id="开闭原则">开闭原则</h3><p>指 对扩展开放,做修改关闭. 为了使程序扩展性好,易于维护和升级,技术上使用接口和抽象. 其实现的关键是抽象化.</p>
+<h3 id="里氏替换原则">里氏替换原则</h3><p>指 任何基类出现的地方,子类一定可以出现. 该原则是继承复用的基石,只有当原生类能够替换掉基类,并且软件单位的功能不受影响,基类才能真正被复用,而衍生类也能在基类的基础上增加新的行为.</p>
+<p>是对开闭原则的补充,基类与子类的继承关系就是对抽象化的补充.因此该原则是对是对具体实现抽象化的规范.</p>
+<h3 id="依赖倒转原则">依赖倒转原则</h3><p>是开闭原则的基础,具体内容:面向接口编程,依赖于抽象而不依赖于具体.</p>
+<h3 id="接口隔离原则">接口隔离原则</h3><p>指 使用多个隔离的接口比使用单个接口要好.即降低类之间的耦合度.</p>
+<h3 id="迪米特法则(最少知道原则)">迪米特法则(最少知道原则)</h3><p>一个实体之间尽量减少与其他实体之间发生交互作用,使得系统功能之间相对独立.</p>
+<h3 id="合成复用原则">合成复用原则</h3><p>尽量使用合成或聚合的方式而不使用继承.</p>
+<h2 id="创建型模式">创建型模式</h2><h3 id="抽象工厂">抽象工厂</h3><p>一种用于构造类型实例的抽象而不需要显式的指定类型.</p>
+<p>object中的apply方法可以达到这个目的. 根据传入方法的参数创建合适类型的实例.</p>
+<p>客户类和工厂类分开.消费者任何时候需要某种商品,只需向工厂请求即可.消费者无需修改就可以接纳新商品.缺点是当产品修改时,工厂类需要作出相应的修改,比如,如何创建或如何向客户端提供.</p>
+<h3 id="生成器">生成器</h3><p>根据一个复杂对象的表达,将其构造进行拆分,从而使这种处理能够应用到多种不同的表达.</p>
+<p>Scala中一个经典的例子是collection.generic.CanBuildFrom,从而是一些组合方法比如map,能够根据输入集合的类型创建新的集合.</p>
+<p>即建造模式,将产品的内部表象和产品的生成过程分割开来,从而使一个建造过程生成具有不同的内部表象的产品对象.建造模式使得产品内部表象可以独立的变化,客户不必知道产品内部组成的细节.建造模式可以强制实行一种分步骤进行的建造过程.</p>
+<h3 id="工厂方法">工厂方法</h3><p>核心工厂类不再负责所有产品的创建,而是将具体的创建工作交给子类去做完成,称为一个抽象工厂角色,仅负责给出具体工厂类必须实现的接口,而不应当接触哪一个产品类应当被实例化这种细节.</p>
+<p>// 在子类中定义方法,重写或者实现实例化类型和如何进行实例化.</p>
+<p>// CanBuildFrom.apply是一个用于构造能够创建实例创建器的抽象方法,子类或特定实例提供了详细方式. Applicative.apply提供了类似的抽象.</p>
+<p>该模式将对实际的类的初始化封装在一个方法中,让子类来决定初始化那个类.</p>
+<p>工厂方法允许:</p>
+<ol>
+<li>组合发杂的 对象创建代码</li>
+<li>选择需要初始化的类</li>
+<li>缓存对象</li>
+<li>协调对共享资源的访问</li>
+</ol>
+<p>我们考虑静态工厂模式,这和经典的工厂模式略有不同,静态工厂方法避免了子类来覆盖此方法.</p>
+<p>在Java中,我们使用new关键字,通过调用类的构造器来初始化对象.为了实现这个模式,我们需要依靠普通方法,此外我们不能在接口中定义静态方法,所以我们只能额外的使用一个工厂类.</p>
+<p>Java中的实现:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Animal</span> </span>{}
+<span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Dog</span> <span class="keyword">implements</span> <span class="title">Animal</span> </span>{} 
+<span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Cat</span> <span class="keyword">implements</span> <span class="title">Animal</span> </span>{}
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AnimalFactory</span> </span>{
+    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Animal <span class="title">createAnimal</span><span class="params">(String kind)</span> </span>{
+        <span class="keyword">if</span> (<span class="string">"cat"</span>.equals(kind)) <span class="keyword">return</span> <span class="keyword">new</span> Cat();
+        <span class="keyword">if</span> (<span class="string">"dog"</span>.equals(kind)) <span class="keyword">return</span> <span class="keyword">new</span> Dog();
+        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();
+    } 
+}
+
+AnimalFactory.createAnimal(<span class="string">"dog"</span>);
+</code></pre><p>除了构造器外,Scala提供了一种类似于构造器调用的特殊语法,其实这就是一种简便的工厂方法:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">Animal</span>
+</span><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Dog</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Animal</span> 
+</span><span class="keyword">private</span> <span class="class"><span class="keyword">class</span> <span class="title">Cat</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Animal</span>
+</span>
+<span class="class"><span class="keyword">object</span> <span class="title">Animal</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span>(</span>kind: <span class="type">String</span>) = kind <span class="keyword">match</span> {
+        <span class="keyword">case</span> <span class="string">"dog"</span> =&gt; <span class="keyword">new</span>
+        <span class="keyword">case</span> <span class="string">"cat"</span> =&gt; <span class="keyword">new</span> }
+} 
+
+<span class="type">Animal</span>(<span class="string">"dog"</span>)
+</code></pre><p>在Scala代码中,工厂方法被定义为伴生对象,它是一种特殊的单例对象,和之前定义的类或特质拥有相同的名字,并且需要定义在同一个代码文件中.这种语法仅限于工厂模式中的静态工厂模式,因为我们不能讲创建对象的动作交给子类来完成.</p>
+<p>Scala中的优势是重用基类名字,显现方法标准并且简洁,类似于构造器调用,但仅限于工厂方法.</p>
+<h3 id="延迟初始化模式">延迟初始化模式</h3><p>延迟初始化是一个延迟加载的特例.它指仅当第一次访问一个值或对象的时候,才会去初始化他们.</p>
+<p>延迟初始化可以延迟或避免一些比较复杂的运算.</p>
+<p>在Java中一般使用null来代表未初始化状态,但假如null是一个合法的final值的时候,我们就需要一个独立的标记来标识初始化过程已经进行.</p>
+<p>在多线程环境中,对以上提到的标记的访问必须要进行同步,并且必须要进行双重检测技术(double-check),当然这也进一步增加了代码的复杂性:</p>
+<pre><code>private <span class="type">Volatile</span> <span class="type">Componet</span> componet;
+
+public <span class="type">Componet</span> getComponet() {
+    <span class="type">Componet</span> <span class="literal">result</span> = componet;
+    <span class="keyword">if</span> (<span class="literal">result</span> == null){
+        synchronized(this){
+            <span class="literal">result</span> = componet;
+            <span class="keyword">if</span> (<span class="literal">result</span> == null){
+                componet = <span class="literal">result</span> = new <span class="type">Componet</span>();
+            }
+        }
+    }
+    <span class="keyword">return</span> <span class="literal">result</span>;
+}
+</code></pre><p>Scala中定义了一个内置语法来定义延迟变量:</p>
+<pre><code><span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">x</span> =</span> { 
+    print(<span class="string">"(computing x) "</span>) 
+    <span class="number">42</span>
+}
+print(s<span class="string">"x = $x"</span>) 
+<span class="comment">// x = (computing x) 42</span>
+</code></pre><p>Scala中,延迟变量能够维持null值,并且是线程安全的.</p>
+<p>Scala中的优势是语法简洁,延迟变量能够维持null值,并且线程安全,但是对初始化行为缺乏控制.    </p>
+<h3 id="原型,原始模型">原型,原始模型</h3><p>通过给出一个圆形对象来指明所要创建的对象的类型,然后用复制这个原型对象的方法创建出更多同类型的对象.原始模型模式允许动态的增加或减少产品类,产品类不需要非得有任何事先确定的等级结构,该模式适用于任何的等级结构,缺点是每一个类必须配备一个克隆方法,比如Scala中的copy.</p>
+<p>从一个原型实例,添加一些可选的修改来构造一个新的实例.</p>
+<p>case类的copy方法是一个非常棒的例子,用户可以指定需要修改的参数然后克隆一个新的实例.</p>
+<h3 id="单例">单例</h3><p>单例模式确保某一个类只有一个实例,而且自行实例化并且向整个系统提供这个实例单例模式.单例模式只应该在有真正的”单一实例”的需求时才可使用.</p>
+<p>Scala中提供了作为第一语言特性的objects.</p>
+<p>单例模式限制了一个类只能初始化一个对象,并且会提供一个全局引用指向他.</p>
+<p>在Java中,单例模式可能是最被人熟知的一个模式了.这是Java缺少语言特性的明显信号.</p>
+<p>在Java中有static关键字,静态方法不能被任何对象访问,并且静态成员类不能实现任何接口.所以静态方法和Java提出的一切皆对象背离了.静态成员也只有个花哨的名字,本质上只不过是传统意义上的子程序.</p>
+<p>Java中的实现:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cat</span> <span class="keyword">implements</span> <span class="title">Runnable</span> </span>{
+    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Cat instance = <span class="keyword">new</span> Cat();
+    <span class="function"><span class="keyword">private</span> <span class="title">Cat</span><span class="params">()</span> </span>{}
+    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>{ 
+        <span class="comment">// do nothing</span>
+    }
+    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Cat <span class="title">getInstance</span><span class="params">()</span> </span>{ 
+        <span class="keyword">return</span> instance;
+    } 
+}
+Cat.getInstance().run()
+</code></pre><p>而Scala中单例模式非常简单:</p>
+<pre><code><span class="class"><span class="keyword">object</span> <span class="title">Cat</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Runnable</span> {</span> 
+    <span class="function"><span class="keyword">def</span> <span class="title">run</span>(</span>) {
+        <span class="comment">// do nothing</span>
+    } 
+}
+<span class="type">Cat</span>.run()
+</code></pre><p>Scala中的优势是含义明确语法简洁,能够按需初始化并且线程安全,但对初始化行为缺乏控制.</p>
+<h2 id="结构型模式">结构型模式</h2><h3 id="适配器">适配器</h3><p>把一个类的接口变换成客户端所期待的另一种接口,从而使原本因为接口不匹配而无法一起工作的两个类能够一起工作.适配类能够根据参数返回一个合适的实例给客户端.</p>
+<p>围绕一个抽象创建一个客户端预期的接口,然后后来的客户端就能够继续使用该接口.</p>
+<p>适配器模式能将不兼容的接口放在一起协同工作,适配器对集成已存在的各个组件非常有用.</p>
+<p>在Java中需要创建一个封装类:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Log</span> </span>{
+    <span class="function"><span class="keyword">void</span> <span class="title">warning</span><span class="params">(String message)</span></span>;
+    <span class="function"><span class="keyword">void</span> <span class="title">error</span><span class="params">(String message)</span></span>;
+}
+
+<span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Logger</span> </span>{
+    <span class="function"><span class="keyword">void</span> <span class="title">log</span><span class="params">(Level level, String message)</span> </span>{ /....../ }
+}
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LoggerToLogAdapter</span> <span class="keyword">implements</span> <span class="title">Log</span> </span>{
+    <span class="keyword">private</span> <span class="keyword">final</span> Logger logger;
+
+    <span class="function"><span class="keyword">public</span> <span class="title">LoggerToLogAdapter</span><span class="params">(Logger logger)</span> </span>{ <span class="keyword">this</span>.logger = logger; }
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">warning</span><span class="params">(String message)</span></span>{
+        logger.log(WARNING, message);
+    }
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">warning</span><span class="params">(String message)</span></span>{
+        logger.log(ERROR, message);
+    }
+}
+
+Log log = <span class="keyword">new</span> LoggerToLogAdapter(<span class="keyword">new</span> Logger());
+</code></pre><p>而在Scala中则可以通过隐式类轻松完成:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">Log</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">warning</span>(</span>message: <span class="type">String</span>) 
+    <span class="function"><span class="keyword">def</span> <span class="title">error</span>(</span>message: <span class="type">String</span>)
+}
+<span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Logger</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">log</span>(</span>level: <span class="type">Level</span>, message: <span class="type">String</span>) { <span class="comment">/* ... */</span> }
+}
+<span class="keyword">implicit</span> <span class="class"><span class="keyword">class</span> <span class="title">LoggerToLogAdapter</span>(</span>logger: <span class="type">Logger</span>) <span class="keyword">extends</span> <span class="type">Log</span> { 
+    <span class="function"><span class="keyword">def</span> <span class="title">warning</span>(</span>message: <span class="type">String</span>) { logger.log(<span class="type">WARNING</span>, message) } 
+    <span class="function"><span class="keyword">def</span> <span class="title">error</span>(</span>message: <span class="type">String</span>) { logger.log(<span class="type">ERROR</span>, message) }
+}
+<span class="function"><span class="keyword">val</span> <span class="title">log</span>:</span> <span class="type">Log</span> = <span class="keyword">new</span> <span class="type">Logger</span>()
+</code></pre><p>最后的表达式希望得到一个Log实例,但却得到了一个Logger,这时Scala编译器会自动把Log实例封装到适配器类中.</p>
+<h3 id="桥接">桥接</h3><p>将抽象画与实现化脱耦,使得二者能够独立的变化,也就是说将二者的强关联编程弱关联.也就是指,在一个软件系统的抽象化和实现化之间使用组合/聚合关系,而不是继承关系,从而使得两者可以独立变化.</p>
+<h3 id="组合,合成">组合,合成</h3><p>合成模式将对象组织到树结构中,可以用来描述整体和部分的关系.合成模式就是一个处理对象的树结构的模式.合成模式把部分与整体的关系用树结构表示出来.合成模式使得客户端把一个个单独的成分对象和由他们复合而成的合成对象同等看待.</p>
+<h3 id="装饰器">装饰器</h3><p>装饰模式以对客户端透明的方式扩展对象的功能,是继承关系的一种替代方案,提供比继承更多的灵活性.动态给一个对象增加功能,这些功能可以再动态的撤销.增加由一些基本功能的排列组合而产生的非常大量的功能.</p>
+<p>装饰器模式被用来在不影响一个类的其他实例的基础上扩展一些对象的功能,是对继承的一个灵活替代.</p>
+<p>当需要有很多独立的方式来扩展功能时,装饰器模式是很有用的,这些扩展可以随意组合.</p>
+<p>在Java中,需要新建一个装饰类,实现原来的接口,封装原来实现接口的类,不同的装饰者可以组合使用.一个处于中间层的装饰者一般会用来代理原接口中很多方法.</p>
+<p>Java实现:</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">interface</span> OutputStream {
+    <span class="keyword">void</span> write(byte b);
+    <span class="keyword">void</span> write(byre[] b);
+}
+
+<span class="keyword">public</span> <span class="keyword">class</span> FileOutputStream implements OutputStream { /**.../}
+
+<span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> OutputStreamDecorator implements OutputStream {
+    protected final OutputStream <span class="keyword">delegate</span>;
+
+    protected OutputStreamDecorator(OutputStream <span class="keyword">delegate</span>){
+        this.<span class="keyword">delegate</span> = <span class="keyword">delegate</span>;
+    }
+
+    <span class="keyword">public</span> <span class="keyword">void</span> write(byte b) { <span class="keyword">delegate</span>.write(b); }
+    <span class="keyword">public</span> <span class="keyword">void</span> write(byte[] b) { <span class="keyword">delegate</span>.write(b); }
+}
+
+<span class="keyword">public</span> <span class="keyword">class</span> BufferedOutputStream extends OutputStreamDecorator {
+    <span class="keyword">public</span> BufferedOutputStream(OutputStream <span class="keyword">delegate</span>){
+        super(<span class="keyword">delegate</span>);
+    }
+
+    <span class="keyword">public</span> <span class="keyword">void</span> write(b) {
+        <span class="comment">// ....</span>
+        <span class="keyword">delegate</span>.write(buffer);
+    }
+}
+
+<span class="keyword">new</span> BufferedOutputStream(<span class="keyword">new</span> FileOutputStream(<span class="string">"foo.txt"</span>))
+</code></pre><p>Scala提供了一种更直接的方式来重写接口中的方法,并且不用绑定到具体实现,下面看下如何使用override abstract 标示符:</p>
+<pre><code>trait <span class="constant">OutputStream</span> {
+    <span class="function"><span class="keyword">def</span> <span class="title">write</span></span>(<span class="symbol">b:</span><span class="constant">Byte</span>)
+    <span class="function"><span class="keyword">def</span> <span class="title">write</span></span>(<span class="symbol">b:</span><span class="constant">Array</span>[<span class="constant">Byte</span>])
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">OutputStream</span>(<span class="title">path</span>:<span class="title">String</span>) <span class="title">extends</span> <span class="title">OutputStream</span> { /*..../}</span>
+
+trait <span class="constant">Buffering</span> extends <span class="constant">OutputStream</span>{
+    <span class="keyword">abstract</span> override <span class="function"><span class="keyword">def</span> <span class="title">write</span></span>(<span class="symbol">b:</span><span class="constant">Byte</span>){
+        <span class="regexp">//</span> ...
+        <span class="keyword">super</span>.write(buffer)
+    }
+}
+
+new <span class="constant">FileOutputStream</span>(<span class="string">"foo.txt"</span>) <span class="keyword">with</span> <span class="constant">Buffering</span>  /<span class="regexp">/ with Filtering...</span>
+</code></pre><p>这种代理是在编译时期静态建立的,不过通常来说只要我们能在创建对象时任何组合装饰器,就已经够用了.</p>
+<p>与 基于组合(指需要特定的装饰类来把原类封装进去)的实现方式不一样.Scala保持了对象的一致性,所以可以在装饰器对象上放心使用equals.</p>
+<p>Scala中的优势是含义清晰语法简单,保持了对象的一致性,无需显式代理,无需中间层的装饰类.但是其静态绑定,没有构造器参数.</p>
+<h3 id="值对象">值对象</h3><p>值对象是一个很小的不可变对象,他们的相等性不急于identity(身份),而是基于不同对象包含的字段是否相等.</p>
+<p>值对象被广泛应用于表示时间,数字,颜色等,在企业级应用中,他们常常被用做DTO(可以用来做进程间通信),由于不变性,值对象在多线程环境下使用非常方便.</p>
+<p>Java中并没有特殊语法支持值对象,所以我们必须显式定义一个构造器,getter方法以及辅助方法.</p>
+<p>Java实现:</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">class</span> Point{
+    <span class="keyword">private</span> final <span class="keyword">int</span> x,y;
+
+    <span class="function"><span class="keyword">public</span> <span class="title">Point</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>{<span class="keyword">this</span>.x = x;, <span class="keyword">this</span>.y = y;}
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getX</span><span class="params">()</span> </span>{ <span class="keyword">return</span> x; }
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getY</span><span class="params">()</span> </span>{ <span class="keyword">return</span> y; }
+
+    <span class="function"><span class="keyword">public</span> Boolean <span class="title">equals</span><span class="params">(Object o)</span></span>{
+        <span class="comment">// ....</span>
+        <span class="keyword">return</span> x == <span class="keyword">this</span>.x &amp;&amp; y == <span class="keyword">this</span>.y;
+    }
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span> </span>{
+        <span class="keyword">return</span> x * <span class="number">31</span> + y;
+    }
+
+    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>{
+        <span class="keyword">return</span> String.format(<span class="string">"Point(%d, %d)"</span>, x, y);
+    }
+}
+
+Point point  = <span class="keyword">new</span> Point(<span class="number">1</span>, <span class="number">2</span>)
+</code></pre><p>在Scala中,我们使用元组或case类来申明值对象.当不需要使用特定的类或程序比较小的时候,元组就够了:</p>
+<pre><code>val point = (<span class="number">1</span>, <span class="number">2</span>) <span class="comment">// new Tuple2(1, 2)</span>
+</code></pre><p>元组是一个预先定义好的不变集合,它能够持有若干个不同类型的元素,元组提供构造器,getter方法以及所有辅助方法.</p>
+<p>我们也可以给Point类定义一个别名:</p>
+<pre><code><span class="typedef"><span class="keyword">type</span> <span class="type">Point</span> = <span class="container">(<span class="type">Int</span>, <span class="type">Int</span>)</span> </span>
+// <span class="type">Tuple2</span>[<span class="type">Int</span>, <span class="type">Int</span>] val point: <span class="type">Point</span> = (<span class="number">1</span>, <span class="number">2</span>)
+</code></pre><p>当需要一个特定的类或者需要对数据元素名称有更明确的描述的时候,可以使用case类:</p>
+<pre><code>case <span class="class"><span class="keyword">class</span> <span class="title">Point</span></span>(x: <span class="typename">Int</span>, y: <span class="typename">Int</span>) 
+<span class="variable"><span class="keyword">val</span> point</span> = Point(<span class="number">1</span>, <span class="number">2</span>)
+</code></pre><p>case类将构造器参数默认为属性,样例类是不可变的,与元组一样,它提供了所有所需的方法,因为样例类是合法的类,所以他也可以使用类继承及定义成员.</p>
+<p>值对象模式是函数式编程中一个非常常用的工具,Scala在语言级别对其提供了支持.</p>
+<p>Scala中的优势是语法简明,预定义元组类,内置了所有需要的辅助方法.</p>
+<h3 id="空值模式">空值模式</h3><p>空值模式定义了一个啥都不干的行为,这个模式比起空引用有一个优势,它不需要再使用前检查引用的合法性.</p>
+<p>在Java中我们需要定义一个带空方法的子类来实现:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Sound</span> {</span>
+    void play();
+}
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Music</span> <span class="keyword">implements</span> <span class="title">Sound</span> {</span>
+    <span class="keyword">public</span> void play() { /*..../}
+}
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">NullSound</span> <span class="keyword">implements</span> <span class="title">Sound</span> {</span>
+    <span class="keyword">public</span> void play() {}
+}
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SoundSource</span> {</span>
+    <span class="keyword">public</span> static Sound getSound() {
+        <span class="keyword">return</span> available ? music : <span class="keyword">new</span> NullSound;
+    }
+}
+
+SoundSource.getSound().play();
+</code></pre><p>所以getSound获得Sound实例在调用play方法,不需要检查Sound实例是否为空.更进一步,我们可以使用单例模式来限制只生成唯一的空对象.</p>
+<p>Scala也采用了类似的方法,但是他提供了一个Option类型,可以用来表示可有可无的值:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">Sound</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">play</span>(</span>)
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">Music</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Sound</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">play</span>(</span>) { <span class="comment">/*.../ }
+}
+
+object SoundSource {
+    def getSound:Option[Sound] = if (available) Some(music) else None
+}
+
+for(sound &lt;- SoundSource.getSound){
+    sound.play()
+}</span>
+</code></pre><p>在此场景下,我们可以使用for推导来处理Option类型,或者使用高阶函数或模式匹配.</p>
+<p>Scala中的优势是预定义类型,明确的可选择性,内置结构支持.但是用法过于冗长.</p>
+<h3 id="外观,门面">外观,门面</h3><p>外部与一个子系统的通信必须通过一个统一的门面对象进行.门面模式提供一个高层次的接口,使得子系统更易于使用.使得子系统更易于使用.每一个子系统只有一个门面类,而且此门面类只有一个实例,也就是说他是一个单例模式.但整个系统可以有多个门面类.</p>
+<h3 id="享元">享元</h3><p>享元模式以共享的方式高效的支持大量细粒度对象.享元模式能够做到共享的关键是区分内蕴状态和外蕴状态.内蕴状态存储在享元内部,不会随时间的改变而有所不同.外蕴状态是随时间的改变而改变的.外蕴状态不能影响内蕴状态,他们是相互独立的.</p>
+<p>将可以共享的状态和不可以共享的状态从常规类中区分开来,将不可以共享的状态从类里提出出去.客户端不可以创建被共享的对象,而应当使用一个工厂对象创建被共享的对象.享元模式大幅度的降低内存中的对象数量.</p>
+<h3 id="代理">代理</h3><p>代理模式给某一个对象提供一个代理对象,并由代理对象控制对原对象的引用.代理就是一个人或一个机构代表另一个人或机构采取行动.</p>
+<p>某些情况下,客户不想或者不能够直接引用一个对象,代理对象可以在客户和目标对象之间起到中介的作用.客户端分辨不出代理主题对象和真是主题对象.代理模式可以并不知道真正的被代理对象,而仅仅持有被代理对象的一个接口,这时候代理对象不能够创建被代理对象,被代理对象只能够被系统的其他角色创建并传入.</p>
+<p>QAZ EDCWSXEDCRFVTGBYHN UUJMIK,IK,LOL.OOPPOPOIOPOPOPIIO</p>
+<p>ABCDREGFGHIHGKLMNOPQRDSTIUVWXYZ</p>
+<h2 id="行为模式">行为模式</h2><h3 id="职责链">职责链</h3><p>在责任连模式中,很多对象由每一个对象对其下家的引用而接起来形成一条链.请求在这个链上传递,知道链上的某一对象决定处理该请求.系统可以在不影响客户端的情况下动态的重新组织链和分配职责.处理者有两个选择:承担责任或把责任推给下家.一个请求可以不被任何接收端对象所接收.</p>
+<p>职责链模式解耦了发送方与接收方,使得更多的对象有机会去处理这个请求,这个请求一直在这个链中流动直到一个对象处理了他.</p>
+<p>职责链模式的一个典型实现就是职责链中的所有对象都会继承一个基类,并且可能会包含一个指向链中下一个处理对象的引用.每一个对象都有机会处理请求或中断请求,或者将请求推给下一个处理对象.职责链的顺序逻辑可以要么代理给对象处理,要么就封装在一个基类中.</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title">EventHandler</span> {
+    <span class="keyword">private</span> EventHandler next;
+
+    <span class="function"><span class="keyword">void</span> <span class="title">setNext</span>(<span class="params">EventHandler handler</span>) </span>{ next = handler;}
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">handle</span>(<span class="params">Event <span class="keyword">event</span></span>)</span>{
+        <span class="keyword">if</span>(canHandle(<span class="keyword">event</span>)) doHandle(<span class="keyword">event</span>);
+        <span class="function"><span class="keyword">else</span> <span class="title">if</span> (<span class="params">next != <span class="keyword">null</span></span>) next.<span class="title">handle</span>(<span class="params"><span class="keyword">event</span></span>)</span>;
+    }
+
+    <span class="function"><span class="keyword">abstract</span> <span class="keyword">protected</span> boolean <span class="title">canHandle</span>(<span class="params">Event <span class="keyword">event</span></span>)</span>;
+    <span class="function"><span class="keyword">abstract</span> <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doHandle</span>(<span class="params">Event <span class="keyword">event</span></span>)</span>;
+}
+
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="title">KeyboardHandler</span> <span class="title">extends</span> <span class="title">EventHandler</span> { <span class="comment">// MouseHandler</span>
+    <span class="function"><span class="keyword">protected</span> boolean <span class="title">canHandle</span>(<span class="params">Event <span class="keyword">event</span></span>)</span>{
+        <span class="keyword">return</span> <span class="string">"keyboard"</span>.equals(<span class="keyword">event</span>.getSource());
+    }
+
+    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doHandle</span>(<span class="params">Event <span class="keyword">event</span></span>) </span>{ <span class="comment">/*..../}
+}
+
+KeyboardHandler handler = new KeyboardHandler();
+handler.setNext(new MouseHandler());</span>
+</code></pre><p>由于以上的实现有点类似于装饰器模式,所有我们可以在Scala中使用abstract override来解决这个问题.不过Scala提供了一种更直接的方式,即偏函数.</p>
+<p>偏函数简单来说就是某个函数只会针对他参数的可能值的自己进行处理.可以直接使用偏函数的isDefinedAt 和apply方法来实现顺序逻辑.更好的方法是使用内置的orElse方法来实现请求的传递.</p>
+<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Event</span>(<span class="title">source</span>:<span class="title">String</span>)</span>
+
+type <span class="constant">EventHandler</span> = <span class="constant">PartialFunction</span>[<span class="constant">Event</span>, <span class="constant">Unit</span>]
+
+val <span class="symbol">defaultHandler:</span><span class="constant">EventHandler</span> = <span class="constant">PartialFunction</span>(<span class="number">_</span> =&gt; ())
+
+val <span class="symbol">keyboardHandler:</span><span class="constant">EventHandler</span> = {
+    <span class="keyword">case</span> <span class="constant">Event</span>(<span class="string">"keyboard"</span>) =&gt; <span class="regexp">/*..../</span>
+}
+
+<span class="function"><span class="keyword">def</span> <span class="title">mouseHandler</span><span class="params">(<span class="symbol">delay:</span><span class="constant">Int</span>)</span>:<span class="title">EventHandler</span> = {</span>
+    <span class="keyword">case</span> <span class="constant">Event</span>(<span class="string">"mouse"</span>) =&gt; <span class="regexp">/*..../</span>
+}
+
+keyboardHandler.orElse(mouseHandler(<span class="number">100</span>)).orElse(defaultHandler)
+</code></pre><p>注意在整个流的最后我们必须使用defaultHandler来避免出现”undefined”时间的错误.</p>
+<p>Scala中的优势是语法简洁内置逻辑,但是是通用类型.</p>
+<h3 id="命令">命令</h3><p>命令模式把一个请求或操作封装到一个对象中.命令模式把发出命令的的责任和执行命令的责任分开,委派给不同的对象.命令模式允许请求的一方和发送的一方独立开来,使得请求的一方不必知道接收的一方的接口,更不必知道请求是怎么被接收的,以及操作是否执行,合适被执行以及怎么被执行的,系统支持命令的撤销.</p>
+<p>命令模式封装了需要在稍后调用方法的搜有信息,这些信息包括拥有这些方法的对象和这些方法的参数值.</p>
+<p>命令模式适合于延迟方法调用,顺序花方法调用以及方法调用时记录日志等等.</p>
+<p>在Java中,需要把方法调用封装在对象中.</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PrintCommand</span> <span class="keyword">implements</span> <span class="title">Runnable</span></span>{
+    <span class="keyword">private</span> <span class="keyword">final</span> String s;
+
+    PrintCommand(String s) { <span class="keyword">this</span>.s = s};
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>{
+        System.out.println(s);
+    }
+}
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Invoker</span> </span>{
+    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Runnable&gt; histroy = <span class="keyword">new</span> ArrayList&lt;&gt;();
+
+    <span class="function"><span class="keyword">void</span> <span class="title">invoke</span><span class="params">(Runnable command)</span> </span>{
+        command.run();
+        history.add(command);
+    }
+}
+
+Invoker invoker = <span class="keyword">new</span> Invoker();
+invoker.invoke(<span class="keyword">new</span> PrintCommand(<span class="string">"foo"</span>));
+invoker.invoke(<span class="keyword">new</span> PrintCommand(<span class="string">"bar"</span>));
+</code></pre><p>在Scala中,我们使用换名调用来实现延迟调用:</p>
+<pre><code>object Invoker {
+    <span class="keyword">private</span> var history:Seq[() =&gt; Unit] = Seq.<span class="constant">empty</span>
+
+    def invoke(<span class="command"><span class="keyword">command</span>: =&gt; <span class="title">Unit</span>){ // <span class="title">by</span> <span class="title">name</span> <span class="title">parameter</span></span>
+        <span class="command"><span class="keyword">command</span></span>
+        histoty :+ = <span class="command"><span class="keyword">command</span> <span class="title">_</span></span>
+    }
+}
+
+Invoker.invoke(println(<span class="string">"foo"</span>))
+Invoker.invoke {
+    println(<span class="string">"bar1"</span>)
+    println(<span class="string">"bar2"</span>)
+}
+</code></pre><p>这就是我们怎么把任意的表达式或者代码块转换为一个函数对象.当调用invoke方法的时候才会调用println方法,然后以函数形式存在历史序列中.我们也可以直接定义函数,而不采用换名调用,但是那种方法太冗长了.</p>
+<h3 id="解释器">解释器</h3><p>给定一个语言后,解释器可以定义出其文法的一种表示,并同时停工一个解释器.客户端可以通过这个解释器解释这个语言中的句子.解释器模式将描述,怎样在有了一个简单的文法后,使用模式设计解释这些语句.在解释器模式里提到的语言是指任何解释器对象能够解释的的任何组合.在解释器模式中需要定义一个代表文法的命令类的等级结构,也就是一系列的组合规则.每一个命令对象都有一个解释方法,代表对命令对象的解释.命令对象的等级结构中的对象的任何排列组合都是一个语言.</p>
+<h3 id="迭代器,迭代子">迭代器,迭代子</h3><p>迭代子模式可以顺序访问一个聚集中的元素而不必暴露聚集中的内部表象.多个对象聚集在一起形成的整体称之为聚集,聚集对象是能够包容一组对象的容器对象.迭代子模式将迭代逻辑封装到一个独立的对象中,从而与聚集本身隔开.迭代子模式简化了聚集的界面.每一个聚集对象都可以有一个或多个迭代子对象,每一个迭代子的迭代状态都可以是独立的.迭代算法可以独立于聚集角色变化.</p>
+<h3 id="中介,调停者">中介,调停者</h3><p>调停者模式包装了一系列对象相互作用的方式,使得这些对象不必相互明显作用.从而使他们可以松散耦合.当某些对象之间的作用发生变化时,不会立即影响其他对象之间的相互作用.保证这些作用可以彼此独立的变化.调停者模式将多对多的相互作用转化为一对多的相互作用.调停者模式将对象的行为和协作抽象化,把对象在小尺度的行为上与其他独享的相互作用分开处理.</p>
+<h3 id="备忘录">备忘录</h3><p>备忘录对象是一个用来存储另一个对象内部状态快照的对象.备忘录模式的用意是在不破坏封装的条件下,捕捉一个对象的状态,并外部化,存储起来,从而可以在将来合适的时候可以把这个对象还原到存储起来的状态.</p>
+<h3 id="观察者">观察者</h3><p>管擦者模式定义了一种一对多的依赖关系,让多个管擦着对象同时监听一个主题对象.这个主题对象在状态发生变化时,会通知所有管擦着对象,使他们能够自动更新自己.</p>
+<h3 id="状态">状态</h3><p>状态模式允许一个对象在其状态改变时改变行为.这个对象看上去像是改变了自身的类一样.状态模式把所研究的对象的行为包装在不同的状态对象里,每一个状态对象都属于一个抽象状态类的一个子类.状态模式的意图是让一个对象内部状态发生改变时,其行为也随之改变.状态模式需要对每一个系统可能取得的状态创立一个状态类的子类,当系统的状态变化时,系统便改变所选的子类.</p>
+<h3 id="策略">策略</h3><p>策略模式针对一组算法,将每一个算法封装到具有共同接口的独立的子类中,从而使他们可以相互替换.策略模式使得算法可以在不影响客户端的情况下发生改变.策略模式把行为和环境分开.环境类负责维持和查询行为类,各种算法在具体的策略类中提供.由于算法和环境独立开来,算法的增减修改都不会影响到环境和客户端.</p>
+<p>策略模式定义了一组封装好的算法,让算法变换独立于用户的调用,需要在运行时选择算法时,策略模式非常有用.</p>
+<p>在Java中,一般要先定义一个接口,然后新建几个类分别去实现这个接口.</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Strategy</span> </span>{
+    <span class="function"><span class="keyword">int</span> <span class="title">compute</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span>
+}
+
+<span class="keyword">public</span> class Add implements Strategy </span>{
+    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compute</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span> </span>{ <span class="keyword">return</span> a + b; }
+}
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Multiply</span> <span class="keyword">implements</span> <span class="title">Strategy</span> </span>{
+    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compute</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span> </span>{ <span class="keyword">return</span> a * b; }
+}
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Context</span> </span>{
+    <span class="keyword">private</span> <span class="keyword">final</span> Strategy strategy;
+
+    <span class="function"><span class="keyword">public</span> <span class="title">Context</span><span class="params">(Strategy strategy)</span> </span>{ <span class="keyword">this</span>.strategy = strategy; }
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">use</span> <span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span> </span>{ strategy.compute(a, b); }
+}
+
+<span class="keyword">new</span> Context(<span class="keyword">new</span> Multiply()).use(<span class="number">2</span>,<span class="number">3</span>);
+</code></pre><p>而在Scala中,函数是第一公民,可以直接实现如下:</p>
+<pre><code><span class="typedef"><span class="keyword">type</span> <span class="type">Stagtegy</span> = <span class="container">(<span class="type">Int</span>, <span class="type">Int</span>)</span> =&gt; <span class="type">Int</span></span>
+<span class="class">
+<span class="keyword">class</span> <span class="type">Context</span><span class="container">(<span class="title">computer</span>:<span class="type">Stagtegy</span>)</span> {
+    def use<span class="container">(<span class="title">a</span>:<span class="type">Int</span>, <span class="title">b</span>:<span class="type">Int</span>)</span> { computer<span class="container">(<span class="title">a</span>, <span class="title">b</span>)</span>}
+}
+
+val add:<span class="type">Stagtegy</span> = _ + _
+val multiply:<span class="type">Stagtegy</span> = _ * _
+
+new <span class="type">Context</span><span class="container">(<span class="title">multiply</span>)</span>.use<span class="container">(2, 3)</span></span>
+</code></pre><p>加入策略包含很多方法的话,我们可以使用元组或样例类把所有方法封装在一起.</p>
+<h3 id="模板方法">模板方法</h3><p>模板方法模式准备一个抽象类,将部分逻辑以具体方法和具体构造子的形式实现,然后声明一些抽象方法使得子类实现剩余的逻辑.不同的子类可以以不同的方式实现这些抽象方法,从而对剩余的逻辑有不同的实现.先制定一个顶级逻辑框架,而将逻辑的细节留个具体的子类去实现.</p>
+<h3 id="访问者">访问者</h3><p>访问者模式的目的是封装一些施加于某种数据结构元素之上的操作.一旦这些操作需要修改的话,接收这个操作的数据结构可以保持不变.访问者模式适用于数据结构相对未定的系统,把数据结构和作用于数据结构之上的操作之间的耦合解脱开,使得操作集合可以相对自由的演化.访问这模式使得增加新的操作变得容易,就是增加一个新的访问者类.访问者模式将有关的行为集中到一个访问者对象中,而不是分散到一个个节点类中.当使用访问者模式时,要将尽量可能多的对象浏览逻辑放在访问者类中,而不是放到他的子类中.访问者模式可以跨过几个类的等级结构访问属于不同的等级结构的成员类.</p>
+<h3 id="依赖注入模式">依赖注入模式</h3><p>依赖注入可以让我们避免硬编码依赖关系,并且在编译器或运行时替换依赖关系,此模式是控制翻转的一个特例. 框架Spring中使用较多.</p>
+<p>依赖注入是在某个组件的众多实现中选择,或者为了单元测试而去模拟组件.</p>
+<p>除了IoC容器,在Java中最简单的实现就是像构造器参数需要的依赖,所以我们利用组合来表达依赖需求.</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Repository</span> {</span>
+    void Save(User user);
+}
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DatabaseRespository</span> <span class="keyword">implements</span> <span class="title">Respository</span> { /*..../ }</span>
+
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserService</span> {</span>
+    <span class="keyword">private</span> <span class="keyword">final</span> Respository respository;
+
+    UserService(Respository respository){
+        this.respository = respository;
+    }
+
+    void create(User user){
+        // ....
+        respository.save(user);
+    }
+}
+
+<span class="keyword">new</span> UserService(<span class="keyword">new</span> DatabaseRespository());
+</code></pre><p>除了组合HAS-A与集成HAS-A的关系外,Scala还增加了一种关系:需要 REQUIRES-A,通过自身类型注解来实现.</p>
+<p>Scala中可以混合使用自身类型与特质来进行依赖注入:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">Respository</span>{</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">save</span>(</span><span class="type">User</span> user)
+}
+
+<span class="class"><span class="keyword">trait</span> <span class="title">DatabaseRespository</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Respository</span> {</span> <span class="comment">/*..../ }
+
+trait UserService { self: Respository =&gt; 
+    def create(user:User){
+        // ....
+        save(user)
+    }
+}
+
+new UserService with DatabaseRespository</span>
+</code></pre><p>不同于构造器注入,以上方式有个要求:配置中每一中依赖都需要一个单独的引用,这种技术的完整实现就叫蛋糕模式,当然Scala中还有很多其他方式来实现依赖注入.</p>
+<p>在Scala中,既然混入的特质是静态的,所以此方法也仅限于编译期依赖注入,事实上,运行时的依赖注入几乎用不着,而对配置的静态检查相对于运行时检查有很大的优势.</p>
+<h2 id="参考资源">参考资源</h2><ol>
+<li><p><a href="link" title="Programming Scala">参考内容: Programming Scala</a></p>
+</li>
+<li><p><a href="link" title="参考翻译">参考翻译: @CrazyJvm - 陈超: Scala设计模式</a></p>
+</li>
+<li><p><a href="https://pavelfatin.com/design-patterns-in-scala/" title="参考原文" target="_blank" rel="external">参考原文: Design-Patterns-In-Scala</a></p>
+</li>
+<li><p><a href="http://www.cnblogs.com/go-onxp/archive/2012/11/06/shejimoshi.html" title="参考资料" target="_blank" rel="external">参考资料: Java中常用的设计模式总结</a></p>
+</li>
+</ol>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/04/Simple-Scala-Type-System/" rel="next">Simple Scala: Type System</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#设计模式原则"><span class="nav-number">1.</span> <span class="nav-text">设计模式原则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#开闭原则"><span class="nav-number">1.1.</span> <span class="nav-text">开闭原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#里氏替换原则"><span class="nav-number">1.2.</span> <span class="nav-text">里氏替换原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖倒转原则"><span class="nav-number">1.3.</span> <span class="nav-text">依赖倒转原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#接口隔离原则"><span class="nav-number">1.4.</span> <span class="nav-text">接口隔离原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迪米特法则(最少知道原则)"><span class="nav-number">1.5.</span> <span class="nav-text">迪米特法则(最少知道原则)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#合成复用原则"><span class="nav-number">1.6.</span> <span class="nav-text">合成复用原则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建型模式"><span class="nav-number">2.</span> <span class="nav-text">创建型模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#抽象工厂"><span class="nav-number">2.1.</span> <span class="nav-text">抽象工厂</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#生成器"><span class="nav-number">2.2.</span> <span class="nav-text">生成器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#工厂方法"><span class="nav-number">2.3.</span> <span class="nav-text">工厂方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#延迟初始化模式"><span class="nav-number">2.4.</span> <span class="nav-text">延迟初始化模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原型,原始模型"><span class="nav-number">2.5.</span> <span class="nav-text">原型,原始模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#单例"><span class="nav-number">2.6.</span> <span class="nav-text">单例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结构型模式"><span class="nav-number">3.</span> <span class="nav-text">结构型模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#适配器"><span class="nav-number">3.1.</span> <span class="nav-text">适配器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#桥接"><span class="nav-number">3.2.</span> <span class="nav-text">桥接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组合,合成"><span class="nav-number">3.3.</span> <span class="nav-text">组合,合成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#装饰器"><span class="nav-number">3.4.</span> <span class="nav-text">装饰器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#值对象"><span class="nav-number">3.5.</span> <span class="nav-text">值对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#空值模式"><span class="nav-number">3.6.</span> <span class="nav-text">空值模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#外观,门面"><span class="nav-number">3.7.</span> <span class="nav-text">外观,门面</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#享元"><span class="nav-number">3.8.</span> <span class="nav-text">享元</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代理"><span class="nav-number">3.9.</span> <span class="nav-text">代理</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#行为模式"><span class="nav-number">4.</span> <span class="nav-text">行为模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#职责链"><span class="nav-number">4.1.</span> <span class="nav-text">职责链</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命令"><span class="nav-number">4.2.</span> <span class="nav-text">命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#解释器"><span class="nav-number">4.3.</span> <span class="nav-text">解释器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迭代器,迭代子"><span class="nav-number">4.4.</span> <span class="nav-text">迭代器,迭代子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#中介,调停者"><span class="nav-number">4.5.</span> <span class="nav-text">中介,调停者</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#备忘录"><span class="nav-number">4.6.</span> <span class="nav-text">备忘录</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#观察者"><span class="nav-number">4.7.</span> <span class="nav-text">观察者</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#状态"><span class="nav-number">4.8.</span> <span class="nav-text">状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#策略"><span class="nav-number">4.9.</span> <span class="nav-text">策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模板方法"><span class="nav-number">4.10.</span> <span class="nav-text">模板方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#访问者"><span class="nav-number">4.11.</span> <span class="nav-text">访问者</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖注入模式"><span class="nav-number">4.12.</span> <span class="nav-text">依赖注入模式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资源"><span class="nav-number">5.</span> <span class="nav-text">参考资源</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

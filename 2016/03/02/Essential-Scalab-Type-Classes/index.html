@@ -1,0 +1,776 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="类型类">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Essential Scalab: Type Classes">
+<meta property="og:url" content="http://yoursite.com/2016/03/02/Essential-Scalab-Type-Classes/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="类型类">
+<meta property="og:updated_time" content="2016-03-02T07:26:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Essential Scalab: Type Classes">
+<meta name="twitter:description" content="类型类">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Essential Scalab: Type Classes | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Essential Scalab: Type Classes
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-02T12:04:16+08:00" content="2016-03-02">
+            2016-03-02
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>类型类是Scala中一个非常强的特性,它支持我们在原有类库中使用新的功能,同时不用使用继承或者访问类库源代码.这一节中我们将介绍如何实现类类型,使用Scala中一个叫做”隐式转换”的特性.</p>
+<p>类型类给了我们一个第三方实现技术,并且比其他技术都要灵活.一个类型类就像一个接口,使用类型类我们可以做到:</p>
+<ol>
+<li>给一个已有的类提供不同的接口实现</li>
+<li>不修改原有代码的情况下实现一个接口</li>
+</ol>
+<p>这意味着我们在不修改原有代码的基础上添加新的方法或数据结构.</p>
+<h2 id="Type_Class_Instances">Type Class Instances</h2><h3 id="Ordering">Ordering</h3><p>类型类一个简单是例子就是Odering特质.对于类型A,Odering[A]定义了一个比较方法用于比较A的两个实例,构造Ordering的时候,我们可以方便的使用fromLessThan方法定义在伴生对象中.</p>
+<p>如果我们想要排序一个整形数字列表,有很多种方法可以使用.比如从高到低排序,或从低到高.List有一个sorted方法用于排序, 但是使用时我们需要提供一个特殊的Odering以便按照我们的要求进行排序.</p>
+<pre><code>import scala<span class="class">.math</span><span class="class">.Ordering</span>
+
+val minOrdering = Ordering<span class="class">.fromLessThan</span>[Int](_ &lt; _)
+<span class="comment">// minOrdering: scala.math.Ordering[Int] = scala.math.Ordering$$anon$9@787f32b7</span>
+
+val maxOrdering = Ordering<span class="class">.fromLessThan</span>[Int](_ &gt; _)
+<span class="comment">// maxOrdering: scala.math.Ordering[Int] = scala.math.Ordering$$anon$9@4bf324f9</span>
+
+<span class="function"><span class="title">List</span><span class="params">(<span class="number">3</span>, <span class="number">4</span>, <span class="number">2</span>)</span></span>.<span class="function"><span class="title">sorted</span><span class="params">(minOrdering)</span></span> <span class="comment">// res: List[Int] = List(2, 3, 4)</span>
+<span class="function"><span class="title">List</span><span class="params">(<span class="number">3</span>, <span class="number">4</span>, <span class="number">2</span>)</span></span>.<span class="function"><span class="title">sorted</span><span class="params">(maxOrdering)</span></span> <span class="comment">// res: List[Int] = List(4, 3, 2)</span>
+</code></pre><p>这里我们定义了两个Odering,minOdering从低到高排序,maxOdering从高到低排序,当我们调用sorted时根据需要传入对应的Odering,这种类型类的实现方式叫做type class instances.</p>
+<h3 id="Implicit_Values">Implicit Values</h3><p>这种将类型类实例传递给方法调用的方式在我们想要重复使用一个实例时非常不便.Scala提供一个方便叫做implicit value,它通过编译器帮助我们传递类型类实例:</p>
+<pre><code>implicit val ordering = Ordering<span class="class">.fromLessThan</span>[Int](_ &lt; _) 
+
+scala&gt; <span class="function"><span class="title">List</span><span class="params">(<span class="number">2</span>, <span class="number">4</span>, <span class="number">3</span>)</span></span><span class="class">.sorted</span>
+<span class="comment">// res: List[Int] = List(2, 3, 4)</span>
+<span class="function"><span class="title">List</span><span class="params">(<span class="number">1</span>, <span class="number">7</span> ,<span class="number">5</span>)</span></span><span class="class">.sorted</span>
+<span class="comment">// res: List[Int] = List(1, 5, 7)</span>
+</code></pre><p>上面代码中我们并没有给sorted方法提供Odering,是编译器帮我们做了.</p>
+<p>我们需要告诉编译器需要将哪个值传给sorted方法.我们可以将一个值注释为implicit,同时该方法必须能够接收隐式值.可以查看sorted方法实现文档.</p>
+<h3 id="Declaring_Implicit_Values">Declaring Implicit Values</h3><p>我们可以使用implicit标记一个 val/var/object或无参的def,使其成为一个潜在的候选隐式参数.</p>
+<pre><code><span class="type">implicit</span> val exampleOne = ... 
+<span class="type">implicit</span> var exampleTwo = ... 
+<span class="type">implicit</span> object exampleThree = ... 
+<span class="type">implicit</span> def exampleFour = ...
+</code></pre><p>一个隐式值的声明必须包含在一个object, class 或 trait内部.</p>
+<h3 id="Implicit_Value_Ambiguity">Implicit Value Ambiguity</h3><p>如果一个作用域内有多个隐式值会出现什么情况:</p>
+<pre><code><span class="type">implicit</span> val minOrdering = Ordering.fromLessThan[<span class="built_in">Int</span>](_ &lt; _) 
+<span class="type">implicit</span> val maxOrdering = Ordering.fromLessThan[<span class="built_in">Int</span>](_ &gt; _) 
+
+List(<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>).sorted
+&lt;console&gt;:<span class="number">12</span>: error: ambiguous <span class="type">implicit</span> values:
+both <span class="keyword">value</span> ordering of <span class="keyword">type</span> =&gt; scala.math.Ordering[<span class="built_in">Int</span>] 
+and <span class="keyword">value</span> minOrdering of <span class="keyword">type</span> =&gt; scala.math.Ordering[<span class="built_in">Int</span>] 
+    match expected <span class="keyword">type</span> scala.math.Ordering[<span class="built_in">Int</span>]
+        List(<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>).sorted
+                           ^
+</code></pre><p>如果使用模糊的隐式值,编译器将会报错.</p>
+<h2 id="Organising_Type_Class_Instances">Organising Type Class Instances</h2><h3 id="Implicit_Scope">Implicit Scope</h3><p>当需要一个隐式参数时,编译器会在隐式作用域内寻找合适的隐式值. 隐式作用域有几个部分构成,并且在验证时有优先规则.</p>
+<p>隐式作用域的第一部分是普通作用域,这些包括声明在当前作用域的标示符,包括在class,trait,object内部的,或者通过import导入的.一个符合的隐式值必须必须是一个单独的标示符.这个作用域叫做本地作用域.</p>
+<p>隐式作用域还包含在方法调用中涉及的类型伴生对象的隐式参数.</p>
+<pre><code>sorted[<span class="link_label">B &gt;: A</span>](<span class="link_url">implicit ord: math.Ordering[B]</span>): List[A]
+</code></pre><p>编译器会在以下位置查找Ordering实例:</p>
+<ol>
+<li>List的伴生对象</li>
+<li>Odering的伴生对象</li>
+<li>类型B的伴生对象,即列表中元素的类型或任何父类型</li>
+</ol>
+<p>以上显示,我们可以在类型(上面例子中的类型A)的伴生对象中定义类型类的实例,即便不用明确import导入也可以被编译器找到.</p>
+<p>下面让我们使用伴生对象来更方便的使用Ordering,首先在本地作用域定义Odering:</p>
+<pre><code><span class="keyword">final</span> <span class="keyword">case</span> <span class="keyword">class</span> Rational(numerator: <span class="built_in">Int</span>, denominator: <span class="built_in">Int</span>)
+
+object Example { 
+  def example = {
+    <span class="type">implicit</span> val ordering = Ordering.fromLessThan[Rational]((x, y) =&gt; 
+      (x.numerator.toDouble / x.denominator.toDouble) &lt; (y.numerator.toDouble / y.denominator.toDouble)
+    )
+    <span class="keyword">assert</span>(List(Rational(<span class="number">1</span>, <span class="number">2</span>), Rational(<span class="number">3</span>, <span class="number">4</span>), Rational(<span class="number">1</span>, <span class="number">3</span>)).sorted == List(Rational(<span class="number">1</span>, <span class="number">3</span>), Rational(<span class="number">1</span>, <span class="number">2</span>), Rational(<span class="number">3</span>, <span class="number">4</span>)))
+  } 
+}
+</code></pre><p>上面的代码运行的跟预期一致,但是当我们把类型类实例移出本地作用域时却不能成功编译:</p>
+<pre><code><span class="keyword">final</span> <span class="keyword">case</span> <span class="keyword">class</span> Rational(numerator: <span class="built_in">Int</span>, denominator: <span class="built_in">Int</span>)
+object Instance {
+  <span class="type">implicit</span> val ordering = Ordering.fromLessThan[Rational]((x, y) =&gt;
+    (x.numerator.toDouble / x.denominator.toDouble) &lt; (y.numerator.toDouble / y.denominator.toDouble) )
+}
+object Example { 
+  def example =
+    <span class="keyword">assert</span>(List(Rational(<span class="number">1</span>, <span class="number">2</span>), Rational(<span class="number">3</span>, <span class="number">4</span>), Rational(<span class="number">1</span>, <span class="number">3</span>)).sorted == List(Rational(<span class="number">1</span>, <span class="number">3</span>), Rational(<span class="number">1</span>, <span class="number">2</span>), Rational(<span class="number">3</span>, <span class="number">4</span>)))
+}
+
+No <span class="type">implicit</span> Ordering defined for Rational.
+ <span class="keyword">assert</span>(List(Rational(<span class="number">1</span>, <span class="number">2</span>), Rational(<span class="number">3</span>, <span class="number">4</span>), Rational(<span class="number">1</span>, <span class="number">3</span>)).sorted ==
+ ^
+</code></pre><p>报错找不到需要的隐式值Odering.</p>
+<p>但是当我们把类型类实例放到Rational的伴生对象时又更顺利编译了.</p>
+<pre><code><span class="keyword">final</span> <span class="keyword">case</span> <span class="keyword">class</span> Rational(numerator: <span class="built_in">Int</span>, denominator: <span class="built_in">Int</span>)
+object Rational {
+  <span class="type">implicit</span> val ordering = Ordering.fromLessThan[Rational]((x, y) =&gt;
+    (x.numerator.toDouble / x.denominator.toDouble) &lt; (y.numerator.toDouble / y.denominator.toDouble) )
+}
+object Example { 
+  def example =
+    <span class="keyword">assert</span>(List(Rational(<span class="number">1</span>, <span class="number">2</span>), Rational(<span class="number">3</span>, <span class="number">4</span>), Rational(<span class="number">1</span>, <span class="number">3</span>)).sorted == List(Rational(<span class="number">1</span>, <span class="number">3</span>), Rational(<span class="number">1</span>, <span class="number">2</span>), Rational(<span class="number">3</span>, <span class="number">4</span>)))
+}
+</code></pre><p>这是打包类型类实例的第一个模式:伴生对象.当我们在定义一个类型类实例时,如果:</p>
+<ol>
+<li>这是这个类型的单例</li>
+<li>你能够编辑这个实例的类型</li>
+</ol>
+<p>这时就可以在该类型的伴生对象中定义类型类的实例.</p>
+<h3 id="Implicit_Priority">Implicit Priority</h3><p>如果我们查看Ordering的伴生对象,会发现已经定义了一些类型类实例.当然已经有了一个Int的实例,但是我们仍然能够定义自己的Ordering[Int]而不会因为隐式模糊值问题而报错.</p>
+<p>想要理解这里面的原因我们需要学习隐式值的选择优先级.</p>
+<p>隐式模糊问题只有在多个类型类实例拥有同样的优先级时出现.否则会选择优先级最高的.</p>
+<p>完整的有限级规则十分复杂,但是复杂的优先级对使用比较频繁的用例影响很小.比较常见的是,本地作用域总比伴生对象作用域的优先级要高,意思就是,被明确导入本地作用域的会有限选择,比如定义在本地或在本地作用域明确import.</p>
+<h3 id="Packaging_Implicit_Values_Without_Companion_Objects">Packaging Implicit Values Without Companion Objects</h3><p>如果该类型没有很好的实例或者已经有了几个很好的实例,这是我们不能覆盖任何其中一个,这时比较好的做法就是为每个新的实例创建单独的伴生对象:</p>
+<pre><code><span class="keyword">final</span> <span class="keyword">case</span> <span class="keyword">class</span> Rational(numerator: <span class="built_in">Int</span>, denominator: <span class="built_in">Int</span>)
+
+object RationalLessThanOrdering {
+  <span class="type">implicit</span> val ordering = Ordering.fromLessThan[Rational]((x, y) =&gt;
+   (x.numerator.toDouble / x.denominator.toDouble) &lt; (y.numerator.toDouble / y.denominator.toDouble) )
+}
+
+object RationalGreaterThanOrdering {
+  <span class="type">implicit</span> val ordering = Ordering.fromLessThan[Rational]((x, y) =&gt;
+  (x.numerator.toDouble / x.denominator.toDouble) &gt; (y.numerator.toDouble / y.denominator.toDouble) )
+}
+</code></pre><p>在使用的时候就可以按需进行导入指定的实例.</p>
+<h2 id="Creating_Type_Classes">Creating Type Classes</h2><h3 id="Elements_of_Type_Classes">Elements of Type Classes</h3><p>类型类模式有四个部分:</p>
+<ol>
+<li>class本身实际的type</li>
+<li>type class实例</li>
+<li>使用隐式参数的interfaces</li>
+<li>使用enrichment和隐式参数的interfaces</li>
+</ol>
+<h3 id="Creating_a_Type_Class">Creating a Type Class</h3><p>让我们新建一个例子:将数据转换成HTML.</p>
+<p>一种实现是创建一个trait,需要使用该功能的地方进行混入就行了:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">HtmlWriteable</span> {</span> 
+    <span class="function"><span class="keyword">def</span> <span class="title">toHtml</span>:</span> <span class="type">String</span>
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span>(</span>name: <span class="type">String</span>, email: <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">HtmlWriteable</span> { 
+    <span class="function"><span class="keyword">def</span> <span class="title">toHtml</span> =</span> s<span class="string">"&lt;span&gt;$name &amp;lt;$email&amp;gt;&lt;/span&gt;"</span>
+}
+<span class="type">Person</span>(<span class="string">"John"</span>, <span class="string">"john@example.com"</span>).toHtml
+<span class="comment">// res: String = &lt;span&gt;John &amp;lt;john@example.com&amp;gt;&lt;/span&gt;</span>
+</code></pre><p>这种实现方式有很多弊端.首先我们被限制只有一种方式来渲染Person.比如我们想把用户列表在公司首页展示,但并不是对所有人都展示email,比如只对已登录的用户展示email.第二,我们只能把这种功能添加到我们自己定义的类上.如果我想把java.util.Date转换成HTML,就不得不写一些别的功能来支持转换.</p>
+<p>或许我们可以尝试模式匹配:</p>
+<pre><code>object HtmlWriter {
+  <span class="function"><span class="keyword">def</span> <span class="title">write</span><span class="params">(in: Any)</span>:</span> String = <span class="keyword">in</span> match {
+    case Person(name, email) =&gt; ...
+    case Date =&gt; ...
+    case _ =&gt; throw new Exception(s<span class="string">"Can't render ${in} to HTML"</span>)
+  } 
+}
+</code></pre><p>这种实现也有他自己的问题,我们只能对那些已经列出的类型进行转换,如果需要转换一个新的类型则需要修改代码.</p>
+<p>这时我们可以把这个功能改写成一个适配器class:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">HtmlWriter</span>[</span><span class="type">A</span>] {
+    <span class="function"><span class="keyword">def</span> <span class="title">write</span>(</span>in: <span class="type">A</span>): <span class="type">String</span>
+}
+<span class="class"><span class="keyword">object</span> <span class="title">PersonWriter</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">HtmlWriter</span>[</span><span class="type">Person</span>] {
+    <span class="function"><span class="keyword">def</span> <span class="title">write</span>(</span>person: <span class="type">Person</span>) = s<span class="string">"&lt;span&gt;${person.name} &amp;lt;${person.email}&amp;gt;&lt;/span&gt;"</span>
+}
+<span class="type">PersonWriter</span>.write(<span class="type">Person</span>(<span class="string">"John"</span>, <span class="string">"john@example.com"</span>))
+<span class="comment">// res: String = &lt;span&gt;John &amp;lt;john@example.com&amp;gt;&lt;/span&gt;</span>
+</code></pre><p>这样就好多了,我们可以为其他类型实现对应的HtmlWriter,包括哪些并不是我们自己定义的类:</p>
+<pre><code><span class="keyword">import</span> java.util.<span class="type">Date</span>
+<span class="class"><span class="keyword">object</span> <span class="title">DateWriter</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">HtmlWriter</span>[</span><span class="type">Date</span>] {
+    <span class="function"><span class="keyword">def</span> <span class="title">write</span>(</span>in: <span class="type">Date</span>) = s<span class="string">"&lt;span&gt;${in.toString}&lt;/span&gt;"</span>
+}
+<span class="type">DateWriter</span>.write(<span class="keyword">new</span> <span class="type">Date</span>)
+<span class="comment">// res: String = &lt;span&gt;Sat Apr 05 16:01:58 BST 2014&lt;/span&gt;</span>
+</code></pre><p>或者另外写一个HtmlWriter以便人员信息在主页上展示:</p>
+<pre><code><span class="class"><span class="keyword">object</span> <span class="title">ObfuscatedPersonWriter</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">HtmlWriter</span>[</span><span class="type">Person</span>] { 
+    <span class="function"><span class="keyword">def</span> <span class="title">write</span>(</span>person: <span class="type">Person</span>) = 
+        s<span class="string">"&lt;span&gt;${person.name} (${person.email.replaceAll("</span>@<span class="string">", "</span> at <span class="string">")})&lt;/span&gt;"</span> }
+<span class="type">ObfuscatedPersonWriter</span>.write(<span class="type">Person</span>(<span class="string">"John"</span>, <span class="string">"john@example.com"</span>)) 
+<span class="comment">// res: String = John (john at example.com)</span>
+</code></pre><h2 id="Implicit_Parameter_and_Interfaces">Implicit Parameter and Interfaces</h2><p>上面的模式也有问题,如果我们要处理复杂数据结构时需要管理很多HtmlWriter实例.</p>
+<h3 id="Implicit_Parameter_Lists">Implicit Parameter Lists</h3><p>下面是一个隐式参数的例子:</p>
+<pre><code>object HtmlUtil {
+    def htmlify[A](<span class="type">data</span>: A)(<span class="type">implicit</span> writer: HtmlWriter[A]): String = {
+        writer.<span class="built_in">write</span>(<span class="type">data</span>)
+    }
+}
+</code></pre><p>htmlify方法需要两个参数,需要转换的数据和作为隐式参数的writer,关键字implicit会把隐式参数添加到整个参数列表而不是作为一个单独的参数,但是这个参数在方法调用时作为可选项,我们可以按照正常的方式进行调用:</p>
+<pre><code>HtmlUtil.htmlify(Person(<span class="string">"John"</span>, <span class="string">"john<span class="variable">@example</span>.com"</span>))(PersonWriter) 
+// res: String = &lt;span&gt;John &amp;<span class="keyword">lt</span>;john<span class="variable">@example</span>.com&amp;<span class="keyword">gt</span>;&lt;<span class="regexp">/span&gt;</span>
+</code></pre><p>或者省略掉该隐式参数,如果省略,编译器会去搜索正确类型的隐式值作为参数对省略的位置进行填充.首先我们定义一个隐式值:</p>
+<pre><code>mplicit <span class="class"><span class="keyword">object</span> <span class="title">ApproximationWriter</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">HtmlWriter</span>[</span><span class="type">Int</span>] { 
+  <span class="function"><span class="keyword">def</span> <span class="title">write</span>(</span>in: <span class="type">Int</span>): <span class="type">String</span> =
+    s<span class="string">"It's definitely less than ${((in / 10) + 1) * 10}"</span>
+}
+</code></pre><p>然后当我们在调用HtmlUtil时就不需要再指定隐式参数了:</p>
+<pre><code>HtmlUtil.<span class="function"><span class="title">htmlify</span><span class="params">(<span class="number">2</span>)</span></span>
+<span class="comment">// res: String = It's definitely less than 10</span>
+</code></pre><h3 id="Interfaces_Using_Implicit_Parameters">Interfaces Using Implicit Parameters</h3><pre><code>object HtmlWriter {
+  def <span class="built_in">write</span>[A](<span class="type">in</span>: A)(<span class="type">implicit</span> writer: HtmlWriter[A]): String =
+    writer.<span class="built_in">write</span>(<span class="type">in</span>)
+}
+</code></pre><p>我们可以用下面的结构避免上面的这种写法:</p>
+<pre><code>object HtmlWriter {
+  <span class="function"><span class="keyword">def</span> <span class="title">apply</span>[<span class="title">A</span>]<span class="params">(implicit writer: HtmlWriter[A])</span>:</span> HtmlWriter[A] =
+    writer 
+}
+</code></pre><p>然后按下面的形式进行调用:</p>
+<pre><code>HtmlWriter[Person].<span class="function"><span class="title">write</span><span class="params">(Person(<span class="string">"Noel"</span>, <span class="string">"noel@example.org"</span>)</span></span>)
+</code></pre><p>Type Class Interface Pattern:</p>
+<pre><code>object TypeClass {
+  <span class="function"><span class="keyword">def</span> <span class="title">apply</span>[<span class="title">A</span>]<span class="params">(implicit instance: TypeClass[A])</span>:</span> TypeClass[A] =
+    instance 
+}
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/02/Essential-Scalab-Pattern-Matching/" rel="prev">Essential Scalab: Pattern Matching</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/01/Essential-Scalab-Collections/" rel="next">Essential Scalab: Collections</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Type_Class_Instances"><span class="nav-number">1.</span> <span class="nav-text">Type Class Instances</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Ordering"><span class="nav-number">1.1.</span> <span class="nav-text">Ordering</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implicit_Values"><span class="nav-number">1.2.</span> <span class="nav-text">Implicit Values</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Declaring_Implicit_Values"><span class="nav-number">1.3.</span> <span class="nav-text">Declaring Implicit Values</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implicit_Value_Ambiguity"><span class="nav-number">1.4.</span> <span class="nav-text">Implicit Value Ambiguity</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Organising_Type_Class_Instances"><span class="nav-number">2.</span> <span class="nav-text">Organising Type Class Instances</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Implicit_Scope"><span class="nav-number">2.1.</span> <span class="nav-text">Implicit Scope</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Implicit_Priority"><span class="nav-number">2.2.</span> <span class="nav-text">Implicit Priority</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Packaging_Implicit_Values_Without_Companion_Objects"><span class="nav-number">2.3.</span> <span class="nav-text">Packaging Implicit Values Without Companion Objects</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Creating_Type_Classes"><span class="nav-number">3.</span> <span class="nav-text">Creating Type Classes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Elements_of_Type_Classes"><span class="nav-number">3.1.</span> <span class="nav-text">Elements of Type Classes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating_a_Type_Class"><span class="nav-number">3.2.</span> <span class="nav-text">Creating a Type Class</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Implicit_Parameter_and_Interfaces"><span class="nav-number">4.</span> <span class="nav-text">Implicit Parameter and Interfaces</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Implicit_Parameter_Lists"><span class="nav-number">4.1.</span> <span class="nav-text">Implicit Parameter Lists</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Interfaces_Using_Implicit_Parameters"><span class="nav-number">4.2.</span> <span class="nav-text">Interfaces Using Implicit Parameters</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

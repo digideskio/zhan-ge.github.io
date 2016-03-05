@@ -1,0 +1,737 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="模式匹配">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Essential Scalab: Pattern Matching">
+<meta property="og:url" content="http://yoursite.com/2016/03/02/Essential-Scalab-Pattern-Matching/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="模式匹配">
+<meta property="og:updated_time" content="2016-03-02T08:00:39.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Essential Scalab: Pattern Matching">
+<meta name="twitter:description" content="模式匹配">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Essential Scalab: Pattern Matching | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Essential Scalab: Pattern Matching
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-02T15:26:36+08:00" content="2016-03-02">
+            2016-03-02
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="Standard_patterns">Standard patterns</h2><h3 id="Literal_patterns:_字面值模式">Literal patterns: 字面值模式</h3><p>字面值模式匹配一个特殊的值,Scala中除了primitive值,Strings,nulls和() 都可以使用:</p>
+<pre><code>(<span class="number">1</span> + <span class="number">1</span>) match {
+    <span class="keyword">case</span> <span class="number">1</span> =&gt; <span class="string">"It's one!"</span> 
+    <span class="keyword">case</span> <span class="number">2</span> =&gt; <span class="string">"It's two!"</span> 
+    <span class="keyword">case</span> <span class="number">3</span> =&gt; <span class="string">"It's three!"</span>
+}
+<span class="comment">// res: String = It's two!</span>
+Person(<span class="string">"Dave"</span>, <span class="string">"Gurnell"</span>) match {
+    <span class="function"><span class="keyword">case</span> <span class="title">Person</span><span class="params">(<span class="string">"Noel"</span>, <span class="string">"Welsh"</span>)</span> </span>=&gt; <span class="string">"It's Noel!"</span> 
+    <span class="function"><span class="keyword">case</span> <span class="title">Person</span><span class="params">(<span class="string">"Dave"</span>, <span class="string">"Gurnell"</span>)</span> </span>=&gt; <span class="string">"It's Dave!"</span>
+}
+<span class="comment">// res: String = It's Dave!</span>
+println(<span class="string">"Hi!"</span>) match { 
+    <span class="keyword">case</span> () =&gt; <span class="string">"It's unit!"</span>
+}
+<span class="comment">// Hi!</span>
+<span class="comment">// res: String = It's unit!</span>
+</code></pre><h3 id="Constant_patterns:_常量模式">Constant patterns: 常量模式</h3><p>标示符以大写字母开始的叫做常量,用以匹配一个预定义的常量:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">X</span> =</span> <span class="string">"Foo"</span>
+<span class="comment">// X: String = Foo</span>
+<span class="function"><span class="keyword">val</span> <span class="title">Y</span> =</span> <span class="string">"Bar"</span>
+<span class="comment">// Y: String = Bar</span>
+<span class="function"><span class="keyword">val</span> <span class="title">Z</span> =</span> <span class="string">"Baz"</span>
+<span class="comment">// Z: String = Baz</span>
+<span class="string">"Bar"</span> <span class="keyword">match</span> {
+    <span class="keyword">case</span> <span class="type">X</span> =&gt; <span class="string">"It's foo!"</span> 
+    <span class="keyword">case</span> <span class="type">Y</span> =&gt; <span class="string">"It's bar!"</span> 
+    <span class="keyword">case</span> <span class="type">Z</span> =&gt; <span class="string">"It's baz!"</span>
+}
+<span class="comment">// res: String = It's bar!</span>
+</code></pre><h3 id="Alternative_patterns:_选择模式">Alternative patterns: 选择模式</h3><p>“|” 竖线用于选择模式:</p>
+<pre><code><span class="string">"Bar"</span> match {
+    <span class="keyword">case</span> X | Y =&gt; <span class="string">"It's foo or bar!"</span>  <span class="comment">// X 或 Y</span>
+    <span class="keyword">case</span> Z =&gt; <span class="string">"It's baz!"</span>
+}
+<span class="comment">// res: String = It's baz!</span>
+</code></pre><h3 id="Variable_capture:_变量捕获">Variable capture: 变量捕获</h3><p>小写字母开都的标识符用于绑定值,绑定后该变量可以在 =&gt; 右侧使用:</p>
+<pre><code>Person(<span class="string">"Dave"</span>, <span class="string">"Gurnell"</span>) match { 
+    <span class="keyword">case</span> Person(f, n) =&gt; f + <span class="string">" "</span> + n
+}
+// res: <span class="built_in">String</span> = <span class="string">"Dave Gurnell"</span>
+</code></pre><p>@ 操作符,写作 x @ y,支持我们将值捕获到x中,同时有满足模式y,x必须是一个变量模式(即标示符小写),y可以是任何模式:</p>
+<pre><code>Person(<span class="string">"Dave"</span>, <span class="string">"Gurnell"</span>) <span class="name">match</span> {
+    <span class="keyword">case</span> p @ Person(<span class="number">_</span>, s) =&gt; s<span class="string">"The person <span class="variable">$p</span> has the surname <span class="variable">$s</span>"</span>
+}
+// res: String = <span class="string">"The person Person(Dave,Gurnell) is called Dave Gurnell"</span>
+</code></pre><p>即将 @ 后面的整个 Person(<em>, s) 起了个别名p,同时 Person(</em>, s)作为匹配的模式.</p>
+<h3 id="Wildcard_patterns:_通配符模式">Wildcard patterns: 通配符模式</h3><p>符号 “_” 用于匹配任何值并忽略,在两种场景中比较有用:一种是在别的模式中进行嵌套,另一种是用于匹配任何剩余的分支:</p>
+<pre><code>Person(<span class="string">"Dave"</span>, <span class="string">"Gurnell"</span>) match {
+    <span class="keyword">case</span> Person(<span class="string">"Noel"</span>, _) =&gt; <span class="string">"It's Noel!"</span> 
+    <span class="keyword">case</span> Person(<span class="string">"Dave"</span>, _) =&gt; <span class="string">"It's Dave!"</span>
+}
+<span class="comment">// res: String = It's Dave!</span>
+Person(<span class="string">"Dave"</span>, <span class="string">"Gurnell"</span>) match {
+    <span class="keyword">case</span> Person(name, _) =&gt; s<span class="string">"It's $name!"</span>
+}
+<span class="comment">// res: String = It's Dave!</span>
+Person(<span class="string">"John"</span>, <span class="string">"Doe"</span>) match {
+    <span class="keyword">case</span> Person(<span class="string">"Noel"</span>, _) =&gt; <span class="string">"It's Noel!"</span> 
+    <span class="keyword">case</span> Person(<span class="string">"Dave"</span>, _) =&gt; <span class="string">"It's Dave!"</span> 
+    <span class="keyword">case</span> _ =&gt; <span class="string">"It's someone else!"</span>
+}
+<span class="comment">// res: String = It's someone else!</span>
+</code></pre><h3 id="Type_patterns:_类型模式">Type patterns: 类型模式</h3><p>类型模式写作 x: Y ,Y是一个类型,x是一个通配符模式或变量模式,该模式将匹配任何符合类型的值并将值绑定到x:</p>
+<pre><code>val <span class="string">shape:</span> Shape = Rectangle(<span class="number">1</span>, <span class="number">2</span>) 
+<span class="comment">// shape: Shape = Rectangle(1.0,2.0)</span>
+shape match {
+    <span class="keyword">case</span> <span class="string">c :</span> Circle =&gt; s<span class="string">"It's a circle: $c!"</span> 
+    <span class="keyword">case</span> <span class="string">r :</span> Rectangle =&gt; s<span class="string">"It's a rectangle: $r!"</span> 
+    <span class="keyword">case</span> <span class="string">s :</span> Square =&gt; s<span class="string">"It's a square: $s!"</span>
+}
+<span class="comment">// res: String = It's a rectangle: Rectangle(1.0,2.0)!</span>
+</code></pre><h3 id="Tuple_patterns:_元组模式">Tuple patterns: 元组模式</h3><pre><code>(<span class="number">1</span>, <span class="number">2</span>) match {
+    <span class="keyword">case</span> (a, b) =&gt; a + b
+}
+<span class="comment">// res: Int = 3</span>
+</code></pre><h3 id="Guard_expressions:_守卫表达式">Guard expressions: 守卫表达式</h3><pre><code><span class="number">123</span> match {
+    <span class="keyword">case</span> a <span class="keyword">if</span> a % <span class="number">2</span> == <span class="number">0</span> =&gt; <span class="string">"even"</span> 
+    <span class="keyword">case</span> _ =&gt; <span class="string">"odd"</span>
+}
+<span class="comment">// res: String = odd</span>
+</code></pre><h2 id="Custom_Patterns">Custom Patterns</h2><h3 id="Extractors">Extractors</h3><p>Case class extractors,case类自身伴生对象中自带的解析器:</p>
+<pre><code>Person(<span class="string">"Dave"</span>, <span class="string">"Gurnell"</span>) match { 
+    <span class="keyword">case</span> Person(f, l) =&gt; <span class="built_in">List</span>(f, l)
+}
+<span class="comment">// res: List[String] = List(Dave, Gurnell)</span>
+</code></pre><p>Regular expressions:</p>
+<pre><code><span class="keyword">import</span> scala.util.matching.<span class="type">Regex</span>
+<span class="function"><span class="keyword">val</span> <span class="title">r</span> =</span> <span class="keyword">new</span> <span class="type">Regex</span>(<span class="string">"""(\d+)\.(\d+)\.(\d+)\.(\d+)"""</span>)
+<span class="comment">// r: scala.util.matching.Regex = (\d+)\.(\d+)\.(\d+)\.(\d+)</span>
+<span class="string">"192.168.0.1"</span> <span class="keyword">match</span> {
+    <span class="keyword">case</span> r(a, b, c, d) =&gt; <span class="type">List</span>(a, b, c, d)
+}
+<span class="comment">// res: List[String] = List(192, 168, 0, 1)</span>
+</code></pre><p>Lists and Sequences:</p>
+<pre><code>List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>) match {
+    <span class="function"><span class="keyword">case</span> <span class="title">List</span><span class="params">(a, b, c)</span> </span>=&gt; a + b + c
+}
+<span class="comment">// res: Int = 6</span>
+</code></pre><p>Nil匹配一个空列表:</p>
+<pre><code>Nil match {
+    <span class="keyword">case</span> <span class="built_in">List</span>(a) =&gt; <span class="string">"length 1"</span> 
+    <span class="keyword">case</span> Nil =&gt; <span class="string">"length 0"</span>
+}
+<span class="comment">// res: String = length 0</span>
+</code></pre><p>单例对象 :: 用于匹配列表的head和tail:</p>
+<pre><code>List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>) match {
+    <span class="keyword">case</span> ::(head, tail) =&gt; s<span class="string">"head $head tail $tail"</span> 
+    <span class="keyword">case</span> Nil =&gt; <span class="string">"empty"</span>
+}
+<span class="comment">// res: String = head 1 tail List(2, 3)</span>
+</code></pre><p>或者:</p>
+<pre><code>List(1, 2, 3) <span class="name">match</span> {
+    <span class="keyword">case</span> head :: tail =&gt; s<span class="string">"head <span class="variable">$head</span> tail <span class="variable">$tail</span>"</span> 
+    <span class="keyword">case</span> Nil =&gt; <span class="string">"empty"</span>
+}
+// res: String = head 1 tail List(2, 3)
+</code></pre><p>组合使用::, Nil 和 _ 可以用于匹配任意长度的列表:</p>
+<pre><code>List(1, 2, 3) <span class="name">match</span> {
+    <span class="keyword">case</span> Nil =&gt; <span class="string">"length 0"</span>
+    <span class="keyword">case</span> a :: Nil =&gt; s<span class="string">"length 1 starting <span class="variable">$a</span>"</span>
+    <span class="keyword">case</span> a :: b :: Nil =&gt; s<span class="string">"length 2 starting <span class="variable">$a</span> <span class="variable">$b</span>"</span>
+    <span class="keyword">case</span> a :: b :: c :: _ =&gt; s<span class="string">"length 3+ starting <span class="variable">$a</span> <span class="variable">$b</span> <span class="variable">$c</span>"</span>
+}
+// res: String = length 3+ starting 1 2 3
+</code></pre><p>自定义一个解析器:</p>
+<pre><code>object Email {
+    def unapply(str: <span class="built_in">String</span>): Option[(<span class="built_in">String</span>, <span class="built_in">String</span>)] = {
+        val parts = str.split(<span class="string">"@"</span>)
+        <span class="keyword">if</span> (parts.length == <span class="number">2</span>) Some((parts(<span class="number">0</span>), parts(<span class="number">1</span>))) <span class="keyword">else</span> None 
+    }
+}
+<span class="string">"dave@underscore.io"</span> match {
+    <span class="keyword">case</span> Email(user, domain) =&gt; <span class="built_in">List</span>(user, domain)
+}
+<span class="comment">// res: List[String] = List(dave, underscore.io)</span>
+<span class="string">"dave"</span> match {
+    <span class="keyword">case</span> Email(user, domain) =&gt; <span class="built_in">List</span>(user, domain) <span class="keyword">case</span> _ =&gt; Nil
+}
+<span class="comment">// res: List[String] = List()</span>
+</code></pre><p>类似的用法用于匹配任何字符串并转换为大写:</p>
+<pre><code>object Uppercase {
+    <span class="function"><span class="keyword">def</span> <span class="title">unapply</span><span class="params">(str: String)</span>:</span> Option[String] = Some(str.toUpperCase)
+}
+Person(<span class="string">"Dave"</span>, <span class="string">"Gurnell"</span>) match {
+    case Person(f, Uppercase(l)) =&gt; s<span class="string">"$f $l"</span>
+}
+// res: String = Dave GURNELL
+</code></pre><h3 id="Wildcard_sequence_patterns:_通配符序列模式">Wildcard sequence patterns: 通配符序列模式</h3><pre><code>List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>) match { 
+    <span class="function"><span class="keyword">case</span> <span class="title">List</span><span class="params">(a, b, _*)</span> </span>=&gt; a + b
+}
+<span class="comment">// res: Int = 3</span>
+<span class="string">"the quick brown fox"</span> match { 
+    <span class="function"><span class="keyword">case</span> <span class="title">Words</span><span class="params">(a, b, _*)</span> </span>=&gt; a + b
+}
+<span class="comment">// res: String = "thequick"</span>
+</code></pre><p>将剩余元素绑定到一个变量:</p>
+<pre><code><span class="string">"the quick brown fox"</span> match {
+    case Words(a, b, rest @ <span class="number">_</span>*) =&gt; rest
+}
+// res: Se<span class="string">q[String]</span> = WrappedArray(<span class="string">"brown"</span>, <span class="string">"fox"</span>)
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/02/Essential-Scalab-Collections-Redux/" rel="prev">Essential Scalab: Collections Redux</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/02/Essential-Scalab-Type-Classes/" rel="next">Essential Scalab: Type Classes</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Standard_patterns"><span class="nav-number">1.</span> <span class="nav-text">Standard patterns</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Literal_patterns:_字面值模式"><span class="nav-number">1.1.</span> <span class="nav-text">Literal patterns: 字面值模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Constant_patterns:_常量模式"><span class="nav-number">1.2.</span> <span class="nav-text">Constant patterns: 常量模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Alternative_patterns:_选择模式"><span class="nav-number">1.3.</span> <span class="nav-text">Alternative patterns: 选择模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Variable_capture:_变量捕获"><span class="nav-number">1.4.</span> <span class="nav-text">Variable capture: 变量捕获</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Wildcard_patterns:_通配符模式"><span class="nav-number">1.5.</span> <span class="nav-text">Wildcard patterns: 通配符模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Type_patterns:_类型模式"><span class="nav-number">1.6.</span> <span class="nav-text">Type patterns: 类型模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tuple_patterns:_元组模式"><span class="nav-number">1.7.</span> <span class="nav-text">Tuple patterns: 元组模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Guard_expressions:_守卫表达式"><span class="nav-number">1.8.</span> <span class="nav-text">Guard expressions: 守卫表达式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Custom_Patterns"><span class="nav-number">2.</span> <span class="nav-text">Custom Patterns</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Extractors"><span class="nav-number">2.1.</span> <span class="nav-text">Extractors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Wildcard_sequence_patterns:_通配符序列模式"><span class="nav-number">2.2.</span> <span class="nav-text">Wildcard sequence patterns: 通配符序列模式</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

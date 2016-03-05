@@ -1,0 +1,1130 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="对象系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: Object System">
+<meta property="og:url" content="http://yoursite.com/2016/03/03/Simple-Scala-Object-System/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="对象系统">
+<meta property="og:updated_time" content="2016-03-04T08:21:39.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: Object System">
+<meta name="twitter:description" content="对象系统">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: Object System | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: Object System
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-03T20:59:31+08:00" content="2016-03-03">
+            2016-03-03
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="Parameterized_Types:_Variance_Under_Inheritance">Parameterized Types: Variance Under Inheritance</h2><p>Java和Scala在类型化参数(泛型)上最大的不同是variance under inheritance(继承下的变型)是怎么工作的.</p>
+<p>比如一个方法接收一个List[AnyRef]类型的参数,你能给它传一个List[String]吗,或者说 List[String]是List[AnyRef]的子类型吗?如果是,则这种型变就叫做协变(covariance),因为容器的父子类型关系和类型参数的关系走势一致.</p>
+<p>同时还有逆变(contravariant),即 X[String] 是 X[Any] 的父类型.</p>
+<p>如果一个参数化类型就不是协变也不是逆变,则称为不可变型(invariant).</p>
+<p>Java和scala均支持协变,逆变与不可变型,但是在Scala中,变型行为通过叫做变型注解(variance annotation)的方式在每个参数上作为类型声明的一部分被定义.</p>
+<p>协变时使用符号 +, 逆变时使用符号 -,不变型时不用添加符号,下面是一些声明的例子:</p>
+<pre><code>class W[+A] <span class="decorator">{...}</span>       // covariant 
+class X[-A] <span class="decorator">{...}</span>       // contravariant 
+class Y[A] <span class="decorator">{...}</span>        // invariant 
+class Z[-A,B,+C] <span class="decorator">{...}</span>  // mixed
+</code></pre><p>类型变型注解和意义:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Scala</th>
+<th style="text-align:center">Java</th>
+<th style="text-align:center">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">+T</td>
+<td style="text-align:center">? extends T</td>
+<td style="text-align:center">协变(eg:List[Tsub]是List[T]的子类型)</td>
+</tr>
+<tr>
+<td style="text-align:left">-T</td>
+<td style="text-align:center">? super T</td>
+<td style="text-align:center">逆变(eg:X[Tsup]是X[T]的子类型)</td>
+</tr>
+<tr>
+<td style="text-align:left">T</td>
+<td style="text-align:center">T</td>
+<td style="text-align:center">不可变型(eg:不能将Y[Tsub]或Y[Tsup]适应为Y[T])</td>
+</tr>
+</tbody>
+</table>
+<p>这时候再看List,实际上声明为List[+A],即List[String]是List[Any]的子类型,因此List在参数A是进行协变.</p>
+<p>如果一个类型跟List一样只有一种变型,则说”List是协变的”,逆变也适用这种说法.</p>
+<h2 id="Functions_Under_the_Hood">Functions Under the Hood</h2><p>逆变最好的例子是一组FunctionN的特质,比如Scala.Function2,N是区间是0-22,根据函数的参数数量决定.Scala根据这些特质实现匿名函数.</p>
+<p>我们已经见过匿名函数:</p>
+<pre><code>List(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>)<span class="built_in">map</span>(i=&gt;i+<span class="number">3</span>) <span class="comment">// Result: List(4, 5, 6, 7)</span>
+</code></pre><p>函数表达式 i =&gt; i + 3 实质上是一个语法糖,编译器会把它转换成scala.Function1的匿名子类实例:</p>
+<pre><code>val f: Int =&gt; Int = new Function1[Int,Int] { 
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span><span class="params">(i: Int)</span>:</span> Int = i + <span class="number">3</span>
+}
+List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>) map (f) // Result: List(<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>)
+</code></pre><p>FunctionN特质是抽象的,因为其apply方法是抽象的.注意我们这里已经定义了他,表达式 i =&gt; i + 3 的作用就是用于定义apply方法.</p>
+<p>现在回到逆变,如下是scala.Function2的声明:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">Function2</span>[-<span class="title">T1</span>, <span class="typename">-T2</span>, <span class="typename">+R] extends AnyRef</span></span>
+</code></pre><p>最后一个类型参数 +R 是返回值类型.它是协变的.前面的两个类型参数分别是函数参数.他们你逆变的,其他的FunctionN特质于此类似.</p>
+<p>观察实例理解变型行为:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">CSuper</span>                {</span> <span class="function"><span class="keyword">def</span> <span class="title">msuper</span>(</span>) = println(<span class="string">"CSuper"</span>) }    <span class="comment">// 1</span>
+<span class="class"><span class="keyword">class</span> <span class="title">C</span>     <span class="keyword"><span class="keyword">extends</span></span> <span class="title">CSuper</span>  {</span> <span class="function"><span class="keyword">def</span> <span class="title">m</span>(</span>) = println(<span class="string">"C"</span>) }
+<span class="class"><span class="keyword">class</span> <span class="title">CSub</span>  <span class="keyword"><span class="keyword">extends</span></span> <span class="title">C</span>       {</span> <span class="function"><span class="keyword">def</span> <span class="title">msub</span>(</span>) = println(<span class="string">"CSub"</span>) }
+
+<span class="keyword">var</span> f: <span class="type">C</span> =&gt; <span class="type">C</span>   = (c:<span class="type">C</span>) =&gt;newC                                      <span class="comment">// 2</span>
+    f           = (c: <span class="type">CSuper</span>) =&gt; <span class="keyword">new</span> <span class="type">CSub</span>                           <span class="comment">// 3</span>
+    f           = (c: <span class="type">CSuper</span>) =&gt;<span class="keyword">new</span> <span class="type">C</span>                               <span class="comment">// 4</span>
+    f           = (c:<span class="type">C</span>) =&gt;newCSub                                   <span class="comment">// 5</span>
+    f           = (c: <span class="type">CSub</span>) =&gt; <span class="keyword">new</span> <span class="type">CSuper</span>                           <span class="comment">// 6 COMPILATION ERROR!</span>
+</code></pre><ol>
+<li>定义一组三重继承的类</li>
+<li>把函数 f 定义为 var 以便能够重新赋值,所有进行赋值的函数实例必须是 C =&gt; C(Function1[C,C]),所有我们赋值的函数必须能够满足继承下的变型要求.</li>
+<li>函数值 (c: CSuper) =&gt; new CSub 是有效的,因为参数C是逆变,所以CSuper是一个有效的替换,同时返回值是协变的,因此CSub可以有效替换C</li>
+<li>和上面的一样,只是返回了一个 C</li>
+<li>和上面一样,只是传入一个 C</li>
+<li>错误,接收一个CSub参数是无效的,因为逆变. 返回值类型CSuper对于协变也是无效的</li>
+</ol>
+<p>协变时可以使用子类进行替换,逆变时可以使用父类来替换.</p>
+<p>函数变量 f 是一个 C =&gt; C (Function1[-C,+C])类型,第一次赋值跟签名准确吻合,即传入值与传出值均是C类型.</p>
+<p>第二次赋值,(x:CSuper) =&gt; CSub,同样遵守了逆变参数和协变返回值,但是为什么这样就安全(可用)呢?</p>
+<p>关键的洞擦力是 f 函数具体是如何使用的或者我们可以使用它完成什么功能.如果我们定义为 C =&gt; C,则所有有效的C类型值可以传入同时永远不会返回C类型意外任何类型的值.</p>
+<p>但如果实际类型是 (x:CSuper) =&gt; CSub, 该函数就不仅仅只能接受C类型的值,它同时能够接收其父类型CSuper或它其他的子类型的值. 因此我们只会传入一个C的实例,而不会传入任何超出 f 函数允许范围之外的类型.而此时,f 的能力比他需要做的要宽大的多.</p>
+<p>同样,如果他只返回CSub实例也是同样安全的,因为调用者既然能够处理C,当然能够处理其子类CSub.</p>
+<p>上面的第6项同时违背了两条规则,我们观察一下如果我们真的允许这么做了会发生什么.</p>
+<p>这个例子中,函数 f 只知道怎么处理CSub的实例,但是调用者以为任何C的实例都能够传入,因此运行时会报错,比如调用一些仅仅在CSub中定义的方法,而C中没有.同样,如果 f 能够返回一个CSuper,这同样会让调用者吃惊,因为返回值超出了预期的实例类型,而预期的是类型C的实例.</p>
+<p>这就是为什么函数的参数必须逆变而返回值必须协变.</p>
+<p>变型注解只能作用于类的类型参数,不能用作参数化方法,因为注解影响了子类型的行为.方法并不是类型化的.比如List.map方法的签名:</p>
+<pre><code>sealed abstract class <span class="type">List</span>[+A] ... { // <span class="keyword">mixin</span> traits omitted ...
+    def map[B](f: A =&gt; B): <span class="type">List</span>[B] = <span class="decorator">{...}</span>
+    ... 
+}
+</code></pre><p>B上并没有类型注解,如果强加一个则会编译器报错.</p>
+<p>最后编译器会检查你变型注解中的无效用法,比如下面在函数定义中使用了错误的注解:</p>
+<pre><code>scala&gt; <span class="class"><span class="keyword">trait</span> <span class="title">MyFunction2</span>[+<span class="title">T1</span>, +<span class="title">T2</span>, -<span class="title">R</span>] {</span> 
+        | defapply(<span class="string">v1:</span>T1,<span class="string">v2:</span>T2):R=???
+        |}
+&lt;console&gt;:<span class="number">37</span>: <span class="string">error:</span> contravariant type R occurs <span class="keyword">in</span> covariant position
+<span class="keyword">in</span> type (<span class="string">v1:</span> T1, <span class="string">v2:</span> T2)R of method apply
+    <span class="keyword">def</span> apply(<span class="string">v1:</span>T1, <span class="string">v2:</span>T2): R = ??? 
+        ^
+&lt;console&gt;:<span class="number">37</span>: <span class="string">error:</span> covariant type T1 occurs <span class="keyword">in</span> contravariant position 
+<span class="keyword">in</span> type T1 of value v1
+    <span class="keyword">def</span> apply(<span class="string">v1:</span>T1, <span class="string">v2:</span>T2): R = ??? 
+        ^
+&lt;console&gt;:<span class="number">37</span>: <span class="string">error:</span> covariant type T2 occurs <span class="keyword">in</span> contravariant position 
+<span class="keyword">in</span> type T2 of value v2
+    <span class="keyword">def</span> apply(<span class="string">v1:</span>T1, <span class="string">v2:</span>T2): R = ??? 
+        ^
+</code></pre><p>注意看到错误提示中,编译器强制要求函数参数逆变,返回值协变.</p>
+<h2 id="Variance_of_Mutable_Types">Variance of Mutable Types</h2><p>目前为止我们讨论的参数化类型都是不可变的.那可变类型的变型行为又是怎样的呢.答案就是只允许 不可变型:</p>
+<pre><code>scala&gt; class ContainerPlus[<span class="link_label">+A</span>](<span class="link_url">var value: A</span>)
+<span class="xml"><span class="tag">&lt;<span class="title">console</span>&gt;</span></span>:34: error: covariant type A occurs in contravariant position 
+in type A of value value_=
+<span class="code">    class ContainerPlus[+A](var value: A) </span>
+<span class="code">          ^</span>
+scala&gt; class ContainerMinus[<span class="link_label">-A</span>](<span class="link_url">var value: A</span>)
+<span class="xml"><span class="tag">&lt;<span class="title">console</span>&gt;</span></span>:34: error: contravariant type A occurs in covariant position 
+in type =&gt; A of method value
+<span class="code">    class ContainerMinus[-A](var value: A) </span>
+<span class="code">          ^</span>
+</code></pre><p>可变字段的问题是,它的行为像是一个带有公共读写方法的私有字段,甚至是一个没有明显访问方法的共有字段.</p>
+<p>def value_ = (newA: A): Unit+ 是编译器解释后的变量的setter签名,意思是,当我们写一个 myinstance.value = someA 这样的表达式时这个方法就会调用,因此注意第一条错误提示,我们在逆变的位置使用了协变类型A.</p>
+<h2 id="The_Scala_Type_Hierarchy">The Scala Type Hierarchy</h2><p>参考Scala标准库类型继承图.</p>
+<p>在分层结构的顶层是Any,它没有父类,有三个子类:</p>
+<ol>
+<li>AnyVal,类型值(value types)和类值(value classes)的父类</li>
+<li>AnyRef,所有引用类型的父类</li>
+<li>通用特质</li>
+</ol>
+<p>AnyVal有一个具体的子类叫做类型值(value types),有七种数字值类型:Byte, Char, Short, Int, Long, Float, Double,剩余的两个非数字类型是Unit和Boolean.</p>
+<p>而其他所有类型都是引用类型(reference types),都是从AnyRef派生,与Java中的java.lang.Object同源.</p>
+<h2 id="Much_Ado_About_Nothing_(and_Null)">Much Ado About Nothing (and Null)</h2><p>处于在类型系统底层的Nothing和Null是两个特殊的类型,比较特殊的是Nothing是其他所有值类型的子类型,而Null是所有引用类型的子类型.</p>
+<p>Null是很多编程语言中常用的概念,但是通常使用的时候不是定位为Null类型,只是用一个关键字null付给一个引用以表明该引用没有实际的值,其源码实现如下:</p>
+<pre><code><span class="keyword">package</span> scala
+<span class="keyword">abstract</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Null</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">AnyRef</span></span>
+</code></pre><p>为什么它能够同时是abstract和final呢? 该声明不允许有子类或创建自己的实例,运行时环境会提供一个实例.</p>
+<p>Nothing在Java中没有对应的实现,Nothing的实现:</p>
+<pre><code><span class="keyword">package</span> scala
+<span class="keyword">abstract</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">Nothing</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Any</span></span>
+</code></pre><p>Nothing实际上继承自Any,因此Nothing是其他所有类型的子类型,所有的引用类型或值类型.</p>
+<h2 id="Products,_Case_Classes,_and_Tuples">Products, Case Classes, and Tuples</h2><p>case类混入了scala.Product特质,为实例提供一些操作字段的泛型方法,比如一个Person实例:</p>
+<pre><code>scala&gt; case class <span class="function"><span class="title">Person</span><span class="params">(name: String, age: Int)</span></span> 
+defined class Person
+
+scala&gt; val <span class="tag">p</span>: Product = <span class="function"><span class="title">Person</span><span class="params">(<span class="string">"Dean"</span>, <span class="number">29</span>)</span></span>
+<span class="tag">p</span>: Product = <span class="function"><span class="title">Person</span><span class="params">(Dean,<span class="number">29</span>)</span></span>    <span class="comment">//The case class instance is assignable to a Product variable. </span>
+
+scala&gt; <span class="tag">p</span><span class="class">.productArity</span>
+res0: Int = <span class="number">2</span>                   <span class="comment">//The number of fields.</span>
+
+scala&gt; <span class="tag">p</span>.<span class="function"><span class="title">productElement</span><span class="params">(<span class="number">0</span>)</span></span>
+res1: Any = Dean                <span class="comment">//Elements counted from zero.</span>
+
+scala&gt; <span class="tag">p</span>.<span class="function"><span class="title">productElement</span><span class="params">(<span class="number">1</span>)</span></span>
+res1: Any = <span class="number">29</span>
+
+scala&gt; <span class="tag">p</span><span class="class">.productIterator</span> foreach println 
+Dean
+<span class="number">29</span>
+</code></pre><p>使用泛型方法访问字段是非常有用的,他们的值类型被限定为Any而不是他们实际的类型.</p>
+<p>Product同时有一些子类用于专门的用途,这些类型添加了一些方法用于选择字段,比如 Product2[+T1,+T2] 添加的方法:</p>
+<pre><code>package scala
+trait Product2[+T1, +T2] extends Product {
+    abstract <span class="function"><span class="keyword">def</span> <span class="title">_1</span>:</span> T1 
+    abstract <span class="function"><span class="keyword">def</span> <span class="title">_2</span>:</span> T2 ...
+}
+</code></pre><p>这些方法会返回字段的实际类型,类型参数均为协变,因为特质ProductN只被用于不可变类型.</p>
+<p>这些方法的调用和访问元组元素的方法一致,实际上TupleN继承了ProductN并为从 _1到 _N的方法提供了具体的实现:</p>
+<pre><code>scala&gt; val t2 = (<span class="string">"Dean"</span>, <span class="number">29</span>) 
+t2: (<span class="built_in">String</span>, <span class="built_in">Int</span>) = (Dean,<span class="number">29</span>)
+scala&gt; t2._1
+res0: <span class="built_in">String</span> = Dean
+scala&gt; t2._2 
+res2: <span class="built_in">Int</span> = <span class="number">29</span>
+scala&gt; t2._3
+&lt;console&gt;:<span class="number">36</span>: <span class="keyword">error</span>: value _3 <span class="keyword">is</span> <span class="keyword">not</span> a member of (<span class="built_in">String</span>, <span class="built_in">Int</span>)
+             t2._3 
+                ^
+</code></pre><p>Tuple2中并没有实现 _3这个方法.</p>
+<h2 id="The_Predef_Object">The Predef Object</h2><p>编译器自动导入Predef定义已提供一些有用的定义.</p>
+<h3 id="隐式转换">隐式转换</h3><p>首先Predef提供了很多隐式转换,一组封装了AnyVal类型的转换:</p>
+<pre><code><span class="variable">@inline</span> implicit def <span class="function">byteWrapper</span>(<span class="attribute">x</span>: Byte)
+<span class="variable">@inline</span> implicit def <span class="function">shortWrapper</span>(<span class="attribute">x</span>: Short)
+<span class="variable">@inline</span> implicit def <span class="function">intWrapper</span>(<span class="attribute">x</span>: Int)
+<span class="variable">@inline</span> implicit def <span class="function">charWrapper</span>(<span class="attribute">c</span>: Char)
+<span class="variable">@inline</span> implicit def <span class="function">longWrapper</span>(<span class="attribute">x</span>: Long)
+<span class="variable">@inline</span> implicit def <span class="function">floatWrapper</span>(<span class="attribute">x</span>: Float) 
+<span class="variable">@inline</span> <span class="function">implicitdefdoubleWrapper</span>(<span class="attribute">x</span>:Double)
+<span class="variable">@inline</span> implicit def <span class="function">booleanWrapper</span>(<span class="attribute">x</span>: Boolean) = new runtime.<span class="function">RichBoolean</span>(x)
+</code></pre><p>这些 Rich* 类型提供了额外的方法,比如比较方法 &lt;= 和 compare,@inline 注释提醒编译器”内联”这些方法调用.</p>
+<p>为什么不把这些方法都放到Byte内而是有两种版本的Byte呢,原因由于字节码的执行需要,这些方法需要在堆中分配一个实例.但是Byte实例,还有其他的AnyVal类型并不分配在堆中,而是像Java中的基本类型一样放在栈中.因此只有在需要这些方法时才会将其放到堆中.</p>
+<p>同样对Java的可变数组即scala.col lection.mutable.WrappedArray的实例进行了方法封装,添加了很多集合方法:</p>
+<pre><code>implicit <span class="function"><span class="keyword">def</span> <span class="title">wrapIntArray</span><span class="params">(xs: Array[Int])</span>:</span> WrappedArray[Int] 
+implicit <span class="function"><span class="keyword">def</span> <span class="title">wrapDoubleArray</span><span class="params">(xs: Array[Double])</span>:</span> WrappedArray[Double]
+implicit <span class="function"><span class="keyword">def</span> <span class="title">wrapLongArray</span><span class="params">(xs: Array[Long])</span>:</span> WrappedArray[Long] 
+implicit <span class="function"><span class="keyword">def</span> <span class="title">wrapFloatArray</span><span class="params">(xs: Array[Float])</span>:</span> WrappedArray[Float] 
+implicit <span class="function"><span class="keyword">def</span> <span class="title">wrapCharArray</span><span class="params">(xs: Array[Char])</span>:</span> WrappedArray[Char] 
+implicit <span class="function"><span class="keyword">def</span> <span class="title">wrapByteArray</span><span class="params">(xs: Array[Byte])</span>:</span> WrappedArray[Byte] 
+implicit <span class="function"><span class="keyword">def</span> <span class="title">wrapShortArray</span><span class="params">(xs: Array[Short])</span>:</span> WrappedArray[Short] 
+implicit <span class="function"><span class="keyword">def</span> <span class="title">wrapBooleanArray</span><span class="params">(xs: Array[Boolean])</span>:</span> WrappedArray[Boolean] 
+implicit <span class="function"><span class="keyword">def</span> <span class="title">wrapUnitArray</span><span class="params">(xs: Array[Unit])</span>:</span> WrappedArray[Unit]
+</code></pre><p>为何将每种AnyVal类型的方法都分开了呢? 容器元素的基本类型比数组的执行效率更高,因此为了提高效率,避免使用引用类型的泛型实现.</p>
+<p>同样提供了java基本类型的封装与scala中AnyVal之间的转换:</p>
+<pre><code><span class="type">implicit</span> def byte2Byte(x: Byte) = java.lang.Byte.valueOf(x)
+<span class="type">implicit</span> def short2Short(x: Short) = java.lang.Short.valueOf(x)
+<span class="type">implicit</span> def char2Character(x: <span class="built_in">Char</span>) = java.lang.<span class="built_in">Char</span>.valueOf(x)
+<span class="type">implicit</span> def int2Integer(x: <span class="built_in">Int</span>) = java.lang.<span class="built_in">Int</span>.valueOf(x)
+<span class="type">implicit</span> def long2Long(x: Long) = java.lang.Long.valueOf(x)
+<span class="type">implicit</span> def float2Float(x: <span class="built_in">Float</span>) = java.lang.<span class="built_in">Float</span>.valueOf(x)
+<span class="type">implicit</span> def double2Double(x: <span class="type">Double</span>) = java.lang.<span class="type">Double</span>.valueOf(x)
+<span class="type">implicit</span> def boolean2Boolean(x: Boolean) = java.lang.Boolean.valueOf(x)
+
+<span class="type">implicit</span> def Byte2byte(x: java.lang.Byte): Byte = x.byteValue 
+<span class="type">implicit</span> def Short2short(x: java.lang.Short): Short = x.shortValue
+implicitdefCharacter2char(x:java.lang.<span class="type">Character</span>):<span class="built_in">Char</span> = x.charValue
+<span class="type">implicit</span> def Integer2int(x: java.lang.<span class="type">Integer</span>): <span class="built_in">Int</span> = x.integerValue
+<span class="type">implicit</span> def Long2long(x: java.lang.Long): Long = x.longValue
+<span class="type">implicit</span> def Float2float(x: java.lang.<span class="built_in">Float</span>): <span class="built_in">Float</span> = x.floatValue
+<span class="type">implicit</span> def Double2double(x: java.lang.<span class="type">Double</span>): <span class="type">Double</span> = x.doubleValue
+<span class="type">implicit</span> def Boolean2boolean(x: java.lang.Boolean): Boolean = x.booleanValue
+</code></pre><h3 id="Type_Definitions">Type Definitions</h3><p>Predef中定义了一些类型和类型别名.</p>
+<p>我了促进不可变集合的使用,Prefef中定义了一些常用不可集合类型的别名:</p>
+<pre><code><span class="keyword">type</span> Map[A, +B] = collection.<span class="keyword">immutable</span>.Map[A, B] 
+<span class="keyword">type</span> <span class="built_in">Set</span>[A] = collection.<span class="keyword">immutable</span>.<span class="built_in">Set</span>[A] <span class="keyword">type</span> 
+<span class="built_in">Function</span>[-A, +B] = Function1[A, B]
+</code></pre><p>对于量元素和三元素元组的两个方便的别名:</p>
+<pre><code>type Pair<span class="string">[+A, +B]</span> = Tuple2<span class="string">[A, B]</span> 
+type Triple<span class="string">[+A, +B, +C]</span> = Tuple3<span class="string">[A, B, C]</span>
+</code></pre><h3 id="Condition_Checking_Methods">Condition Checking Methods</h3><p>有时候需要断言一个条件为真,或者在测试时需要快速失败,Predef为此提供了一些方法:</p>
+<p>测试断言为真,否则抛出java.lang.AssertionError.</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">assert</span><span class="params">(<span class="symbol">assertion:</span> <span class="constant">Boolean</span>)</span></span>
+</code></pre><p>与上面类似,同时携带一个参数并转换为String:</p>
+<pre><code><span class="keyword">def</span> <span class="keyword">assert</span>(<span class="string">assertion:</span> Boolean, <span class="string">message:</span> =&gt; Any)
+</code></pre><p>和assert类似,但是传达的意思是,当进入一个代码段,如一个方法时,该条件被假定为真的.</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">assume</span><span class="params">(<span class="symbol">assertion:</span> <span class="constant">Boolean</span>, <span class="symbol">message:</span> =&gt; <span class="constant">Any</span>)</span></span>
+<span class="function"><span class="keyword">def</span> <span class="title">require</span><span class="params">(<span class="symbol">requirement:</span> <span class="constant">Boolean</span>)</span></span>
+<span class="function"><span class="keyword">def</span> <span class="title">require</span><span class="params">(<span class="symbol">requirement:</span> <span class="constant">Boolean</span>, <span class="symbol">message:</span> =&gt; <span class="constant">Any</span>)</span></span>
+</code></pre><h3 id="输入输入方法">输入输入方法</h3><h3 id="Miscellaneous_Methods">Miscellaneous Methods</h3><p>未实现方法:</p>
+<pre><code><span class="function"><span class="keyword">def</span> ???:</span> Nothing
+</code></pre><p>简单的返回参数x:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">identity</span>[<span class="title">A</span>]<span class="params">(x: A)</span>:</span> A
+</code></pre><p>当一个隐式参数列表指定简写为[T : M],这时,编译器将隐式的添加隐式参数列表(implicit arg: M[T]):</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">implicitly</span>[<span class="title">T</span>]<span class="params">(implicit e: T)</span>:</span> T
+</code></pre><h2 id="Equality_of_Objects">Equality of Objects</h2><h3 id="The_equals_Method">The equals Method</h3><p>我们使用case类来说明比较方法的不同.</p>
+<pre><code>case class <span class="function"><span class="title">Person</span><span class="params">(firstName: String, lastName: String, age: Int)</span></span>
+val p1a = <span class="function"><span class="title">Person</span><span class="params">(<span class="string">"Dean"</span>, <span class="string">"Wampler"</span>, <span class="number">29</span>)</span></span> 
+val p1b = <span class="function"><span class="title">Person</span><span class="params">(<span class="string">"Dean"</span>, <span class="string">"Wampler"</span>, <span class="number">29</span>)</span></span> 
+val p2 = <span class="function"><span class="title">Person</span><span class="params">(<span class="string">"Buck"</span>, <span class="string">"Trends"</span>, <span class="number">30</span>)</span></span>
+</code></pre><p>equals方法进行的是值比较,二者不需要是同一个实例:</p>
+<pre><code>p1a <span class="keyword">equals</span> p1a      <span class="comment">// = true</span>
+p1a <span class="keyword">equals</span> p1b      <span class="comment">// = true</span>
+p1a <span class="keyword">equals</span> p2       <span class="comment">// = false</span>
+p1a <span class="keyword">equals</span> <span class="built_in">null</span>     <span class="comment">// = false</span>
+<span class="built_in">null</span> <span class="keyword">equals</span> p1a     <span class="comment">// throws java.lang.NullPointerException</span>
+<span class="built_in">null</span> <span class="keyword">equals</span> <span class="built_in">null</span>    <span class="comment">// throws java.lang.NullPointerException</span>
+</code></pre><h3 id="The_==_and_!=_Methods">The == and != Methods</h3><p>同样是值比较,唯一例外的是左侧为null时:</p>
+<pre><code>p1a == <span class="literal">null</span>     // = <span class="literal">false</span>
+<span class="literal">null</span> == p1a     // = <span class="literal">false</span>
+<span class="literal">null</span> == <span class="literal">null</span>    // = <span class="literal">true</span>  (compiler warns that it's always <span class="literal">true</span>)
+</code></pre><p>!= 等同于 !(obj1 == obj2). </p>
+<h3 id="The_eq_and_ne_Methods">The eq and ne Methods</h3><p>eq 用于引用比较,即二者在内存中的位置一致,仅被AnyRef定义:</p>
+<pre><code>p1a <span class="literal">eq</span> p1a      <span class="comment">// = true</span>
+p1a <span class="literal">eq</span> p1b      <span class="comment">// = false</span>
+p1a <span class="literal">eq</span> p2       <span class="comment">// = false</span>
+p1a <span class="literal">eq</span> <span class="built_in">null</span>     <span class="comment">// = false</span>
+<span class="built_in">null</span> <span class="literal">eq</span> p1a     <span class="comment">// = false</span>
+<span class="built_in">null</span> <span class="literal">eq</span> <span class="built_in">null</span>    <span class="comment">// = true  (compiler warns that it's always true.)</span>
+</code></pre><p>ne 等同于 !(obj1 eq obj2).</p>
+<h3 id="Array_Equality_and_the_sameElements_Method">Array Equality and the sameElements Method</h3><p>对两个数组的比较不能得到一个明显的结果:</p>
+<pre><code><span class="function"><span class="title">Array</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span> == <span class="function"><span class="title">Array</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span> <span class="comment">// = false</span>
+</code></pre><p>但是有一个有效的方法,即 sameElements:</p>
+<pre><code><span class="function"><span class="title">Array</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span> sameElements <span class="function"><span class="title">Array</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span> <span class="comment">// = true</span>
+</code></pre><p>但是根据Java的特性,Array是可变的,因此不能有效的进行比较,若果需要,考虑能不能换成序列,比如List:</p>
+<pre><code><span class="function"><span class="title">List</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span> == <span class="function"><span class="title">List</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span>            <span class="comment">// = true</span>
+<span class="function"><span class="title">List</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span> sameElements <span class="function"><span class="title">List</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span>  <span class="comment">// = true</span>
+</code></pre><h2 id="Overriding_Members_of_Classes_and_Traits">Overriding Members of Classes and Traits</h2><p>类和特质可以声明抽象的字段,方法或类型,这些程序员在创建实例前必须被其派生类完整定义.</p>
+<p>覆写成员时Scala强制需要override关键字,但是在子类定义抽象成员时为可选.即子类中该成员仍然未被实现时,添加override关键字是错误的.</p>
+<p>使用override关键字的一些好处:</p>
+<ol>
+<li>编译器会检查哪些已被标记为override的成员定义,如果没有任何重写则会抛出错误.</li>
+<li>如果在基类中添加了一个新成员,而该成员name与派生类中成员name重复时会报错.</li>
+<li>添加override关键字会提醒你考虑哪些成员需要重写而那些不需要.</li>
+</ol>
+<h3 id="Avoid_Overriding_Concrete_Members:_避免重写实体成员">Avoid Overriding Concrete Members: 避免重写实体成员</h3><pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Address</span>(</span>city: <span class="type">String</span>, state: <span class="type">String</span>, zip: <span class="type">String</span>)
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Employee</span>(</span>name: <span class="type">String</span>, salary: <span class="type">Double</span>, address: <span class="type">Address</span>)
+
+<span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Payroll</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">netPay</span>(</span>employee: <span class="type">Employee</span>): <span class="type">Double</span> = {                              <span class="comment">// 1</span>
+        valfedTaxes =calcFedTaxes(employee.salary)
+        <span class="function"><span class="keyword">val</span> <span class="title">stateTaxes</span> =</span> calcStateTaxes(employee.salary, employee.address) 
+        employee.salary - fedTaxes -stateTaxes
+    }
+
+    <span class="function"><span class="keyword">def</span> <span class="title">calcFedTaxes</span>(</span>salary: <span class="type">Double</span>): <span class="type">Double</span>                                <span class="comment">// 2</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">calcStateTaxes</span>(</span>salary: <span class="type">Double</span>, address: <span class="type">Address</span>): <span class="type">Double</span>            <span class="comment">// 3</span>
+}
+
+<span class="class"><span class="keyword">object</span> <span class="title">Payroll2014</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Payroll</span> {</span> 
+    <span class="function"><span class="keyword">val</span> <span class="title">stateRate</span> =</span> <span class="type">Map</span>(
+        <span class="string">"XX"</span> -&gt; <span class="number">0.05</span>,
+        <span class="string">"YY"</span> -&gt; <span class="number">0.03</span>,
+        <span class="string">"ZZ"</span> -&gt; <span class="number">0.0</span>)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">calcFedTaxes</span>(</span>salary: <span class="type">Double</span>): <span class="type">Double</span> = salary * <span class="number">0.25</span>                <span class="comment">// 4</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">calcStateTaxes</span>(</span>salary: <span class="type">Double</span>, address: <span class="type">Address</span>): <span class="type">Double</span> = {
+        <span class="comment">// Assume the address.state is valid; it's found in the map!</span>
+        salary * stateRate(address.state)
+    }
+}
+
+<span class="function"><span class="keyword">val</span> <span class="title">tom</span> =</span> <span class="type">Employee</span>(<span class="string">"Tom Jones"</span>, <span class="number">100000.0</span>, <span class="type">Address</span>(<span class="string">"MyTown"</span>, <span class="string">"XX"</span>, <span class="string">"12345"</span>))
+<span class="function"><span class="keyword">val</span> <span class="title">jane</span> =</span> <span class="type">Employee</span>(<span class="string">"Jane Doe"</span>, <span class="number">110000.0</span>, <span class="type">Address</span>(<span class="string">"BigCity"</span>, <span class="string">"YY"</span>, <span class="string">"67890"</span>)) 
+<span class="type">Payroll2014</span>.netPay(tom)     <span class="comment">// Result: 70000.0</span>
+<span class="type">Payroll2014</span>.netPay(jane)    <span class="comment">// Result: 79200.0</span>
+</code></pre><ol>
+<li>方法netPay使用了模板方法模式,它定义了计算薪水的协议</li>
+<li>抽象方法用于计算联邦税</li>
+<li>抽象方法用于计算州税</li>
+<li>实现父类中定义的抽象方法</li>
+</ol>
+<p>上面没有使用到任何override关键字.</p>
+<p>尽量避免重写父类实体成员,除了toString.不要使用override关键字除非你真的在重写一个实体成员.</p>
+<h3 id="Attempting_to_Override_final_Declarations">Attempting to Override final Declarations</h3><p>如果一个成员被final关键字生面,则该成员被禁止重写.</p>
+<h3 id="Overriding_Abstract_and_Concrete_Methods">Overriding Abstract and Concrete Methods</h3><p>定义一个抽象类:</p>
+<pre><code>abstract <span class="class"><span class="keyword">class</span> <span class="title">Widget</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">draw</span><span class="params">()</span>: <span class="title">Unit</span></span>
+    override <span class="function"><span class="keyword">def</span> <span class="title">toString</span><span class="params">()</span> = "<span class="params">(widget)</span>"</span>
+}
+</code></pre><p>因为draw并没有实体,它是一个抽象方法,同时Widget也被声明为abstract.任何一个Widget的子类必须实现draw方法或派生自一个实现该方法的父类.</p>
+<p>因为所以的AnyRef都已经定义了toString方法,因此这时override关键字是必须的.</p>
+<p>下面是一个派生类:</p>
+<pre><code><span class="keyword">import</span> progscala2.traits.ui2.<span class="type">Clickable</span>
+
+<span class="class"><span class="keyword">class</span> <span class="title">Button</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">label</span>:</span> <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">Widget</span> <span class="keyword">with</span> <span class="type">Clickable</span> { 
+
+    <span class="comment">// Simple hack for demonstration purposes:</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">draw</span>(</span>): <span class="type">Unit</span> = println(s<span class="string">"Drawing: $this"</span>) 
+
+    <span class="comment">// From Clickable:</span>
+    <span class="keyword">protected</span> <span class="function"><span class="keyword">def</span> <span class="title">updateUI</span>(</span>): <span class="type">Unit</span> = println(s<span class="string">"$this clicked; updating UI"</span>)
+
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span>(</span>) = s<span class="string">"(button: label=$label, ${super.toString()})"</span>
+}
+</code></pre><h3 id="Overriding_Abstract_and_Concrete_Fields">Overriding Abstract and Concrete Fields</h3><h4 id="Overriding_fields_in_traits">Overriding fields in traits</h4><pre><code><span class="class"><span class="keyword">trait</span> <span class="title">AbstractT2</span> </span>{
+    println(<span class="string">"In AbstractT2:"</span>)
+    <span class="variable"><span class="keyword">val</span> value</span>: <span class="typename">Int</span>
+    <span class="variable"><span class="keyword">val</span> inverse</span> = <span class="number">1.0</span>/value     <span class="comment">// 当inverse被初始化时,value的值是多少呢</span>
+    println(<span class="string">"AbstractT2: value = "</span>+value+<span class="string">", inverse = "</span>+inverse)
+}
+<span class="variable"><span class="keyword">val</span> obj</span> = new AbstractT2 { 
+    println(<span class="string">"In obj:"</span>)
+    <span class="variable"><span class="keyword">val</span> value</span> = <span class="number">10</span>
+}
+println(<span class="string">"obj.value = "</span>+obj.value+<span class="string">", inverse = "</span>+obj.inverse)
+</code></pre><p>当我们通过一个匿名类继承该特质并尝试运行以上代码时:</p>
+<pre><code><span class="type">In</span> AbstractT2:
+AbstractT2: <span class="keyword">value</span> = <span class="number">0</span>, inverse = Infinity
+<span class="type">In</span> obj:
+obj.<span class="keyword">value</span> = <span class="number">10</span>, inverse = Infinity
+</code></pre><p>inverse 的值被计算的过早,因为value并没有被实现.</p>
+<p>Scala提供了两种方法来解决这个问题.</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">AbstractT2</span> {</span>
+    println(<span class="string">"In AbstractT2:"</span>)
+    <span class="function"><span class="keyword">val</span> <span class="title">value</span>:</span> <span class="type">Int</span>
+    <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">inverse</span> =</span> <span class="number">1.0</span>/value    <span class="comment">// 添加lazy关键字并注释表println</span>
+    <span class="comment">// println("AbstractT2: value = "+value+", inverse = "+inverse)</span>
+}
+<span class="function"><span class="keyword">val</span> <span class="title">obj</span> =</span> <span class="keyword">new</span> <span class="type">AbstractT2</span> { 
+    println(<span class="string">"In obj:"</span>)
+    <span class="function"><span class="keyword">val</span> <span class="title">value</span> =</span> <span class="number">10</span>
+}
+println(<span class="string">"obj.value = "</span>+obj.value+<span class="string">", inverse = "</span>+obj.inverse)
+</code></pre><p>这时候inverse被正确求值:</p>
+<pre><code><span class="type">In</span> AbstractT2:
+<span class="type">In</span> obj:
+obj.<span class="keyword">value</span> = <span class="number">10</span>, inverse = <span class="number">0.1</span>
+</code></pre><p>然后,lazy只有在println被注释时有用,如果取消对println的注释,inverse又会被计算为Infinity,因为lazy只有在第一次使用时进行求值.println则对inverse的使用过早.</p>
+<p>If a val is lazy, make sure all uses of the val are also as lazy as possible.</p>
+<p>另一种解决方式,预初始化字段:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">AbstractT2</span> </span>{
+    println(<span class="string">"In AbstractT2:"</span>)
+    <span class="variable"><span class="keyword">val</span> value</span>: <span class="typename">Int</span>
+    <span class="variable"><span class="keyword">val</span> inverse</span> = <span class="number">1.0</span>/value
+    println(<span class="string">"AbstractT2: value = "</span>+value+<span class="string">", inverse = "</span>+inverse)
+}
+<span class="variable"><span class="keyword">val</span> obj</span>=new{  
+    <span class="comment">// println("In obj:") //  1</span>
+    <span class="variable"><span class="keyword">val</span> value</span> = <span class="number">10</span>
+} with AbstractT2
+
+println(<span class="string">"obj.value = "</span>+obj.value+<span class="string">", inverse = "</span>+obj.inverse)
+</code></pre><ol>
+<li>预初始化块 只允许 类型定义 和 实体字段定义.如果使用println则会报错.</li>
+</ol>
+<p>这时重新运行则会成功求值:</p>
+<pre><code>In AbstractT2:
+AbstractT2: value = <span class="number">10</span>, inverse = <span class="number">0.1</span>
+obj.value = <span class="number">10</span>, inverse = <span class="number">0.1</span>
+</code></pre><p>在trait中inverse就已经被求值了.</p>
+<p>然后看一个VetoableClicks特质,定义了一个maxAllowed初始化为1:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">VetoableClicks</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Clickable</span> {</span>    <span class="comment">// 1</span>
+
+    <span class="comment">// 允许被点击的默认值</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">maxAllowed</span> =</span> <span class="number">1</span>                      <span class="comment">// 2</span>
+
+    <span class="keyword">private</span> <span class="keyword">var</span> count = <span class="number">0</span>
+
+    <span class="keyword">abstract</span> <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">click</span>(</span>) = {
+        <span class="keyword">if</span> (count &lt; maxAllowed) {            <span class="comment">// 3</span>
+            count += <span class="number">1</span>
+            <span class="keyword">super</span>.click() }
+        }    
+    }
+}
+</code></pre><ol>
+<li>继承Clickable</li>
+<li>允许的最大点击数</li>
+<li>一旦点击数超过了允许值,不会有更多的点击发送给super</li>
+</ol>
+<p>让我们看一下使用中遇到的问题:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">ObservableClicks</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Clickable</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">Subject</span>[</span><span class="type">Clickable</span>] { 
+    <span class="keyword">abstract</span> <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">click</span>(</span>): <span class="type">Unit</span> = {                         <span class="comment">// 1</span>
+        <span class="keyword">super</span>.click()
+        notifyObservers(<span class="keyword">this</span>) 
+    }
+}
+</code></pre><ol>
+<li>注意关键字 abstract override</li>
+</ol>
+<p>然后进行测试:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">observableButton</span> =</span>                                                                          <span class="comment">// 1</span>
+    <span class="keyword">new</span> <span class="type">Button</span>(<span class="string">"Okay"</span>) <span class="keyword">with</span> <span class="type">ObservableClicks</span> <span class="keyword">with</span> <span class="type">VetoableClicks</span> {
+        <span class="keyword">override</span> <span class="function"><span class="keyword">val</span> <span class="title">maxAllowed</span>:</span> <span class="type">Int</span> = <span class="number">2</span>                                                        <span class="comment">// 2</span>
+    }
+assert(observableButton.maxAllowed == <span class="number">2</span>, s<span class="string">"maxAllowed = ${observableButton.maxAllowed}"</span>)        <span class="comment">// 3</span>
+
+<span class="class"><span class="keyword">class</span> <span class="title">ClickCountObserver</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Observer</span>[</span><span class="type">Clickable</span>] {                                          <span class="comment">// 4</span>
+    <span class="keyword">var</span> count = <span class="number">0</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">receiveUpdate</span>(</span>state: <span class="type">Clickable</span>): <span class="type">Unit</span> = count += <span class="number">1</span>
+}
+<span class="function"><span class="keyword">val</span> <span class="title">clickCountObserver</span> =</span> <span class="keyword">new</span> <span class="type">ClickCountObserver</span>                                                 <span class="comment">// 5</span>
+observableButton.addObserver(clickCountObserver)
+
+<span class="function"><span class="keyword">val</span> <span class="title">n</span> =</span> <span class="number">5</span>                                                                                       <span class="comment">// 6</span>
+<span class="keyword">for</span> (i &lt;- <span class="number">1</span> to n) 
+    observableButton.click()                                                      
+assert(clickCountObserver.count == <span class="number">2</span>, s<span class="string">"count = ${clickCountObserver.count}. Should be != $n"</span>)  <span class="comment">// 7</span>
+</code></pre><ol>
+<li>通过需要的特质构造一个button</li>
+<li>重写特质中的val字段,重写时必须提供完整的定义</li>
+<li>经验证,成功修改了maxAllowed的值</li>
+<li>定义一个管擦者类以记录点击数</li>
+<li>实例化一个观察者并注册到button</li>
+<li>点击button 5 次</li>
+<li>验证管擦者只收到了两次点击,而其他的点击被拒绝了</li>
+</ol>
+<p>上面已经看到了重写val字段的定义.如果maxAllowed被声明为var,该如何重写呢:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">observableButton</span> =</span>
+    <span class="keyword">new</span> <span class="type">Button</span>(<span class="string">"Okay"</span>) <span class="keyword">with</span> <span class="type">ObservableClicks</span> <span class="keyword">with</span> <span class="type">VetoableClicks</span> {
+        maxAllowed = <span class="number">2</span> 
+    }
+</code></pre><p>重写可变字段时,不再需要override关键字和完整的签名,比如var 和类型.</p>
+<h4 id="Overriding_fields_in_classes">Overriding fields in classes</h4><p>在class中重写val和var:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">C1</span> {</span>
+    <span class="function"><span class="keyword">val</span> <span class="title">name</span> =</span> <span class="string">"C1"</span> 
+    <span class="keyword">var</span> count = <span class="number">0</span>
+}
+<span class="class"><span class="keyword">class</span> <span class="title">ClassWithC1</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">C1</span> {</span> 
+    <span class="keyword">override</span> <span class="function"><span class="keyword">val</span> <span class="title">name</span> =</span> <span class="string">"ClassWithC1"</span> 
+    count = <span class="number">1</span>
+}
+<span class="function"><span class="keyword">val</span> <span class="title">c</span> =</span> <span class="keyword">new</span> <span class="type">ClassWithC1</span>() 
+println(c.name) 
+println(c.count)
+</code></pre><p>重写抽象类型的val和var:</p>
+<pre><code><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">AbstractC1</span> {</span> 
+    <span class="function"><span class="keyword">val</span> <span class="title">name</span>:</span> <span class="type">String</span>
+    <span class="keyword">var</span> count: <span class="type">Int</span>
+}
+<span class="class"><span class="keyword">class</span> <span class="title">ClassWithAbstractC1</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">AbstractC1</span> {</span> 
+    <span class="function"><span class="keyword">val</span> <span class="title">name</span> =</span> <span class="string">"ClassWithAbstractC1"</span>
+    <span class="keyword">var</span> count = <span class="number">1</span>
+}
+<span class="function"><span class="keyword">val</span> <span class="title">c</span> =</span> <span class="keyword">new</span> <span class="type">ClassWithAbstractC1</span>()
+println(c.name)
+println(c.count)
+</code></pre><p>重写抽象的val时不再需要override关键字.</p>
+<h3 id="Overriding_Abstract_Types">Overriding Abstract Types</h3><p>一个BulkReader的例子:</p>
+<pre><code><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BulkReader</span> {</span> 
+    <span class="class"><span class="keyword">type</span> <span class="title">In</span>
+</span>    <span class="function"><span class="keyword">val</span> <span class="title">source</span>:</span> <span class="type">In</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">read</span>:</span> <span class="type">String</span> <span class="comment">// Read source and return a String </span>
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">StringBulkReader</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">source</span>:</span> <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">BulkReader</span> { 
+    <span class="class"><span class="keyword">type</span> <span class="title">In</span> =</span> <span class="type">String</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">read</span>:</span> <span class="type">String</span> = source
+} 
+...
+</code></pre><p>上面的例子中展示了如何定义一个抽象类型,以及如何在派生类中实现一个抽象类型.</p>
+<p>与字段方法不同,不能够重写一个已经定义的类型.</p>
+<h2 id="Linearization_of_an_Object’s_Hierarchy">Linearization of an Object’s Hierarchy</h2><p>由于单继承的原因,如果我们混入多个特质,则多重继承会表现为线性形式.</p>
+<p>下面是一个实例:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">C1</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">m</span> =</span> print(<span class="string">"C1 "</span>)
+}
+<span class="class"><span class="keyword">trait</span> <span class="title">T1</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">C1</span> {</span>
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">m</span> =</span> { print(<span class="string">"T1 "</span>); <span class="keyword">super</span>.m }
+}
+<span class="class"><span class="keyword">trait</span> <span class="title">T2</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">C1</span> {</span>
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">m</span> =</span> { print(<span class="string">"T2 "</span>); <span class="keyword">super</span>.m }
+}
+<span class="class"><span class="keyword">trait</span> <span class="title">T3</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">C1</span> {</span>
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">m</span> =</span> { print(<span class="string">"T3 "</span>); <span class="keyword">super</span>.m }
+}
+<span class="class"><span class="keyword">class</span> <span class="title">C2</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">T1</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">T2</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">T3</span> {</span>
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">m</span> =</span> { print(<span class="string">"C2 "</span>); <span class="keyword">super</span>.m }
+
+<span class="function"><span class="keyword">val</span> <span class="title">c2</span> =</span> <span class="keyword">new</span> <span class="type">C2</span> 
+c2.m
+</code></pre><p>运行结果:</p>
+<pre><code><span class="label">C2</span> T3 T2 T1 <span class="literal">C1</span>
+</code></pre><p>可以发现,特质中的m方法会根据声明中的顺序从左到右依次调用,然后在最后调用到C1.</p>
+<p>然后我们观察构造函数的调用顺序:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">C1</span> {</span> 
+    print(<span class="string">"C1 "</span>)
+}
+<span class="class"><span class="keyword">trait</span> <span class="title">T1</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">C1</span> {</span> 
+    print(<span class="string">"T1 "</span>)
+}
+<span class="class"><span class="keyword">trait</span> <span class="title">T2</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">C1</span> {</span> 
+    print(<span class="string">"T2 "</span>)
+}
+<span class="class"><span class="keyword">trait</span> <span class="title">T3</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">C1</span> {</span> 
+    print(<span class="string">"T3 "</span>)
+}
+<span class="class"><span class="keyword">class</span> <span class="title">C2</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">T1</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">T2</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">T3</span> {</span> 
+    println(<span class="string">"C2 "</span>)
+}
+<span class="function"><span class="keyword">val</span> <span class="title">c2</span> =</span> <span class="keyword">new</span> <span class="type">C2</span>
+
+<span class="comment">// C1 T1 T2 T3 C2</span>
+</code></pre><p>构造函数的顺序是反向的. 这个调用顺序是有意义的,因为派生类的构造会用到父类中的成员,因此父类必须在派生类构造之前完成自身的构造.</p>
+<p>上面第一个例子中在最后省略了两个类型,引用类型的完整线性化其实是以AnyRef和Any结束,因此C2的线性化应该是这样:</p>
+<pre><code><span class="label">C2</span> T3 T2 T1 <span class="literal">C1</span> AnyRef Any
+</code></pre><p>另外,值类型,所有AnyVal的子类,都被声明为abstract final,编译器对他们的初始化进行管理.因为我们不能从他们派生类,他们的线性化也是简单直接的.</p>
+<p>值类(value classe)又是怎样的呢? 如下实例中,值类并不允许我们在类型体内添加打印语句:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">USPhoneNumber</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">s</span>:</span> <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">AnyVal</span> {
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span> =</span> {
+    <span class="function"><span class="keyword">val</span> <span class="title">digs</span> =</span> digits(s)
+    <span class="function"><span class="keyword">val</span> <span class="title">areaCode</span> =</span> digs.substring(<span class="number">0</span>,<span class="number">3</span>)
+    <span class="function"><span class="keyword">val</span> <span class="title">exchange</span> =</span> digs.substring(<span class="number">3</span>,<span class="number">6</span>)
+    <span class="function"><span class="keyword">val</span> <span class="title">subnumber</span> =</span> digs.substring(<span class="number">6</span>,<span class="number">10</span>)    <span class="comment">// "subscriber number" </span>
+    s<span class="string">"($areaCode) $exchange-$subnumber"</span>
+    }
+    <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">digits</span>(</span>str: <span class="type">String</span>): <span class="type">String</span> = str.replaceAll(<span class="string">"""\D"""</span>, <span class="string">""</span>) 
+}
+
+<span class="function"><span class="keyword">val</span> <span class="title">number</span> =</span> <span class="keyword">new</span> <span class="type">USPhoneNumber</span>(<span class="string">"987-654-3210"</span>) 
+<span class="comment">// Result: number: USPhoneNumber = (987) 654-3210</span>
+</code></pre><p>当调用m时会打印以下结果:</p>
+<pre><code><span class="title">USPhoneNumber</span> Formatter Digitizer M
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/04/Simple-Scala-Type-System/" rel="prev">Simple Scala: Type System</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/03/Simple-Scala-OOP-in-Scala/" rel="next">Simple Scala: OOP in Scala</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Parameterized_Types:_Variance_Under_Inheritance"><span class="nav-number">1.</span> <span class="nav-text">Parameterized Types: Variance Under Inheritance</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Functions_Under_the_Hood"><span class="nav-number">2.</span> <span class="nav-text">Functions Under the Hood</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Variance_of_Mutable_Types"><span class="nav-number">3.</span> <span class="nav-text">Variance of Mutable Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The_Scala_Type_Hierarchy"><span class="nav-number">4.</span> <span class="nav-text">The Scala Type Hierarchy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Much_Ado_About_Nothing_(and_Null)"><span class="nav-number">5.</span> <span class="nav-text">Much Ado About Nothing (and Null)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Products,_Case_Classes,_and_Tuples"><span class="nav-number">6.</span> <span class="nav-text">Products, Case Classes, and Tuples</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The_Predef_Object"><span class="nav-number">7.</span> <span class="nav-text">The Predef Object</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#隐式转换"><span class="nav-number">7.1.</span> <span class="nav-text">隐式转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Type_Definitions"><span class="nav-number">7.2.</span> <span class="nav-text">Type Definitions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Condition_Checking_Methods"><span class="nav-number">7.3.</span> <span class="nav-text">Condition Checking Methods</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#输入输入方法"><span class="nav-number">7.4.</span> <span class="nav-text">输入输入方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Miscellaneous_Methods"><span class="nav-number">7.5.</span> <span class="nav-text">Miscellaneous Methods</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Equality_of_Objects"><span class="nav-number">8.</span> <span class="nav-text">Equality of Objects</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The_equals_Method"><span class="nav-number">8.1.</span> <span class="nav-text">The equals Method</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The_==_and_!=_Methods"><span class="nav-number">8.2.</span> <span class="nav-text">The == and != Methods</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The_eq_and_ne_Methods"><span class="nav-number">8.3.</span> <span class="nav-text">The eq and ne Methods</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Array_Equality_and_the_sameElements_Method"><span class="nav-number">8.4.</span> <span class="nav-text">Array Equality and the sameElements Method</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Overriding_Members_of_Classes_and_Traits"><span class="nav-number">9.</span> <span class="nav-text">Overriding Members of Classes and Traits</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Avoid_Overriding_Concrete_Members:_避免重写实体成员"><span class="nav-number">9.1.</span> <span class="nav-text">Avoid Overriding Concrete Members: 避免重写实体成员</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Attempting_to_Override_final_Declarations"><span class="nav-number">9.2.</span> <span class="nav-text">Attempting to Override final Declarations</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Overriding_Abstract_and_Concrete_Methods"><span class="nav-number">9.3.</span> <span class="nav-text">Overriding Abstract and Concrete Methods</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Overriding_Abstract_and_Concrete_Fields"><span class="nav-number">9.4.</span> <span class="nav-text">Overriding Abstract and Concrete Fields</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Overriding_fields_in_traits"><span class="nav-number">9.4.1.</span> <span class="nav-text">Overriding fields in traits</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Overriding_fields_in_classes"><span class="nav-number">9.4.2.</span> <span class="nav-text">Overriding fields in classes</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Overriding_Abstract_Types"><span class="nav-number">9.5.</span> <span class="nav-text">Overriding Abstract Types</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Linearization_of_an_Object’s_Hierarchy"><span class="nav-number">10.</span> <span class="nav-text">Linearization of an Object’s Hierarchy</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/10/05/Simple-Scala-Pattern-Matching/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Scala模式匹配.">
-<meta property="og:updated_time" content="2015-10-05T14:31:41.000Z">
+<meta property="og:updated_time" content="2016-03-03T04:32:12.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Scala: Pattern Matching">
 <meta name="twitter:description" content="Scala模式匹配.">
@@ -327,13 +327,13 @@ checkY(<span class="number">100</span>)
 }
 </code></pre><h2 id="匹配变量参数列表">匹配变量参数列表</h2><pre><code><span class="class"><span class="keyword">object</span> <span class="title">Op</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Enumeration</span> {</span>         <span class="comment">//定义一个枚举实例</span>
     <span class="class"><span class="keyword">type</span> <span class="title">Op</span> =</span> <span class="type">Value</span>
-    valEQ =<span class="type">Value</span>(<span class="string">"="</span>) 
-    valNE =<span class="type">Value</span>(<span class="string">"!="</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">EQ</span> <span class="title">=Value</span>(</span><span class="string">"="</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">NE</span> <span class="title">=Value</span>(</span><span class="string">"!="</span>) 
     <span class="function"><span class="keyword">val</span> <span class="title">LTGT</span> =</span> <span class="type">Value</span>(<span class="string">"&lt;&gt;"</span>) 
-    valLT =<span class="type">Value</span>(<span class="string">"&lt;"</span>) 
-    valLE =<span class="type">Value</span>(<span class="string">"&lt;="</span>) 
-    valGT =<span class="type">Value</span>(<span class="string">"&gt;"</span>) 
-    valGE =<span class="type">Value</span>(<span class="string">"&gt;="</span>)
+    <span class="function"><span class="keyword">val</span> <span class="title">LT</span> <span class="title">=Value</span>(</span><span class="string">"&lt;"</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">LE</span> <span class="title">=Value</span>(</span><span class="string">"&lt;="</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">GT</span> <span class="title">=Value</span>(</span><span class="string">"&gt;"</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">GE</span> <span class="title">=Value</span>(</span><span class="string">"&gt;="</span>)
 }
 <span class="keyword">import</span> <span class="type">Op</span>._
 
@@ -429,7 +429,46 @@ val methods = Seq(
 )
 
 methods foreach (<span class="function"><span class="keyword">method</span> =</span>&gt; println(handle(<span class="function"><span class="keyword">method</span>)))</span>
-</code></pre></span>
+</code></pre><h2 id="更多关于类型匹配">更多关于类型匹配</h2><p>下面的例子中我们试图识别List[Double]和List[String]:</p>
+<pre><code><span class="keyword">for</span> {
+    <span class="keyword">x</span> &lt;- Se<span class="string">q(List(5.6,5.6,5.6)</span>, List(<span class="string">"a"</span>,<span class="string">"b"</span>))
+} yield (<span class="keyword">x</span> match{
+    case seqd:Se<span class="string">q[Double]</span> =&gt; (<span class="string">"seq double"</span>, seqd)
+    case seqs:Se<span class="string">q[String]</span> =&gt; (<span class="string">"seq string"</span>, seqs)
+    case <span class="string">_                =&gt;</span> (<span class="string">"unknow"</span>, <span class="keyword">x</span>)
+})
+
+&lt;console&gt;:<span class="number">12</span>: warning: non-variable type argument Double in type pattern 
+Se<span class="string">q[Double]</span> (the underlying of Se<span class="string">q[Double]</span>) is unchecked since it is eliminated by erasure
+    case seqd: Se<span class="string">q[Double]</span> =&gt; (<span class="string">"seq double"</span>, seqd) 
+             ^
+&lt;console&gt;:<span class="number">13</span>: warning: non-variable type argument String in type pattern 
+Se<span class="string">q[String]</span> (the underlying of Se<span class="string">q[String]</span>) is unchecked since it is eliminated by erasure
+    case seqs: Se<span class="string">q[String]</span> =&gt; (<span class="string">"seq string"</span>, seqs)
+             ^
+&lt;console&gt;:<span class="number">13</span>: warning: unreachable code
+    case seqs: Se<span class="string">q[String]</span> =&gt; (<span class="string">"seq string"</span>, seqs)
+             ^
+res<span class="number">0</span>: List[(String, List[Any])] = 
+    List((seq double,List(<span class="number">5.5</span>, <span class="number">5.6</span>, <span class="number">5.7</span>)),(seq double,List(a, b)))
+</code></pre><p>上面的这些警告是什么意思呢? 编译器要告诉我们的是,当它检查到提供的对象是一个List时,它不能够在运行时判断这是一个List[Double]或List[String],并且提醒第二个分支中的 case seqs:Seq[String] 甚至无法触及,因为第一个分支会匹配到所有List,并且观察最后输出的结果,两个都是 “list double”.</p>
+<p>比较不爽的是,有效的方案首先需要匹配这个集合,然后使用一个嵌套的模式匹配来匹配该集合的第一个元素以坚持类型:</p>
+<pre><code>def doSeqMatch[T](seq: Seq[T]): <span class="built_in">String</span> = seq match { 
+    <span class="keyword">case</span> Nil =&gt; <span class="string">"Nothing"</span>
+    <span class="keyword">case</span> head +: _ =&gt; head match {
+        <span class="keyword">case</span> _ : Double =&gt; <span class="string">"Double"</span>
+        <span class="keyword">case</span> _ : <span class="built_in">String</span> =&gt; <span class="string">"String"</span>
+        <span class="keyword">case</span> _ =&gt; <span class="string">"Unmatched seq element"</span>
+    } 
+}
+<span class="keyword">for</span> {
+    x &lt;- Seq(<span class="built_in">List</span>(<span class="number">5.5</span>,<span class="number">5.6</span>,<span class="number">5.7</span>), <span class="built_in">List</span>(<span class="string">"a"</span>, <span class="string">"b"</span>), Nil)
+} yield { x match {
+    <span class="keyword">case</span> seq: Seq[_] =&gt; (s<span class="string">"seq <span class="subst">${doSeqMatch(seq)}</span>"</span>, seq)
+    <span class="keyword">case</span> _ =&gt; (<span class="string">"unknown!"</span>, x) }
+}
+</code></pre><p>这种方案能够正确的求得结果.</p>
+</span>
       
     </div>
 
@@ -514,7 +553,7 @@ methods foreach (<span class="function"><span class="keyword">method</span> =</s
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">60</span>
+              <span class="site-state-item-count">69</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -556,7 +595,7 @@ methods foreach (<span class="function"><span class="keyword">method</span> =</s
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#简单匹配"><span class="nav-number">2.</span> <span class="nav-text">简单匹配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#值,变量,类型"><span class="nav-number">3.</span> <span class="nav-text">值,变量,类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配序列"><span class="nav-number">4.</span> <span class="nav-text">匹配序列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配元祖"><span class="nav-number">5.</span> <span class="nav-text">匹配元祖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配中的守卫"><span class="nav-number">6.</span> <span class="nav-text">匹配中的守卫</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配样本类"><span class="nav-number">7.</span> <span class="nav-text">匹配样本类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#unapply方法"><span class="nav-number">8.</span> <span class="nav-text">unapply方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配变量参数列表"><span class="nav-number">9.</span> <span class="nav-text">匹配变量参数列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配正则表达式"><span class="nav-number">10.</span> <span class="nav-text">匹配正则表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#样本类中的变量绑定"><span class="nav-number">11.</span> <span class="nav-text">样本类中的变量绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#密闭结构和全面匹配"><span class="nav-number">12.</span> <span class="nav-text">密闭结构和全面匹配</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#简单匹配"><span class="nav-number">2.</span> <span class="nav-text">简单匹配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#值,变量,类型"><span class="nav-number">3.</span> <span class="nav-text">值,变量,类型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配序列"><span class="nav-number">4.</span> <span class="nav-text">匹配序列</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配元祖"><span class="nav-number">5.</span> <span class="nav-text">匹配元祖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配中的守卫"><span class="nav-number">6.</span> <span class="nav-text">匹配中的守卫</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配样本类"><span class="nav-number">7.</span> <span class="nav-text">匹配样本类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#unapply方法"><span class="nav-number">8.</span> <span class="nav-text">unapply方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配变量参数列表"><span class="nav-number">9.</span> <span class="nav-text">匹配变量参数列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#匹配正则表达式"><span class="nav-number">10.</span> <span class="nav-text">匹配正则表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#样本类中的变量绑定"><span class="nav-number">11.</span> <span class="nav-text">样本类中的变量绑定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#密闭结构和全面匹配"><span class="nav-number">12.</span> <span class="nav-text">密闭结构和全面匹配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更多关于类型匹配"><span class="nav-number">13.</span> <span class="nav-text">更多关于类型匹配</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

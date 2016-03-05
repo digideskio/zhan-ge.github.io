@@ -1,0 +1,894 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="集合">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Essential Scalab: Collections">
+<meta property="og:url" content="http://yoursite.com/2016/03/01/Essential-Scalab-Collections/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="集合">
+<meta property="og:updated_time" content="2016-03-02T03:53:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Essential Scalab: Collections">
+<meta name="twitter:description" content="集合">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Essential Scalab: Collections | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Essential Scalab: Collections
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-01T22:54:48+08:00" content="2016-03-01">
+            2016-03-01
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="Sequences">Sequences</h2><p>创建一个序列:</p>
+<pre><code>val sequence = Se<span class="string">q(1, 2, 3)</span>
+// sequence: Se<span class="string">q[Int]</span> = List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)
+</code></pre><p>这段代码实现展示了Scala的关键特性:接口和实现的分离.上面的值是Seq[Int]类型,但是实现却是List.</p>
+<h3 id="Basic_operations">Basic operations</h3><p>访问元素:我们可以使用序列的apply方法访问元素,该方法接收一个整形的索引作为参数:</p>
+<pre><code>sequence.<span class="function"><span class="title">apply</span><span class="params">(<span class="number">0</span>)</span></span> 
+<span class="comment">// res: Int = 1</span>
+<span class="function"><span class="title">sequence</span><span class="params">(<span class="number">0</span>)</span></span> <span class="comment">// 语法糖 </span>
+<span class="comment">// res: Int = 1</span>
+</code></pre><p>如果索引超出序列长度则会引发异常:</p>
+<pre><code><span class="function"><span class="title">sequence</span><span class="params">(<span class="number">3</span>)</span></span>
+<span class="comment">// java.lang.IndexOutOfBoundsException: 3 // at ...</span>
+</code></pre><p>或者访问序列的头元素或尾部元素列表:</p>
+<pre><code>sequence<span class="class">.head</span> 
+<span class="comment">// res: Int = 1</span>
+sequence<span class="class">.tail</span>
+<span class="comment">// res: Seq[Int] = List(2, 3)</span>
+sequence<span class="class">.tail</span><span class="class">.head</span> 
+<span class="comment">// res: Int = 2</span>
+</code></pre><p>如果访问一个空序列的头元素同样会引发异常:</p>
+<pre><code><span class="function"><span class="title">Seq</span><span class="params">()</span></span><span class="class">.head</span>
+<span class="comment">// java.util.NoSuchElementException: head of empty list</span>
+<span class="comment">// at scala.collection.immutable.Nil$.head(List.scala:337) </span>
+<span class="comment">// ...</span>
+<span class="function"><span class="title">Seq</span><span class="params">()</span></span><span class="class">.tail</span>
+<span class="comment">// java.lang.UnsupportedOperationException: tail of empty list </span>
+<span class="comment">// at scala.collection.immutable.Nil$.tail(List.scala:339) </span>
+<span class="comment">// ...</span>
+</code></pre><p>如果想要安全的访问头元素而不引发异常,可以使用headOption:</p>
+<pre><code>sequence<span class="class">.headOption</span>
+<span class="comment">// res: Option[Int] = Some(1)</span>
+<span class="function"><span class="title">Seq</span><span class="params">()</span></span><span class="class">.headOption</span>
+<span class="comment">// res: Option[Nothing] = None</span>
+</code></pre><p>获取序列长度:</p>
+<pre><code>sequence.<span class="property">length</span>
+</code></pre><p>搜索元素:contains方法来检查一个序列是否包含一个元素(使用==进行比较):</p>
+<pre><code>sequence.<span class="function"><span class="title">contains</span><span class="params">(<span class="number">2</span>)</span></span> <span class="comment">// res: Boolean = true</span>
+</code></pre><p>find方法会返回第一个找到的元素,或者返回None:</p>
+<pre><code>sequence.<span class="function"><span class="title">find</span><span class="params">(_ == <span class="number">3</span>)</span></span>
+<span class="comment">// res: Option[Int] = Some(3)</span>
+sequence.<span class="function"><span class="title">find</span><span class="params">(_ &gt; <span class="number">4</span>)</span></span>
+<span class="comment">// res: Option[Int] = None</span>
+</code></pre><p>filter方法返回一个满足谓语函数的元素列表:</p>
+<pre><code>sequence.filter(<span class="number">_</span> &gt; <span class="number">1</span>)
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">2</span>, <span class="number">3</span>)
+</code></pre><p>元素排序:</p>
+<pre><code>sequence.sortWith(<span class="number">_</span> &lt; <span class="number">_</span>)
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">3</span>, <span class="number">2</span>, <span class="number">1</span>)
+</code></pre><p>添加元素:</p>
+<pre><code>sequence.:+(<span class="number">4</span>)
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>)
+
+sequence :+ <span class="number">4</span>
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>)
+
+sequence.+:(<span class="number">0</span>)
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)
+
+<span class="number">0</span> +: sequence
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)
+
+sequence ++ Se<span class="string">q(4, 5, 6)</span>
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>)
+</code></pre><p>Seq的默认实现是Lists,通过单例对象Nil创建一个空List:</p>
+<pre><code><span class="type">Nil</span>
+// res: scala.collection.immutable.<span class="type">Nil</span>.<span class="typedef"><span class="keyword">type</span> = <span class="type">List</span><span class="container">()</span></span>
+</code></pre><p>通过 :: 方法构建列表:</p>
+<pre><code>val <span class="built_in">list</span> = <span class="number">1</span> :: <span class="number">2</span> :: <span class="number">3</span> :: Nil
+<span class="comment">// list: List[Int] = List(1, 2, 3)</span>
+<span class="number">4</span> :: <span class="number">5</span> :: <span class="built_in">list</span>
+<span class="comment">// res: List[Int] = List(4, 5, 1, 2, 3)</span>
+</code></pre><p>或者通过List的apply方法构建列表:</p>
+<pre><code>List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)
+<span class="comment">// res: List[Int] = List(1, 2, 3)</span>
+</code></pre><p>或者通过 ::: 方法合并两个列表:</p>
+<pre><code>List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>) ::: List(<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>)
+<span class="comment">// res: List[Int] = List(1, 2, 3, 4, 5, 6)</span>
+</code></pre><h2 id="Working_with_Sequences">Working with Sequences</h2><h3 id="Map">Map</h3><pre><code>val sequence = Se<span class="string">q(1, 2, 3)</span>
+// sequence: Se<span class="string">q[Int]</span> = List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)
+sequence.<span class="keyword">map</span>(<span class="string">elt =&gt;</span> elt * <span class="number">2</span>)
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>)
+
+sequence.<span class="keyword">map</span>(<span class="number">_</span> * <span class="number">2</span>)
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>)
+
+<span class="string">"dog"</span>.permutations
+// res: Iterator[String] = non-empty iterator
+
+<span class="string">"dog"</span>.permutations.toList
+// res: List[String] = List(dog, dgo, odg, ogd, gdo, god)
+
+ Se<span class="string">q("a", "wet", "dog")</span>.<span class="keyword">map</span>(<span class="number">_</span>.permutations.toList)
+// res: Se<span class="string">q[List[String]</span>] = List(List(a), List(wet, wte, ewt, etw, twe, tew), List(dog, dgo, odg, ogd, gdo, god))
+</code></pre><h3 id="FlatMap">FlatMap</h3><pre><code><span class="function"><span class="title">Seq</span><span class="params">(<span class="string">"a"</span>, <span class="string">"wet"</span>, <span class="string">"dog"</span>)</span></span>.<span class="function"><span class="title">flatMap</span><span class="params">(_.permutations.toList)</span></span>
+<span class="comment">// res: Seq[String] = List(a, wet, wte, ewt, etw, twe, tew, dog, dgo, odg, ogd, gdo, god</span>
+
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span></span>.<span class="function"><span class="title">flatMap</span><span class="params">(num =&gt; Seq(num, num * <span class="number">10</span>)</span></span>) 
+<span class="comment">// res: List[Int] = List(1, 10, 2, 20, 3, 30)</span>
+
+import scala<span class="class">.collection</span><span class="class">.immutable</span><span class="class">.Vector</span>
+<span class="function"><span class="title">Vector</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span></span>.<span class="function"><span class="title">flatMap</span><span class="params">(num =&gt; Seq(num, num * <span class="number">10</span>)</span></span>)
+<span class="comment">// res: scala.collection.immutable.Vector[Int] = Vector(1, 10, 2, 20, 3, 30)</span>
+</code></pre><h3 id="Folds">Folds</h3><h3 id="Foreach">Foreach</h3><h2 id="For_Comprehensions">For Comprehensions</h2><pre><code>Se<span class="string">q(1, 2, 3)</span>.<span class="keyword">map</span>(<span class="number">_</span> * <span class="number">2</span>)
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>)
+
+<span class="keyword">for</span> {
+    <span class="keyword">x</span> &lt;- Se<span class="string">q(1, 2, 3)</span>
+} yield <span class="keyword">x</span> * <span class="number">2</span>
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>)
+</code></pre><p>嵌套的for表达式:</p>
+<pre><code>val data = Se<span class="string">q(Seq(1)</span>, Se<span class="string">q(2, 3)</span>, Se<span class="string">q(4, 5, 6)</span>)
+// data: Se<span class="string">q[Seq[Int]</span>] = List(List(<span class="number">1</span>), List(<span class="number">2</span>, <span class="number">3</span>), List(<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>))
+data.flatMap(<span class="number">_</span>.<span class="keyword">map</span>(<span class="number">_</span> * <span class="number">2</span>))
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">8</span>, <span class="number">10</span>, <span class="number">12</span>)
+
+<span class="keyword">for</span> {
+    subse<span class="string">q &lt;- data 
+    element &lt;- subseq
+} yield element * 2
+// res: Seq[Int] = List(2, 4, 6, 8, 10, 12)</span>
+</code></pre><p>更多嵌套:</p>
+<pre><code><span class="keyword">for</span> {
+    x &lt;- a
+    y &lt;- b
+    z &lt;- c 
+} <span class="keyword">yield</span> e
+
+a.flatMap(x =&gt; b.flatMap(y =&gt; c.map(z =&gt; e)))
+</code></pre><h2 id="Options">Options</h2><p>Option, Some, and None: Option是一个sealed trait,包含Some和None两个子类型.</p>
+<pre><code><span class="keyword">sealed</span> <span class="class"><span class="keyword">trait</span> <span class="title">Option</span>[</span>+<span class="type">A</span>] {
+    <span class="function"><span class="keyword">def</span> <span class="title">getOrElse</span>(</span><span class="keyword">default</span>: <span class="type">A</span>): <span class="type">A</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">isEmpty</span>:</span> <span class="type">Boolean</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">isDefined</span>:</span> <span class="type">Boolean</span> = !isEmpty
+    <span class="comment">// other methods...</span>
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Some</span>[</span><span class="type">A</span>](x: <span class="type">A</span>) <span class="keyword">extends</span> <span class="type">Option</span>[<span class="type">A</span>] {
+    <span class="function"><span class="keyword">def</span> <span class="title">getOrElse</span>(</span><span class="keyword">default</span>: <span class="type">A</span>) = x
+    <span class="function"><span class="keyword">def</span> <span class="title">isEmpty</span>:</span> <span class="type">Boolean</span> = <span class="literal">false</span>
+    <span class="comment">// other methods...</span>
+}
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">None</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Option</span>[</span><span class="type">Nothing</span>] {
+    <span class="function"><span class="keyword">def</span> <span class="title">getOrElse</span>(</span><span class="keyword">default</span>: <span class="type">A</span>) = <span class="keyword">default</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">isEmpty</span>:</span> <span class="type">Boolean</span> = <span class="literal">true</span>
+    <span class="comment">// other methods...</span>
+}
+</code></pre><p>从Option中获取值:</p>
+<pre><code><span class="function"><span class="title">readInt</span><span class="params">(<span class="string">"abc"</span>)</span></span>.<span class="function"><span class="title">getOrElse</span><span class="params">(<span class="number">0</span>)</span></span> 
+<span class="comment">// res: Int = 0</span>
+</code></pre><p>或者使用模式匹配:</p>
+<pre><code>readInt(<span class="string">"123"</span>) match {
+  <span class="function"><span class="keyword">case</span> <span class="title">Some</span><span class="params">(number)</span> </span>=&gt; number + <span class="number">1</span> 
+  <span class="keyword">case</span> None =&gt; <span class="number">0</span>
+}
+<span class="comment">// res: Int = 124</span>
+</code></pre><p>Option可以看做是一个仅包含一个或零个元素的序列,支持大部分序列的操作:</p>
+<pre><code>sealed trait Option[+A] {
+    <span class="function"><span class="keyword">def</span> <span class="title">getOrElse</span><span class="params">(default: A)</span>:</span> A
+    <span class="function"><span class="keyword">def</span> <span class="title">isEmpty</span>:</span> Boolean
+    <span class="function"><span class="keyword">def</span> <span class="title">isDefined</span>:</span> Boolean = !isEmpty
+    <span class="function"><span class="keyword">def</span> <span class="title">filter</span><span class="params">(func: A =&gt; Boolean)</span>:</span> Option[A] 
+    <span class="function"><span class="keyword">def</span> <span class="title">find</span><span class="params">(func: A =&gt; Boolean)</span>:</span> Option[A]
+    <span class="function"><span class="keyword">def</span> <span class="title">map</span>[<span class="title">B</span>]<span class="params">(func: A =&gt; B)</span>:</span> Option[B]
+    <span class="function"><span class="keyword">def</span> <span class="title">flatMap</span><span class="params">(func: A =&gt; Option[B])</span>:</span> Option[B] 
+    <span class="function"><span class="keyword">def</span> <span class="title">foreach</span><span class="params">(func: A =&gt; Unit)</span>:</span> Unit
+    <span class="function"><span class="keyword">def</span> <span class="title">foldLeft</span>[<span class="title">B</span>]<span class="params">(initial: B)</span><span class="params">(func: <span class="params">(B, A)</span> =&gt; B)</span>:</span> B
+    <span class="function"><span class="keyword">def</span> <span class="title">foldRight</span>[<span class="title">B</span>]<span class="params">(initial: B)</span><span class="params">(func: <span class="params">(A, B)</span> =&gt; B)</span>:</span> B 
+}
+</code></pre><h2 id="Options_as_Flow_Control">Options as Flow Control</h2><p>因为Option支持map和flatMap操作,因此同样支持for表达式:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">optionA</span> =</span> readInt(<span class="string">"123"</span>) 
+<span class="function"><span class="keyword">val</span> <span class="title">optionB</span> =</span> readInt(<span class="string">"234"</span>)
+<span class="keyword">for</span> {
+  a &lt;- optionA 
+  b &lt;- optionB
+} <span class="keyword">yield</span> a + b
+</code></pre><h2 id="Monads">Monads</h2><p>Monads中包含的是什么?</p>
+<p>Monad的概念很难去解释,因为它太过于泛型.我们可以通过比较一些简单的monad类型来通过简单的认知进行理解.</p>
+<p>一般来说,一个monad是一个泛型类型,通过一些抽象技术,允许我们以序列的方式进行计算.我们使用for表达式操作序列,只需要关系程序逻辑即可,隐藏在monad的map和flatMap方法中的代码为了们做了一切需要的准备,比如说:</p>
+<ol>
+<li>Option是一个Monad,它允许我们按照序列的方式计算一个可能存在的值,而不用担心这个值是不是真的存在.</li>
+<li>Seq是一个Monad,它允许我们按照序列的方式去计算然后返回多种可能的值,而不用担心有非常多可能的组合.</li>
+<li>Future是另一个常用的Monad,它允许我们按照序列的方式去异步的进行计算,而不用担心他们是不是真的异步.</li>
+</ol>
+<p>为了证明这一原则的普遍性,我们可以举一些例子.第一个例子是计算两个可能存在的值的和:</p>
+<pre><code><span class="keyword">for</span> {
+    <span class="operator">a</span> &lt;- getFirstNumber    <span class="comment"> // getFirstNumber returns Option[Int] </span>
+    b &lt;- getSecondNumber   <span class="comment"> // getSecondNumber returns Option[Int]</span>
+} yield <span class="operator">a</span> + b
+<span class="comment">
+// 最终的结果是一个Option[Int],如果a和b都存在时,才会对其执行加法操作</span>
+</code></pre><p>第二个例子是计算两个序列中的所有元素的组合对:</p>
+<pre><code><span class="keyword">for</span> {
+    a &lt;- getFirstNumbers // getFirstNumbers returns Se<span class="string">q[Int]</span> 
+    b &lt;- getSecondNumbers // getSecondNumbers returns Se<span class="string">q[Int]</span>
+} yield a + b
+
+// 最终的结果是一个Se<span class="string">q[Int]</span>,其中包含所有两个序列中元素的可能组合的和
+</code></pre><p>第三个例子是异步的计算两个只能以异步方式获取的值的和:</p>
+<pre><code><span class="keyword">for</span> {
+    <span class="operator">a</span> &lt;- getFirstNumber    <span class="comment"> // getFirstNumber returns Future[Int] </span>
+    b &lt;- getSecondNumber   <span class="comment"> // getSecondNumber returns Future[Int]</span>
+} yield <span class="operator">a</span> + b<span class="comment">
+// 最终的结果是一个Future[Int],当两个值都能访问到时,进行加法操作</span>
+</code></pre><p>这里重要的一点是,如果我们忽略最后结果的类型,这三个例子其实是一样的.Monad让我们忘记可能存在的问题,比如可能为空的值,多个值,或者异步可见的值,而只需要关注我们关心的问题-求和.</p>
+<h2 id="For_Comprehensions_Redux">For Comprehensions Redux</h2><h3 id="Filtering">Filtering</h3><p>一个经常遇到的问题是,只处理选择的那些元素:</p>
+<pre><code><span class="keyword">for</span>(<span class="keyword">x</span> &lt;- Se<span class="string">q(-2, -1, 0, 1, 2)</span> <span class="keyword">if</span> <span class="keyword">x</span> &gt; <span class="number">0</span>) yield <span class="keyword">x</span> 
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">1</span>, <span class="number">2</span>)
+</code></pre><p>for表达式中使用if时不再使用括号将条件扩起.</p>
+<h3 id="Parallel_Iteration">Parallel Iteration</h3><p>另一个常用的方法是同时处理多个并行的集合,比如我们想要将两个集合中对应位置的元素进行相加操作:</p>
+<pre><code><span class="keyword">for</span> {
+    <span class="keyword">x</span> &lt;- Se<span class="string">q(1, 2, 3)</span> 
+    <span class="keyword">y</span> &lt;- Se<span class="string">q(4, 5, 6)</span>
+} yield <span class="keyword">x</span> + <span class="keyword">y</span>
+
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)
+</code></pre><p>可以看到结果中有很多重复的值,因为这些会导致首先遍历第一个集合然后与第二个集合中的第一个值进行逐个相加,再次遍历与第二个值逐个相加,导致了结果的重复.</p>
+<p>解决方法是使用zip方法,将两个集合合并成一个包含多个二元组的集合. </p>
+<pre><code>Se<span class="string">q(1, 2, 3)</span>.zip(Se<span class="string">q(4, 5, 6)</span>)
+// res: Se<span class="string">q[(Int, Int)]</span> = List((<span class="number">1</span>,<span class="number">4</span>), (<span class="number">2</span>,<span class="number">5</span>), (<span class="number">3</span>,<span class="number">6</span>))
+</code></pre><p>然后计算出我们需要的值:</p>
+<pre><code><span class="keyword">for</span>(<span class="keyword">x</span> &lt;- Se<span class="string">q(1, 2, 3)</span>.zip(Se<span class="string">q(4, 5, 6)</span>)) yield { val (a, b) = <span class="keyword">x</span>; a + b } 
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>)
+</code></pre><p>或者,直接可以将集合的元素与其索引进行组合:</p>
+<pre><code><span class="keyword">for</span>(<span class="keyword">x</span> &lt;- Se<span class="string">q(1, 2, 3)</span>.zipWithIndex) yield <span class="keyword">x</span>
+// res: Se<span class="string">q[(Int, Int)]</span> = List((<span class="number">1</span>,<span class="number">0</span>), (<span class="number">2</span>,<span class="number">1</span>), (<span class="number">3</span>,<span class="number">2</span>))
+</code></pre><h3 id="Pattern_Matching">Pattern Matching</h3><p>生成器的左侧并不进行命名限制,我们可以进行模式匹配然后只对匹配的值进行计算,这提供了另一种过滤结果的方法:</p>
+<pre><code><span class="keyword">for</span>(<span class="keyword">x</span> &lt;- Se<span class="string">q(1, 2, 3)</span>.zip(Se<span class="string">q(4, 5, 6)</span>)) yield { val (a, b) = <span class="keyword">x</span>; a + b } 
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>)
+
+<span class="keyword">for</span>((a, b) &lt;- Se<span class="string">q(1, 2, 3)</span>.zip(Se<span class="string">q(4, 5, 6)</span>)) yield a + b 
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">5</span>, <span class="number">7</span>, <span class="number">9</span>)
+</code></pre><h3 id="Intermediate_Results">Intermediate Results</h3><p>如果在序列生成器中经常需要用到中间结果,可以插入一个表达式:</p>
+<pre><code><span class="keyword">for</span> {
+    <span class="keyword">x</span> &lt;- Se<span class="string">q(1, 2, 3)</span> 
+    square = <span class="keyword">x</span> * <span class="keyword">x</span>
+    <span class="keyword">y</span> &lt;- Se<span class="string">q(4, 5, 6)</span>
+} yield square * <span class="keyword">y</span>
+
+// res: Se<span class="string">q[Int]</span> = List(<span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">16</span>, <span class="number">20</span>, <span class="number">24</span>, <span class="number">36</span>, <span class="number">45</span>, <span class="number">54</span>)
+</code></pre><h2 id="Maps_and_Sets">Maps and Sets</h2><h3 id="Maps">Maps</h3><p>不可变Map:</p>
+<pre><code>val example = <span class="function"><span class="title">Map</span><span class="params">(<span class="string">"a"</span> -&gt; <span class="number">1</span>, <span class="string">"b"</span> -&gt; <span class="number">2</span>, <span class="string">"c"</span> -&gt; <span class="number">3</span>)</span></span>
+<span class="comment">// res: scala.collection.immutable.Map[java.lang.String,Int] = Map(a -&gt; 1, b -&gt; 2, c -&gt; 3)</span>
+
+<span class="string">"a"</span> -&gt; <span class="number">1</span>
+<span class="comment">// res: (java.lang.String, Int) = (a,1)</span>
+
+<span class="function"><span class="title">example</span><span class="params">(<span class="string">"a"</span>)</span></span> <span class="comment">// The same as example.apply("a") </span>
+<span class="comment">// res: Int = 1</span>
+example.<span class="function"><span class="title">get</span><span class="params">(<span class="string">"a"</span>)</span></span>
+<span class="comment">// res: Option[Int] = Some(1)</span>
+
+<span class="function"><span class="title">example</span><span class="params">(<span class="string">"d"</span>)</span></span>
+java<span class="class">.util</span><span class="class">.NoSuchElementException</span>: key not found: d
+example.<span class="function"><span class="title">get</span><span class="params">(<span class="string">"d"</span>)</span></span>
+<span class="comment">// res: Option[Int] = None</span>
+
+example.<span class="function"><span class="title">getOrElse</span><span class="params">(<span class="string">"d"</span>, -<span class="number">1</span>)</span></span> 
+<span class="comment">// res: Int = -1</span>
+
+example.<span class="function"><span class="title">contains</span><span class="params">(<span class="string">"a"</span>)</span></span> 
+<span class="comment">// res: Boolean = true</span>
+
+example<span class="class">.size</span>
+<span class="comment">// res: Int = 3</span>
+
+example.+(<span class="string">"c"</span> -&gt; <span class="number">10</span>, <span class="string">"d"</span> -&gt; <span class="number">11</span>, <span class="string">"e"</span> -&gt; <span class="number">12</span>)
+<span class="comment">// res: scala.collection.immutable.Map[java.lang.String,Int] = Map(e -&gt; 12, a -&gt; 1, b -&gt; 2, c -&gt; 10, d -&gt; 11)</span>
+
+example.-(<span class="string">"b"</span>, <span class="string">"c"</span>)
+<span class="comment">// res: scala.collection.immutable.Map[java.lang.String,Int] = Map(a -&gt; 1)</span>
+
+example + (<span class="string">"d"</span> -&gt; <span class="number">4</span>) - <span class="string">"c"</span>
+<span class="comment">// res: scala.collection.immutable.Map[java.lang.String,Int] = Map(a -&gt; 1, b -&gt; 2, d -&gt; 4)</span>
+</code></pre><p>可变Map:</p>
+<pre><code><span class="title">val</span> example2 = scala.collection.mutable.<span class="type">Map</span>(<span class="string">"x"</span> -&gt; <span class="number">10</span>, <span class="string">"y"</span> -&gt; <span class="number">11</span>, <span class="string">"z"</span> -&gt; <span class="number">12</span>) 
+// example2: scala.collection.mutable.<span class="type">Map</span>[java.lang.<span class="type">String</span>,<span class="type">Int</span>] = <span class="type">Map</span>(x -&gt; <span class="number">10</span>, z -&gt; <span class="number">12</span>, y -&gt; <span class="number">11</span>)
+
+<span class="title">example2</span> += (<span class="string">"x"</span> -&gt; <span class="number">20</span>)
+// res: example2.<span class="typedef"><span class="keyword">type</span> = <span class="type">Map</span><span class="container">(x -&gt; 20, z -&gt; 12, y -&gt; 11)</span></span>
+
+<span class="title">example2</span> -= (<span class="string">"y"</span>, <span class="string">"z"</span>)
+// res: example2.<span class="typedef"><span class="keyword">type</span> = <span class="type">Map</span><span class="container">(x -&gt; 20)</span></span>
+
+<span class="title">example2</span>(<span class="string">"w"</span>) = <span class="number">30</span>
+<span class="title">example2</span>
+// res: scala.collection.mutable.<span class="type">Map</span>[java.lang.<span class="type">String</span>,<span class="type">Int</span>] = <span class="type">Map</span>(x -&gt; <span class="number">20</span>, w -&gt; <span class="number">30</span>)
+</code></pre><p>其他操作:</p>
+<pre><code>Map(<span class="string">"a"</span> -&gt; <span class="number">1</span>) + (<span class="string">"b"</span> -&gt; <span class="number">2</span>) + (<span class="string">"c"</span> -&gt; <span class="number">3</span>) + (<span class="string">"d"</span> -&gt; <span class="number">4</span>) + (<span class="string">"e"</span> -&gt; <span class="number">5</span>)
+<span class="comment">// res: scala.collection.immutable.Map[java.lang.String,Int] = Map(e -&gt; 5, a -&gt; 1, b -&gt; 2, c -&gt; 3, d -&gt; 4)</span>
+
+scala.collection.immutable.ListMap(<span class="string">"a"</span> -&gt; <span class="number">1</span>) + (<span class="string">"b"</span> -&gt; <span class="number">2</span>) + (<span class="string">"c"</span> -&gt; <span class="number">3</span>) + (<span class="string">"d"</span> -&gt; <span class="number">4</span>) + (<span class="string">"e"</span> -&gt; <span class="number">5</span>)
+<span class="comment">// res: scala.collection.immutable.ListMap[java.lang.String,Int] = Map(a -&gt; 1, b -&gt; 2, c -&gt; 3, d -&gt; 4, e -&gt; 5)</span>
+
+example.<span class="built_in">map</span>(pair =&gt; pair._1 -&gt; pair._2 * <span class="number">2</span>)
+<span class="comment">// res: scala.collection.immutable.Map[java.lang.String,Int] = Map(a -&gt; 2, b -&gt; 4, c -&gt; 6)</span>
+
+example.<span class="built_in">map</span>(pair =&gt; pair._1 + <span class="string">" = "</span> + pair._2)
+<span class="comment">// res: scala.collection.immutable.Iterable[java.lang.String] = List(a = 1, b = 2, c = 3)</span>
+
+example.flatMap {
+    <span class="keyword">case</span> (str, num) =&gt;
+           (<span class="number">1</span> to <span class="number">3</span>).<span class="built_in">map</span>(x =&gt; (str + x) -&gt; (num * x))
+}
+<span class="comment">// res: scala.collection.immutable.Map[String,Int] =</span>
+Map(c3 -&gt; <span class="number">9</span>, b2 -&gt; <span class="number">4</span>, b3 -&gt; <span class="number">6</span>, c2 -&gt; <span class="number">6</span>, b1 -&gt; <span class="number">2</span>, c1 -&gt; <span class="number">3</span>, a3 -&gt; <span class="number">3</span>, a1 -&gt; <span class="number">1</span>, a2 -&gt; <span class="number">2</span>)
+
+<span class="keyword">for</span>{
+    (str, num) &lt;- example
+    x         &lt;- <span class="number">1</span> to <span class="number">3</span>
+} yield (str + x) -&gt; (num * x)
+<span class="comment">// res: scala.collection.immutable.Map[String,Int] =</span>
+Map(c3 -&gt; <span class="number">9</span>, b2 -&gt; <span class="number">4</span>, b3 -&gt; <span class="number">6</span>, c2 -&gt; <span class="number">6</span>, b1 -&gt; <span class="number">2</span>, c1 -&gt; <span class="number">3</span>, a3 -&gt; <span class="number">3</span>, a1 -&gt; <span class="number">1</span>, a2 -&gt; <span class="number">2</span>)
+
+<span class="keyword">for</span>{
+    (str, num) &lt;- example
+    x         &lt;- <span class="number">1</span> to <span class="number">3</span>
+} yield (x + str) + <span class="string">"="</span> + (x * num)
+<span class="comment">// res: scala.collection.immutable.Iterable[java.lang.String] =</span>
+List(<span class="number">1</span>a=<span class="number">1</span>, <span class="number">2</span>a=<span class="number">2</span>, <span class="number">3</span>a=<span class="number">3</span>, <span class="number">1</span>b=<span class="number">2</span>, <span class="number">2</span>b=<span class="number">4</span>, <span class="number">3</span>b=<span class="number">6</span>, <span class="number">1</span>c=<span class="number">3</span>, <span class="number">2</span>c=<span class="number">6</span>, <span class="number">3</span>c=<span class="number">9</span>)
+</code></pre><h3 id="Sets">Sets</h3><h2 id="Ranges">Ranges</h2></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/02/Essential-Scalab-Type-Classes/" rel="prev">Essential Scalab: Type Classes</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/01/Essential-Scala-Sequencing-Computations/" rel="next">Essential Scala: Sequencing Computations</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Sequences"><span class="nav-number">1.</span> <span class="nav-text">Sequences</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Basic_operations"><span class="nav-number">1.1.</span> <span class="nav-text">Basic operations</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Working_with_Sequences"><span class="nav-number">2.</span> <span class="nav-text">Working with Sequences</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Map"><span class="nav-number">2.1.</span> <span class="nav-text">Map</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FlatMap"><span class="nav-number">2.2.</span> <span class="nav-text">FlatMap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Folds"><span class="nav-number">2.3.</span> <span class="nav-text">Folds</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Foreach"><span class="nav-number">2.4.</span> <span class="nav-text">Foreach</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#For_Comprehensions"><span class="nav-number">3.</span> <span class="nav-text">For Comprehensions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Options"><span class="nav-number">4.</span> <span class="nav-text">Options</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Options_as_Flow_Control"><span class="nav-number">5.</span> <span class="nav-text">Options as Flow Control</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Monads"><span class="nav-number">6.</span> <span class="nav-text">Monads</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#For_Comprehensions_Redux"><span class="nav-number">7.</span> <span class="nav-text">For Comprehensions Redux</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Filtering"><span class="nav-number">7.1.</span> <span class="nav-text">Filtering</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Parallel_Iteration"><span class="nav-number">7.2.</span> <span class="nav-text">Parallel Iteration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Pattern_Matching"><span class="nav-number">7.3.</span> <span class="nav-text">Pattern Matching</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Intermediate_Results"><span class="nav-number">7.4.</span> <span class="nav-text">Intermediate Results</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Maps_and_Sets"><span class="nav-number">8.</span> <span class="nav-text">Maps and Sets</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Maps"><span class="nav-number">8.1.</span> <span class="nav-text">Maps</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sets"><span class="nav-number">8.2.</span> <span class="nav-text">Sets</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ranges"><span class="nav-number">9.</span> <span class="nav-text">Ranges</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

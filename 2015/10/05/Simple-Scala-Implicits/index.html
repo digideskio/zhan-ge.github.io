@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/10/05/Simple-Scala-Implicits/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Scala隐式转换.">
-<meta property="og:updated_time" content="2015-10-06T03:00:15.000Z">
+<meta property="og:updated_time" content="2016-03-03T06:59:08.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Scala: Implicits">
 <meta name="twitter:description" content="Scala隐式转换.">
@@ -188,7 +188,7 @@
         <span itemprop="articleBody"><h2 id="简介">简介</h2><p>隐式转换是为现有的类库增加功能的一种方式，用java的话，只能用工具类或者继承的方式来实现，而在scala则采用隐式转化的方式来实现。</p>
 <ul>
 <li>scala隐式转换可以把一个类的实例当作另一个类的实例，这样一来，通过在facade里隐式封装实例，无需修改原来的类，就可以将方法附着于对象上。这种技巧可以用于创建DSL.</li>
-<li>在Predef对象里，scala定义了一些隐式转换，scala默认导入它们，这样的话，比如写1 to 3时，scala会隐式将1从Int转换为RichInt类型，然后调用to()方法.</li>
+<li>在Predef对象里，scala定义了一些隐式转换，scala会默认导入它们，这样的话，比如写1 to 3时，scala会隐式将1从Int转换为RichInt类型，然后调用to()方法.</li>
 <li>scala一次至多应用一个隐式转换，在当前范围内，如果发现通过类型转换有助于操作、方法调用或类型转换的成功完成，就会进行转换，不再继续往外找. <ul>
 <li>位于源或者目标类型的companion object中的隐式函数</li>
 <li>位于当前作⽤用域可以以单个标识符指代的隐式函数</li>
@@ -208,7 +208,7 @@
 <pre><code>def maxFunc( a: <span class="built_in">Int</span>, <span class="type">implicit</span> b: <span class="built_in">Int</span>) = i1 + i2
 </code></pre><p>  也不能按下面这样写:</p>
 <pre><code>def maxFunc(<span class="type">implicit</span> a: <span class="built_in">Int</span>, <span class="type">implicit</span> b: <span class="built_in">Int</span>) = i1 + i2
-</code></pre><p>  如果只想声明一个参数为隐式参数,则需要使用curry,比如:</p>
+</code></pre><p>  如果只想声明一个参数为隐式参数,则需要使用curry方式,比如:</p>
 <pre><code>def maxFunc(<span class="type">implicit</span> a: <span class="built_in">Int</span>)(b: <span class="built_in">Int</span>) = i1 + i2
 </code></pre><p>  此时maxFunc只拥有一个隐式参数a.</p>
 </li>
@@ -220,7 +220,7 @@
 val f = maxFunc _     // 编译错误
 </code></pre></li>
 </ul>
-<h2 id="参数隐式转换">参数隐式转换</h2><p>加入我们我们有一个方法用于计算销售税,但是比率是隐式转换的:</p>
+<h2 id="参数隐式转换">参数隐式转换</h2><p>假如我们我们有一个方法用于计算销售税,但是比率是隐式转换的:</p>
 <pre><code>def calcTax(amount: <span class="built_in">Float</span>)(<span class="type">implicit</span> rate: <span class="built_in">Float</span>): <span class="built_in">Float</span> = amount * rate
 </code></pre><p>如果调用该方法,当前作用域内的隐式转换值会被使用:</p>
 <pre><code><span class="type">implicit</span> val currentTaxRate = <span class="number">0.</span>8F 
@@ -277,7 +277,7 @@ list sortBy2 (i =&gt; -i)
 </code></pre><p>一些其他方法也有这样的隐式参数.<br>当我们调用这些方法时并不需要指定ExecutionContex,但是编译器会使用我们已经引入的一个ExecutionContex:</p>
 <pre><code>import scala<span class="class">.concurrent</span><span class="class">.ExecutionContext</span><span class="class">.Implicits</span><span class="class">.global</span>
 </code></pre><p>传送一个执行上下文是隐式参数的推荐用法,其他的一些上下文实例包括事务,数据库连接,线程池,用户会话等.合理使用隐式参数可以创建清晰的API.</p>
-<h3 id="权力控制">权力控制</h3><p>除了传送上下文环境,隐式参数还可以用于控制capabilities.<br>比如一个隐式用户会话可能会包含一些API或数据对于该用户的可见性授权令牌.假设你正在构建一个用户登录菜单,已登录用户显示某些选项而未登录用户只显示登录选项:</p>
+<h3 id="权限控制">权限控制</h3><p>除了传送上下文环境,隐式参数还可以用于控制权限.<br>比如一个隐式用户会话可能会包含一些API或数据对于该用户的可见性授权令牌.假设你正在构建一个用户登录菜单,已登录用户显示某些选项而未登录用户只显示登录选项:</p>
 <pre><code><span class="function"><span class="keyword">def</span> <span class="title">createMenu</span><span class="params">(implicit session: Session)</span>:</span> Menu = { 
     val defaultItems = List(helpItem, searchItem) 
     val accountItems =
@@ -285,7 +285,20 @@ list sortBy2 (i =&gt; -i)
         <span class="keyword">else</span> List(loginItem) 
     Menu(defaultItems ++ accountItems)
 }
-</code></pre><h3 id="Constraining_Allowed_Instances">Constraining Allowed Instances</h3><p>…</p>
+</code></pre><h3 id="Constraining_Allowed_Instances:_约束允许的实例">Constraining Allowed Instances: 约束允许的实例</h3><p>如果我们有一个参数化类型的方法并且想要限制该参数类型的种类.</p>
+<p>如果我们要限制的类型都属于常用基本类型的子类,可以使用面向对象技术以避免implicit.</p>
+<pre><code>object manage {
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span>[<span class="title">R</span> &lt;:</span> { <span class="function"><span class="keyword">def</span> <span class="title">close</span><span class="params">()</span>:</span>Unit }, T](resource: =&gt; R)(f: R =&gt; T) = {...} ...
+}
+</code></pre><p>上面的代码中,R的类型必须是方法 def close():Unit 的子类型,我们可以实现一个 Closable 特质:</p>
+<pre><code>trait Closable { 
+    <span class="function"><span class="keyword">def</span> <span class="title">close</span><span class="params">()</span>:</span> Unit
+}
+...
+object manage {
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span>[<span class="title">R</span> &lt;:</span> Closable, T](resource: =&gt; R)(f: R =&gt; T) = {...}
+<span class="prompt">... </span>}
+</code></pre><p>….</p>
 </span>
       
     </div>
@@ -371,7 +384,7 @@ list sortBy2 (i =&gt; -i)
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">60</span>
+              <span class="site-state-item-count">69</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -413,7 +426,7 @@ list sortBy2 (i =&gt; -i)
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数隐式转换"><span class="nav-number">2.</span> <span class="nav-text">参数隐式转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用implicitly"><span class="nav-number">2.1.</span> <span class="nav-text">使用implicitly</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#隐式参数方案"><span class="nav-number">3.</span> <span class="nav-text">隐式参数方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#执行上下文"><span class="nav-number">3.1.</span> <span class="nav-text">执行上下文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#权力控制"><span class="nav-number">3.2.</span> <span class="nav-text">权力控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Constraining_Allowed_Instances"><span class="nav-number">3.3.</span> <span class="nav-text">Constraining Allowed Instances</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数隐式转换"><span class="nav-number">2.</span> <span class="nav-text">参数隐式转换</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用implicitly"><span class="nav-number">2.1.</span> <span class="nav-text">使用implicitly</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#隐式参数方案"><span class="nav-number">3.</span> <span class="nav-text">隐式参数方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#执行上下文"><span class="nav-number">3.1.</span> <span class="nav-text">执行上下文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#权限控制"><span class="nav-number">3.2.</span> <span class="nav-text">权限控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Constraining_Allowed_Instances:_约束允许的实例"><span class="nav-number">3.3.</span> <span class="nav-text">Constraining Allowed Instances: 约束允许的实例</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

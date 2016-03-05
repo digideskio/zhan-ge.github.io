@@ -1,0 +1,792 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="深入使用for表达式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: For Comprehensions in Depth">
+<meta property="og:url" content="http://yoursite.com/2016/03/03/Simple-Scala-For-Comprehensions-in-Depth/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="深入使用for表达式">
+<meta property="og:updated_time" content="2016-03-03T08:26:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: For Comprehensions in Depth">
+<meta name="twitter:description" content="深入使用for表达式">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: For Comprehensions in Depth | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: For Comprehensions in Depth
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-03T14:59:50+08:00" content="2016-03-03">
+            2016-03-03
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="Recap:_The_Elements_of_for_Comprehensions">Recap: The Elements of for Comprehensions</h2><p>for表达式包含一个或多个生成器表达式,添加可选的用于过滤的守卫表达式,或者一个副作用的代码块比如println方法.下面的例子用于移除文本中的空格:</p>
+<pre><code><span class="class"><span class="keyword">object</span> <span class="title">RemoveBlanks</span> {</span>
+    <span class="comment">/**
+     * Remove blank lines from the specified input file.
+     */</span>  
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span>(</span>path: <span class="type">String</span>, compressWhiteSpace: <span class="type">Boolean</span> = <span class="literal">false</span>): <span class="type">Seq</span>[<span class="type">String</span>] =
+        <span class="keyword">for</span> {
+            line &lt;- scala.io.<span class="type">Source</span>.fromFile(path).getLines.toSeq               <span class="comment">// 1</span>
+            <span class="keyword">if</span> line.matches(<span class="string">"""^\s*$"""</span>) == <span class="literal">false</span>                               <span class="comment">// 2</span>
+            line2 = <span class="keyword">if</span> (compressWhiteSpace) line replaceAll (<span class="string">"\\s+"</span>, <span class="string">" "</span>)       <span class="comment">// 3</span>
+                    <span class="keyword">else</span> line
+        } <span class="keyword">yield</span> line2                                                           <span class="comment">// 4</span>
+
+    <span class="comment">/**
+       * Remove blank lines from the specified input files and echo the remaining
+       * lines to standard output, one after the other.
+       * @param args list of file paths. Prefix each with an optional "-" to
+       *             compress remaining whitespace in the file.
+       */</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">main</span>(</span>args: <span class="type">Array</span>[<span class="type">String</span>]) = <span class="keyword">for</span> {
+        path2 &lt;- args                                                           <span class="comment">// 5</span>
+        (compress, path) = <span class="keyword">if</span> (path2 startsWith <span class="string">"-"</span>) (<span class="literal">true</span>, path2.substring(<span class="number">1</span>))
+                           <span class="keyword">else</span> (<span class="literal">false</span>, path2)                                  <span class="comment">// 6</span>
+        line &lt;- apply(path, compress)
+    } println(line)                                                             <span class="comment">// 7</span>
+}
+</code></pre><ol>
+<li>使用scala.io.Source打开一个文件并获取每一行,getLines方法返回一个 scala.collection.Iterator,但是必须转换成一个序列,因为for表达式中起始的生成器决定了返回值类型,而在for表达式中不能返回一个生成器.</li>
+<li>使用正则表达式过滤掉空行</li>
+<li>如果需要压缩空格则进行空格压缩,否则原封不动的返回line</li>
+<li>使用yield返回line,因此for表达式构造了一个Seq[String]</li>
+<li>main方法同样用了一个for表达式来处理参数列表,每个参数当做一个文件路径进行处理</li>
+<li>如果一个路径以 “-“ 开头,则需要压缩空格,否则只处理空行</li>
+<li>打印已处理的line</li>
+</ol>
+<h2 id="for_Comprehensions:_Under_the_Hood">for Comprehensions: Under the Hood</h2><p>filter 与 withFilter 的区别是,withFilter并不会构造自己的输出集合.为了更好的效率,它和其他方法一起组合进行过滤,从而减少一次新集合的构造.</p>
+<p>例子:</p>
+<pre><code>val states = List(<span class="string">"Alabama"</span>, <span class="string">"Alaska"</span>, <span class="string">"Virginia"</span>, <span class="string">"Wyoming"</span>)
+<span class="keyword">for</span> {
+s &lt;- states
+} <span class="built_in">println</span>(s) 
+<span class="comment">// Results: </span>
+<span class="comment">// Alabama </span>
+<span class="comment">// Alaska</span>
+<span class="comment">// Virginia</span>
+<span class="comment">// Wyoming</span>
+
+states foreach <span class="built_in">println</span>
+<span class="comment">// Results the same as before.</span>
+</code></pre><p>或者使用yield:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">states</span> =</span> <span class="type">List</span>(<span class="string">"Alabama"</span>, <span class="string">"Alaska"</span>, <span class="string">"Virginia"</span>, <span class="string">"Wyoming"</span>)
+<span class="keyword">for</span> {
+    s &lt;- states
+} <span class="keyword">yield</span> s.toUpperCase
+<span class="comment">// Results: List(ALABAMA, ALASKA, VIRGINIA, WYOMING)</span>
+states map (_.toUpperCase)
+<span class="comment">// Results: List(ALABAMA, ALASKA, VIRGINIA, WYOMING)</span>
+</code></pre><p>使用yield时会构建一个新的容器,第一个生成器的类型决定了返回值类型.</p>
+<p>如果有多个生成器:</p>
+<pre><code><span class="keyword">for</span> {
+    s &lt;- states c&lt;<span class="operator">-s</span>
+} yield s<span class="string">"<span class="variable">$c</span>-<span class="variable">${c.toUpper}</span>"</span>
+// Results: List(<span class="string">"A-A"</span>, <span class="string">"l-L"</span>, <span class="string">"a-A"</span>, <span class="string">"b-B"</span>, ...)
+
+states flatMap (_.toSeq map (c =&gt; s<span class="string">"<span class="variable">$c</span>-<span class="variable">${c.toUpper}</span>"</span>)) 
+// Results: List(<span class="string">"A-A"</span>, <span class="string">"l-L"</span>, <span class="string">"a-A"</span>, <span class="string">"b-B"</span>, ...)
+</code></pre><p>第二个生成器会对 s 中的每个字符进行迭代,最后的yield语句返回每个字符的大写组合.</p>
+<p>如果有多个生成器,把除了最后一个都转换为一个flatMap,最后一个转换成map调用,同时再次生成一个新的List.或者换成其他的类型:</p>
+<pre><code>val states = List(<span class="string">"Alabama"</span>, <span class="string">"Alaska"</span>, <span class="string">"Virginia"</span>, <span class="string">"Wyoming"</span>)
+
+<span class="keyword">for</span> {
+    s &lt;- states c&lt;<span class="operator">-s</span>
+    <span class="keyword">if</span> c.isLower
+} yield s<span class="string">"<span class="variable">$c</span>-<span class="variable">${c.toUpper}</span> "</span>
+// Results: List(<span class="string">"l-L"</span>, <span class="string">"a-A"</span>, <span class="string">"b-B"</span>, ...)
+
+states flatMap (_.toSeq withFilter (_.isLower) map (c =&gt; s<span class="string">"<span class="variable">$c</span>-<span class="variable">${c.toUpper}</span>"</span>)) 
+// Results: List(<span class="string">"l-L"</span>, <span class="string">"a-A"</span>, <span class="string">"b-B"</span>, ...)
+</code></pre><p>注意withFilter处在最后的map之前.或者更复杂一点:</p>
+<pre><code>val states = List(<span class="string">"Alabama"</span>, <span class="string">"Alaska"</span>, <span class="string">"Virginia"</span>, <span class="string">"Wyoming"</span>)
+
+<span class="name">for</span> {
+    s &lt;- states
+    c&lt;-s
+    <span class="keyword">if</span> c.isLower
+    c2 = s<span class="string">"<span class="variable">$c</span>-${c.toUpper} "</span>
+} <span class="name">yield</span> <span class="name">c2</span>
+// Results: List(<span class="string">"l-L"</span>, <span class="string">"a-A"</span>, <span class="string">"b-B"</span>, ...)
+
+states flatMap (_.toSeq withFilter (_.isLower) <span class="name">map</span> { c =&gt; 
+    val c2 = s<span class="string">"<span class="variable">$c</span>-${c.toUpper} "</span>
+    c2
+})
+// Results: List(<span class="string">"l-L"</span>, <span class="string">"a-A"</span>, <span class="string">"b-B"</span>, ...)
+</code></pre><h2 id="for表达式的转换规则">for表达式的转换规则</h2><p>在一个生成器表达式中, pat &lt;- expr, pat其实是一个模式匹配表达式,比如 (x, y) &lt;- List((1,2),(3,4)),同样一个值被定义为 pat2 = expr,pat2同样被解释为一个模式.</p>
+<p>转换中第一步是将 pat &lt;- expr 转换为下面的样子:</p>
+<pre><code><span class="comment">// pat &lt;- expr</span>
+pat &lt;- expr.withFilter { <span class="keyword">case</span> pat =&gt; <span class="keyword">true</span>; <span class="keyword">case</span> _ =&gt; <span class="keyword">false</span> }
+</code></pre><p>一个for表达式带有一个生成器和一个yield语句:</p>
+<pre><code><span class="comment">// for ( pat &lt;- expr1 ) yield expr2</span>
+expr <span class="built_in">map</span> { <span class="keyword">case</span> pat =&gt; expr2 }
+</code></pre><p>一个for循环,没有使用yield但是提供一个副作用表达式:</p>
+<pre><code><span class="comment">// for ( pat &lt;- expr1 ) expr2</span>
+expr <span class="keyword">foreach</span> { <span class="keyword">case</span> pat =&gt; expr2 }
+</code></pre><p>带有多个生成器的for表达式:</p>
+<pre><code><span class="comment">// for ( pat1 &lt;- expr1; pat2 &lt;- expr2; ... ) yield exprN</span>
+expr1 flatMap { <span class="keyword">case</span> pat1 =&gt; <span class="keyword">for</span> (pat2 &lt;- expr2 ...) <span class="keyword">yield</span> exprN }
+</code></pre><p>注意嵌套的生成器被转换成嵌套的for表达式. 下一次转换的规则是他们转换成方法调用.</p>
+<p>带有多个生成器的for循环:</p>
+<pre><code><span class="comment">// for ( pat1 &lt;- expr1; pat2 &lt;- expr2; ... ) exprN</span>
+expr1 <span class="keyword">foreach</span> { <span class="keyword">case</span> pat1 =&gt; <span class="keyword">for</span> (pat2 &lt;- expr2 ...) <span class="keyword">yield</span> exprN }
+</code></pre><p>一个带有守卫的生成器可以这样转换:</p>
+<pre><code><span class="regexp">//</span> pat1 &lt;- expr1 <span class="keyword">if</span> guard
+pat1 &lt;- expr1 withFilter (<span class="function"><span class="params">(arg1, arg2, ...)</span> =&gt;</span> guard)
+</code></pre><p>后跟一个值定义的生成器有一个比较复杂的转换:</p>
+<pre><code><span class="comment">// pat1 &lt;- expr1; pat2 = expr2</span>
+(pat1, pat2) &lt;- <span class="keyword">for</span> {           <span class="comment">// 1</span>
+    x1 @ pat1 &lt;- expr1          <span class="comment">// 2</span>
+} <span class="keyword">yield</span> {
+    <span class="function"><span class="keyword">val</span> <span class="title">x2</span> <span class="title">@</span> <span class="title">pat2</span> =</span> expr2       <span class="comment">// 3</span>
+    (x1, x2)                    <span class="comment">// 4</span>
+}
+</code></pre><ol>
+<li>返回一个模式对(pattern pair)</li>
+<li>x1 @ pat1 表示,在整个表达式中pat1匹配的值赋给x1</li>
+<li>将pat2的值赋给 x2</li>
+<li>返回一个tuple</li>
+</ol>
+<p>一个 x @ pat = expr 的例子:</p>
+<pre><code>scala&gt;valz@(x,y)=(<span class="number">1</span>-&gt;<span class="number">2</span>) 
+z: (Int, Int) = (<span class="number">1</span>,<span class="number">2</span>) 
+x:Int=<span class="number">1</span>
+y:Int=<span class="number">2</span>
+</code></pre><p>让我们看一个概念性的例子:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">map</span> =</span> <span class="type">Map</span>(<span class="string">"one"</span> -&gt; <span class="number">1</span>, <span class="string">"two"</span> -&gt; <span class="number">2</span>)
+
+<span class="function"><span class="keyword">val</span> <span class="title">list1</span> =</span> <span class="keyword">for</span> {
+    (key, value) &lt;- map <span class="comment">// How is this line and the next translated? </span>
+    i10 = value+<span class="number">10</span>
+} <span class="keyword">yield</span> (i10)
+<span class="comment">// Result: list1: scala.collection.immutable.Iterable[Int] = List(11, 12)</span>
+
+<span class="comment">// Translation:</span>
+<span class="function"><span class="keyword">val</span> <span class="title">list2</span> =</span> <span class="keyword">for</span> { 
+    (i, i10) &lt;- <span class="keyword">for</span> {
+        x1 @ (key, value) &lt;- map 
+    } <span class="keyword">yield</span> {
+        <span class="function"><span class="keyword">val</span> <span class="title">x2</span> <span class="title">@</span> <span class="title">i10=</span> <span class="title">value+10</span>
+</span>        (x1, x2) 
+    }
+} <span class="keyword">yield</span> (i10)
+<span class="comment">// Result: list2: scala.collection.immutable.Iterable[Int] = List(11, 12)</span>
+</code></pre><h2 id="Options_and_Other_Container_Types">Options and Other Container Types</h2><h3 id="Option_as_a_Container">Option as a Container</h3><p>Option是一个二进制容器,有值或为空,实现了四种基本的方法.</p>
+<pre><code><span class="keyword">sealed</span> <span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Option</span>[</span>+<span class="type">T</span>] { self =&gt;                                      <span class="comment">// 1</span>
+    ...
+    <span class="function"><span class="keyword">def</span> <span class="title">isEmpty</span>:</span> <span class="type">Boolean</span> <span class="comment">// Implemented by Some and None. </span>
+    <span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">foreach</span>[</span><span class="type">U</span>](f: <span class="type">A</span> =&gt; <span class="type">U</span>): <span class="type">Unit</span> =
+        <span class="keyword">if</span> (!isEmpty) f(<span class="keyword">this</span>.get)
+
+    <span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">map</span>[</span><span class="type">B</span>](f: <span class="type">A</span> =&gt; <span class="type">B</span>): <span class="type">Option</span>[<span class="type">B</span>] =
+        <span class="keyword">if</span> (isEmpty) <span class="type">None</span> <span class="keyword">else</span> <span class="type">Some</span>(f(<span class="keyword">this</span>.get))
+
+    <span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">flatMap</span>[</span><span class="type">B</span>](f: <span class="type">A</span> =&gt; <span class="type">Option</span>[<span class="type">B</span>]): <span class="type">Option</span>[<span class="type">B</span>] =
+        <span class="keyword">if</span> (isEmpty) <span class="type">None</span> <span class="keyword">else</span> f(<span class="keyword">this</span>.get)
+
+    <span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">filter</span>(</span>p: <span class="type">A</span> =&gt; <span class="type">Boolean</span>): <span class="type">Option</span>[<span class="type">A</span>] =
+        <span class="keyword">if</span> (isEmpty || p(<span class="keyword">this</span>.get)) <span class="keyword">this</span> <span class="keyword">else</span> <span class="type">None</span>
+
+    <span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">withFilter</span>(</span>p: <span class="type">A</span> =&gt; <span class="type">Boolean</span>): <span class="type">WithFilter</span> = <span class="keyword">new</span> <span class="type">WithFilter</span>(p)
+      <span class="comment">/** We need a whole WithFilter class to honor the "doesn't create a new
+       *  collection" contract even though it seems unlikely to matter much in a
+       *  collection with max size 1.
+       */</span>
+    <span class="class"><span class="keyword">class</span> <span class="title">WithFilter</span>(</span>p: <span class="type">A</span> =&gt; <span class="type">Boolean</span>) {
+        <span class="function"><span class="keyword">def</span> <span class="title">map</span>[</span><span class="type">B</span>](f: <span class="type">A</span> =&gt; <span class="type">B</span>): <span class="type">Option</span>[<span class="type">B</span>] = self filter p map f                  <span class="comment">// 2</span>
+        <span class="function"><span class="keyword">def</span> <span class="title">flatMap</span>[</span><span class="type">B</span>](f: <span class="type">A</span> =&gt; <span class="type">Option</span>[<span class="type">B</span>]): <span class="type">Option</span>[<span class="type">B</span>] = self filter p flatMap f 
+        <span class="function"><span class="keyword">def</span> <span class="title">foreach</span>[</span><span class="type">U</span>](f: <span class="type">A</span> =&gt; <span class="type">U</span>): <span class="type">Unit</span> = self filter p foreach f
+        <span class="function"><span class="keyword">def</span> <span class="title">withFilter</span>(</span>q: <span class="type">A</span> =&gt; <span class="type">Boolean</span>): <span class="type">WithFilter</span> =
+            <span class="keyword">new</span> <span class="type">WithFilter</span>(x =&gt; p(x) &amp;&amp; q(x)) 
+    }
+}
+</code></pre><ol>
+<li>将当前的Option实例起一个别名,便于在内部类WithFilter中使用.</li>
+<li>使用self引用外部定义的方法,指的是Option实例,如果使用this则是指WithFilter实例</li>
+</ol>
+<p>下面的例子中我们有一个三元素的列表,每个都是Option[Int]类型:</p>
+<pre><code>val results: Se<span class="string">q[Option[Int]</span>] = Vector(Some(<span class="number">10</span>), None, Some(<span class="number">20</span>))
+val results2 = <span class="keyword">for</span> { 
+    Some(i) &lt;- results
+} yield(<span class="number">2</span>*i)
+// Returns: Se<span class="string">q[Int]</span> = Vector(<span class="number">20</span>, <span class="number">40</span>)
+</code></pre><p>Some(i) &lt;- list 对result中的元素进行模式匹配,移除了None值,并且在Some中解析整数值,最后在yield中返回.</p>
+<p>然我们按照之前的转换规则对上面的代码进行转换,首先是将 pat &lt;- expr 转换为 withFilter:</p>
+<pre><code><span class="comment">// Translation step #1</span>
+val results2b = <span class="keyword">for</span> {
+    Some(i) &lt;- results withFilter {
+        <span class="keyword">case</span> Some(i) =&gt; <span class="keyword">true</span>
+        <span class="keyword">case</span> None =&gt; <span class="keyword">false</span> 
+    }
+} <span class="keyword">yield</span>(<span class="number">2</span>*i)
+<span class="comment">// Returns: results2b: List[Int] = List(20, 40)</span>
+</code></pre><p>然后把外部的 for { x &lt;- y} yield (z) 转换成一个map:</p>
+<pre><code><span class="comment">// Translation step #2</span>
+val results2c = results withFilter { 
+    <span class="function"><span class="keyword">case</span> <span class="title">Some</span><span class="params">(i)</span> </span>=&gt; <span class="literal">true</span>
+    <span class="keyword">case</span> None =&gt; <span class="literal">false</span>
+} <span class="built_in">map</span> {
+    <span class="function"><span class="keyword">case</span> <span class="title">Some</span><span class="params">(i)</span> </span>=&gt; (<span class="number">2</span> * i)
+}
+<span class="comment">// Returns: results2c: List[Int] = List(20, 40)</span>
+</code></pre><p>map表达式会产生一个编译警告:</p>
+<pre><code>&lt;console&gt;:<span class="number">9</span>: warning: <span class="keyword">match</span> may <span class="subst">not</span> be exhaustive<span class="built_in">. 
+</span>It would fail <span class="keyword">on</span> the following input: <span class="literal">None</span>
+    } <span class="built_in">map</span> { 
+          ^
+</code></pre><p>如果 map 中没有对应的case None =&gt; …将会非常危险,如果出现了None值,将会抛出 MatchError异常.不过这里的 withFilter 已经移除了所有None值,这里不会发生错误.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/03/Simple-Scala-OOP-in-Scala/" rel="prev">Simple Scala: OOP in Scala</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/02/Essential-Scalab-Collections-Redux/" rel="next">Essential Scalab: Collections Redux</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">69</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Recap:_The_Elements_of_for_Comprehensions"><span class="nav-number">1.</span> <span class="nav-text">Recap: The Elements of for Comprehensions</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#for_Comprehensions:_Under_the_Hood"><span class="nav-number">2.</span> <span class="nav-text">for Comprehensions: Under the Hood</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#for表达式的转换规则"><span class="nav-number">3.</span> <span class="nav-text">for表达式的转换规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Options_and_Other_Container_Types"><span class="nav-number">4.</span> <span class="nav-text">Options and Other Container Types</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Option_as_a_Container"><span class="nav-number">4.1.</span> <span class="nav-text">Option as a Container</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
