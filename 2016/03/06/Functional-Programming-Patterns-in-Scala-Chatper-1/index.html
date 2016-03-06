@@ -1,0 +1,614 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="第一章,模式和函数式编程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Functional Programming Patterns in Scala: Chatper 1">
+<meta property="og:url" content="http://yoursite.com/2016/03/06/Functional-Programming-Patterns-in-Scala-Chatper-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="第一章,模式和函数式编程">
+<meta property="og:updated_time" content="2016-03-06T07:07:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Functional Programming Patterns in Scala: Chatper 1">
+<meta name="twitter:description" content="第一章,模式和函数式编程">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Functional Programming Patterns in Scala: Chatper 1 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Functional Programming Patterns in Scala: Chatper 1
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-06T11:47:30+08:00" content="2016-03-06">
+            2016-03-06
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>模式和函数式编程可以通过两种方式结合在一起.</p>
+<p>首先,对于很多面相对象的设计模式来说,采用函数式编程实现会更加简单,因为函数式语言为我们提供了更加简洁的方式来完成一些值的传递,而无需创建新的类.使用表达式(expression)而非语句(statement)可以让我们消除那些额外的变量.并且,声明性是那些函数式解决方案所拥有的特质,这种特质可以让我们在一行代码中完成原本在命令式语言中需要五行代码才能完成的工作.我们甚至可以用函数式语言特性的应用来代替那些面向对象模式.</p>
+<p>其次,函数式世界也有一套自己的有用的模式.这些模式专注于编写避免可变性且偏好声明性风格的代码,可以帮助我们编写出更加简单且已维护的代码.</p>
+<h2 id="什么事函数式编程">什么事函数式编程</h2><p>函数式编程拥有以下特征:</p>
+<ol>
+<li>拥有头等函数: 头等函数是指那些可以被传递,动态创建,并且可以存储于数据结构的函数.可以在语言中像处理其他对象一样对他们进行处理.</li>
+<li>偏好纯函数: 纯函数是指那些没有副作用的函数.副作用是指函数的某种行为,这种行为会对函数之外的状态进行修改.</li>
+<li>组合函数: 函数式编程支持通过将函数进行组合来自底向上的构建程序.</li>
+<li>使用表达式: 函数式编程偏爱表达式胜过语句.表达式会产生值,而语句则不会,他的存在仅仅是为了控制程序的执行流程.</li>
+<li>使用不变性: 因为函数式编程偏爱纯函数,而纯函数不会修改数据,它同时又使用了大量不可变数据.所以程序不会去修改一个已经存在的数据结构,而是有效的创建一份新数据.</li>
+<li>转换数据而非修改数据: 函数式编程使用函数来转换数据.将一个数据结构输入函数,然后输出一个新的不可变数据结构.这与流行的面向对象模型产生了明显的对比,后者将对象视为对可变状态和行为的小型封装.</li>
+</ol>
+<h2 id="模式词汇表">模式词汇表</h2><h3 id="替代面向对象模式">替代面向对象模式</h3><h4 id="替代函数式接口">替代函数式接口</h4><p>采用原生的函数式特性替代像Runnable和Comparator这样常见的函数式接口.</p>
+<p>这一部分引入了两个基本的函数式特性:</p>
+<ol>
+<li>高阶函数: 允许我们将函数作为头等数据进行传递.</li>
+<li>匿名函数: 允许我们编写便捷的一次性函数,而无需为其制定函数名.</li>
+</ol>
+<h4 id="替代承载状态的函数式接口">替代承载状态的函数式接口</h4><p>我们采用这种模式来替代那些需要承载某些状态信息的函数式接口实例,为此我们引入了一个新的函数式特性:闭包.闭包可以将某个函数的某些状态打包传递.</p>
+<h4 id="替代命令模式">替代命令模式</h4><p>替代命令模式将行为封装于某个对象当中,我们将了解如何使用在前两种模式中介绍的技术来代替面向对象版本中的命令模式.</p>
+<h4 id="替代生成器模式来获得不可变对象">替代生成器模式来获得不可变对象</h4><p>通常我们采用传统的Java约定(即一个具备setter和getter方法的类)来承载数据,但是这种方式却与可变性紧密相连.这一模式中我们将展示如何从得益于不变性的JavaBean中获取便利.</p>
+<h4 id="替代迭代器模式">替代迭代器模式</h4><p>替代迭代器模式让我们以顺序的方式访问集合子项,我们将会看到如何采用高阶函数和序列推导来解决我们原本采用迭代器模式所解决的诸多问题,这些技术给我们带来了更具声明性的解决方案.</p>
+<h4 id="替代模板方法模式">替代模板方法模式</h4><p>这一模式定义了基类中的算法轮廓,而算法的具体细节留给子类来实现.这一模式中我们将看到如何采用高阶函数和函数组合来替代这一基于继承的模式.</p>
+<h4 id="替代策略模式">替代策略模式</h4><p>这一模式中,我们定义了一组都实现了某个共同接口的算法.这让程序员可以将一种算法实现替换成另一种算法实现.</p>
+<h4 id="替代空对象模式">替代空对象模式</h4><p>这一模式中我们讨论了如何去替换空对象,同时也对null的其他处理方式进行了探讨.</p>
+<h4 id="替代装饰器模式">替代装饰器模式</h4><p>替代装饰器模式可以为对象增加新的行为而不改变其原有的类.这一模式中,我们将看到如何使用函数组合来达到相同的效果.</p>
+<h4 id="替代访问者模式">替代访问者模式</h4><p>替代访问者模式使得为某种数据类型添加操作变得简单,却难以为类型添加新的实现.</p>
+<h4 id="替代依赖注入">替代依赖注入</h4><p>该模式可以像某个对象注入其依赖,而非内联的实例化这些依赖,这样做将允许我们对这些依赖的实现进行替换.</p>
+<h3 id="函数式模式介绍">函数式模式介绍</h3><h4 id="尾递归模式">尾递归模式</h4><p>尾递归从功能上来说与循环等效,但是他提供了一种编写递归算法的特殊方式,这种方式避免的每次递归调用都消耗栈帧.</p>
+<h4 id="相互递归模式">相互递归模式</h4><p>相互递归是一种递归函数相互调用的模式.和尾递归一样,我们需要为相互递归找到一种切实有效的方式来避免栈帧的消耗.</p>
+<h4 id="FilterMapReduce模式">FilterMapReduce模式</h4><p>filter,map,reduce,使我们最常用的三个高阶函数.通过将他们组合在一起使用,我们便得到了一个非常强大的数据处理工具.</p>
+<h4 id="操作链模式">操作链模式</h4><p>函数式编程通常会避免可变性,所以为了避免对某个数据结构进行修改,我们通常会选择一个不可变的数据结构,并对该结构进行操作,然后产生一个新的数据结构.</p>
+<h4 id="函数生成器模式">函数生成器模式</h4><p>高阶函数可以使用函数生成器模式来创建其他函数.</p>
+<h4 id="记忆模式">记忆模式</h4><p>该模式通过缓存函数调用结果来避免对昂贵计算的重复执行.</p>
+<h4 id="惰性序列模式">惰性序列模式</h4><p>惰性序列是这样一种模式: 序列中的元素只有在需要时才被实例化.这允许我们创建一个无限场的序列,从而能简单的处理数据流.</p>
+<h4 id="集中的可变性">集中的可变性</h4><p>集中的可变性可以通过在程序中的一小段关键性代码是使用可变数据结构来优化性能.对该模式的需求远比你想象中的罕见.</p>
+<h4 id="自定义控制流">自定义控制流</h4><p>对于大多数语言而言,通常无法再不修改语言本身的情况下向语言添加新的控制流.</p>
+<h4 id="领域特定语言">领域特定语言</h4><p>领域特定语言模式允许我们创建一种专用语言来解决特定的问题.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/06/Functional-Programming-Patterns-in-Scala-Chatper-2/" rel="prev">Functional Programming Patterns in Scala: Chatper 2</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/04/Simple-Scala-Design-Patterns/" rel="next">Simple Scala: Design Patterns</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">72</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么事函数式编程"><span class="nav-number">1.</span> <span class="nav-text">什么事函数式编程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模式词汇表"><span class="nav-number">2.</span> <span class="nav-text">模式词汇表</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#替代面向对象模式"><span class="nav-number">2.1.</span> <span class="nav-text">替代面向对象模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#替代函数式接口"><span class="nav-number">2.1.1.</span> <span class="nav-text">替代函数式接口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#替代承载状态的函数式接口"><span class="nav-number">2.1.2.</span> <span class="nav-text">替代承载状态的函数式接口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#替代命令模式"><span class="nav-number">2.1.3.</span> <span class="nav-text">替代命令模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#替代生成器模式来获得不可变对象"><span class="nav-number">2.1.4.</span> <span class="nav-text">替代生成器模式来获得不可变对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#替代迭代器模式"><span class="nav-number">2.1.5.</span> <span class="nav-text">替代迭代器模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#替代模板方法模式"><span class="nav-number">2.1.6.</span> <span class="nav-text">替代模板方法模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#替代策略模式"><span class="nav-number">2.1.7.</span> <span class="nav-text">替代策略模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#替代空对象模式"><span class="nav-number">2.1.8.</span> <span class="nav-text">替代空对象模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#替代装饰器模式"><span class="nav-number">2.1.9.</span> <span class="nav-text">替代装饰器模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#替代访问者模式"><span class="nav-number">2.1.10.</span> <span class="nav-text">替代访问者模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#替代依赖注入"><span class="nav-number">2.1.11.</span> <span class="nav-text">替代依赖注入</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数式模式介绍"><span class="nav-number">2.2.</span> <span class="nav-text">函数式模式介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#尾递归模式"><span class="nav-number">2.2.1.</span> <span class="nav-text">尾递归模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#相互递归模式"><span class="nav-number">2.2.2.</span> <span class="nav-text">相互递归模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FilterMapReduce模式"><span class="nav-number">2.2.3.</span> <span class="nav-text">FilterMapReduce模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#操作链模式"><span class="nav-number">2.2.4.</span> <span class="nav-text">操作链模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#函数生成器模式"><span class="nav-number">2.2.5.</span> <span class="nav-text">函数生成器模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#记忆模式"><span class="nav-number">2.2.6.</span> <span class="nav-text">记忆模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#惰性序列模式"><span class="nav-number">2.2.7.</span> <span class="nav-text">惰性序列模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#集中的可变性"><span class="nav-number">2.2.8.</span> <span class="nav-text">集中的可变性</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#自定义控制流"><span class="nav-number">2.2.9.</span> <span class="nav-text">自定义控制流</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#领域特定语言"><span class="nav-number">2.2.10.</span> <span class="nav-text">领域特定语言</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

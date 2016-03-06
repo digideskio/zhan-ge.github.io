@@ -1,0 +1,671 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="让模式协同工作">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Functional Programming Patterns in Scala: Chatper 2">
+<meta property="og:url" content="http://yoursite.com/2016/03/06/Functional-Programming-Patterns-in-Scala-Chatper-2/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="让模式协同工作">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/TinyWeb%E6%A6%82%E8%A7%88.png">
+<meta property="og:updated_time" content="2016-03-06T10:17:54.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Functional Programming Patterns in Scala: Chatper 2">
+<meta name="twitter:description" content="让模式协同工作">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Functional Programming Patterns in Scala: Chatper 2 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Functional Programming Patterns in Scala: Chatper 2
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-06T15:07:51+08:00" content="2016-03-06">
+            2016-03-06
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="采用Java编写TinyWeb">采用Java编写TinyWeb</h2><p>Java版的TinyWeb是一个采用传统的面向对象风格编写的基本MVC Web框架.我们使用控制器处理请求,该控制器是使用模板方法模式实现的,采用策略模式实现视图.</p>
+<p>核心的数据结构有HttpRequest和HttpResponse,具有不可变性,并且使用生成器模式创建这些对象.</p>
+<p>过滤器是在请求被处理之前运行的,他会对请求进行操作.我们使用Filter类是想过滤器.</p>
+<p>整个系统概况如下:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/TinyWeb%E6%A6%82%E8%A7%88.png" alt="系统概况" title="系统概况"></p>
+<h3 id="HttpRequest和HttpResponse">HttpRequest和HttpResponse</h3><p>使用生成器模式创建HTTPRequest和httpResponse:</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">class</span> HttpResponse{
+    <span class="keyword">private</span> <span class="keyword">final</span> String <span class="keyword">body</span>;
+    <span class="keyword">private</span> <span class="keyword">final</span> Integer responseCode;
+
+    <span class="keyword">public</span> String getBody() {
+        <span class="keyword">return</span> <span class="keyword">body</span>;
+    }
+
+    <span class="keyword">public</span> Integer getResponseCode() {
+        <span class="keyword">return</span> responseCode;
+    }
+
+    <span class="keyword">private</span> HttpResponse(Builder builder){
+        <span class="keyword">body</span> = builder.<span class="keyword">body</span>;
+        responseCode = builder.responseCode;
+    }
+
+    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> Builder {
+        <span class="keyword">private</span> String <span class="keyword">body</span>;
+        <span class="keyword">private</span> String responseCode;
+
+        <span class="keyword">public</span> Builder <span class="keyword">body</span>(String <span class="keyword">body</span>){
+            <span class="keyword">this</span>.<span class="keyword">body</span> = <span class="keyword">body</span>;
+            <span class="keyword">return</span> <span class="keyword">this</span>;
+        }
+
+        <span class="keyword">public</span> Builder responseCode(Integer responseCode){
+            <span class="keyword">this</span>.responseCode = responseCode;
+            <span class="keyword">return</span> <span class="keyword">this</span>;
+        }
+
+        <span class="keyword">public</span> HttpResponse build() {
+            <span class="keyword">return</span> HttpResponse(<span class="keyword">this</span>);
+        }
+
+        <span class="keyword">public</span> <span class="keyword">static</span> Builder newBuilder() {
+            <span class="keyword">return</span> <span class="keyword">new</span> Bulider();
+        }
+    }
+}
+</code></pre><p>这种方式将全部的可变性封装在一个Builder对象,该对象将会用来创建不可变的HTTPResponse,比如我们创建一个简单的测试请求:</p>
+<pre><code><span class="type">HttpResponse</span> testResponse  = <span class="type">HttpResponse</span>.<span class="type">Builder</span>.newBuilder<span class="literal">()</span>
+                                .responseCode(<span class="number">200</span>)
+                                .body(<span class="string">"responseBody"</span>)
+                                .build<span class="literal">()</span>;
+</code></pre><p>如果不适用Builder,我们需要将所有需要的参数传递给构造器.</p>
+<p>在HttpRequest中,为了支持请求过滤器对传入请求的修改,需要创建一个机遇当前请求对象的新请求,我们将使用buildFrom()来实现,该方法将一个现成的HttpRequest作为入参,并使用它来设置新builder的初始值:</p>
+<pre><code><span class="label">public</span> static <span class="keyword">Builder </span><span class="keyword">builderFrom(HttpRequest </span>request){
+    <span class="keyword">Builder </span><span class="keyword">builder </span> = new <span class="keyword">Builder();
+</span>    <span class="keyword">builder.path(request.getPaty());
+</span>    <span class="keyword">builder.body(request.getBody());
+</span>
+    <span class="preprocessor">Map</span>&lt;<span class="keyword">String,String&gt; </span>headers = request.getHeaders()<span class="comment">;</span>
+    for (<span class="keyword">String </span>headerName : headers.keySet())
+        <span class="keyword">builder.addHeader(headerName, </span>headers.get(headerNmae))<span class="comment">;</span>
+
+    return <span class="keyword">builder();
+</span>}
+</code></pre><h3 id="视图和策略模式">视图和策略模式</h3><p>首先我们需要一个view接口,它拥有一个唯一的方法render().render方法以类型Map<string, list<string="">&gt;的model作为入参,该model代表了模型的属性和值.我们将使用List<string>作为我们值的类型,这样单个属性就可有拥有多个值了.该方法返回一个代表已渲染视图的字符串.</string></string,></p>
+<pre><code><span class="literal">import</span> java.util.<span class="built_in">List</span>;
+<span class="literal">import</span> java.util.<span class="built_in">Map</span>;
+
+public <span class="class"><span class="keyword">interface</span> <span class="title">View</span></span>{
+    public <span class="built_in">String</span> render(<span class="built_in">Map</span>&lt;<span class="built_in">String</span>, <span class="built_in">List</span>&lt;<span class="built_in">String</span>&gt;&gt; model);
+}
+</code></pre><p>然后实现两个类,StrategyView和RenderingStrategy,这两个类被设计用来共同实现策略模式.</p>
+<p>RenderingStrategy负责完成实际的视图渲染工作,它将由框架的用户负责实现,下面是策略模式中策略类的一个实例:</p>
+<pre><code>public <span class="class"><span class="keyword">interface</span> <span class="title">RenderingStrategy</span></span>{
+    public <span class="built_in">String</span> renderView(<span class="built_in">Map</span>&lt;<span class="built_in">String</span>, <span class="built_in">List</span>&lt;<span class="built_in">String</span>&gt;&gt; model);
+}
+</code></pre><p>然后是RenderingStrategy的代理类StrategyView,该类由框架实现,并负责对RenderingStrategy抛出的异常进行处理:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StrategyView</span> <span class="keyword">implements</span> <span class="title">View</span> </span>{
+    <span class="keyword">private</span> RenderingStrategy viewRenderer;
+
+    <span class="function"><span class="keyword">public</span> <span class="title">StrategyView</span><span class="params">(RenderingStrategy viewRenderer)</span></span>{
+        <span class="keyword">this</span>.viewRenderer = viewRenderer;
+    }
+
+    <span class="annotation">@override</span>
+    <span class="keyword">public</span> <span class="function">String <span class="title">render</span><span class="params">(Map&lt;String, List&lt;String&gt;&gt; model)</span></span>{
+        <span class="keyword">try</span> {
+            <span class="function"><span class="keyword">return</span> viewRenderer.<span class="title">renderView</span><span class="params">(model)</span></span>;
+        } <span class="keyword">catch</span> (Exception e){
+            <span class="keyword">throw</span> <span class="keyword">new</span> RenderingException(e);
+        }
+    }
+}
+</code></pre><p>….</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/06/Functional-Programming-Patterns-in-Scala-Chatper-3/" rel="prev">Functional Programming Patterns in Scala: Chatper 3</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/06/Functional-Programming-Patterns-in-Scala-Chatper-1/" rel="next">Functional Programming Patterns in Scala: Chatper 1</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">72</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#采用Java编写TinyWeb"><span class="nav-number">1.</span> <span class="nav-text">采用Java编写TinyWeb</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#HttpRequest和HttpResponse"><span class="nav-number">1.1.</span> <span class="nav-text">HttpRequest和HttpResponse</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#视图和策略模式"><span class="nav-number">1.2.</span> <span class="nav-text">视图和策略模式</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,670 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="替代面向对象模式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Functional Programming Patterns in Scala: Chatper 3">
+<meta property="og:url" content="http://yoursite.com/2016/03/06/Functional-Programming-Patterns-in-Scala-Chatper-3/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="替代面向对象模式">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E5%87%BD%E6%95%B0%E5%BC%8F%E9%97%AD%E5%8C%85.png">
+<meta property="og:updated_time" content="2016-03-06T11:51:54.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Functional Programming Patterns in Scala: Chatper 3">
+<meta name="twitter:description" content="替代面向对象模式">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Functional Programming Patterns in Scala: Chatper 3 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Functional Programming Patterns in Scala: Chatper 3
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-06T18:17:59+08:00" content="2016-03-06">
+            2016-03-06
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="替代函数式接口">替代函数式接口</h2><h3 id="目的">目的</h3><p>将一些程序逻辑进行封装,以支持对这些逻辑的传递,以及将其存储于数据结构中,通常还可以还可以将这段封装后的逻辑作为任何其他头等的程序构造元素来使用.</p>
+<h3 id="概述">概述</h3><p>函数式接口是一种基本的面向对象设计模式.它由只有一个单个方法的接口构成,该方法的名称是例如 run,execute,perform,apply或一些其他常见的动词.函数式接口的实现会像任何其他方法都应遵循的那样,只执行单一明确的行为.</p>
+<h3 id="别名">别名</h3><ol>
+<li>函数对象(Function Object)</li>
+<li>Functoid</li>
+<li>函子(Functor)</li>
+</ol>
+<h3 id="函数式替代方案">函数式替代方案</h3><p>函数式接口这一面向对象世界中的模式的行为近似于函数世界中的函数.</p>
+<h3 id="范例:匿名函数">范例:匿名函数</h3><p>以匿名函数代替函数式接口中的小型实例.比如对集合中的元素进行排序,而排序的方式通常是可指定的.</p>
+<p>为了实现这一点,需要创建一个自定义的比较器,这样一来排序算法才知道将哪个元素放在前面,Java中需要创建一个以匿名类方式实现的Comprator,而Scala中只需要一个匿名函数.</p>
+<p>根据first-name进行排序.</p>
+<p>Java:</p>
+<pre><code>Collections.<span class="keyword">sort</span>(people, <span class="keyword">new</span> Comparator&lt;Person&gt;){               <span class="comment">// 比较逻辑简单,使用匿名类实现</span>
+    <span class="keyword">public</span> <span class="keyword">int</span> compare(Person p1, Pseson p2){
+        <span class="keyword">return</span> p1.getFirstName().<span class="keyword">compareTo</span>(p2.getFirstNmae());
+    }
+}
+</code></pre><p>Scala中创建匿名函数的语法:</p>
+<pre><code>(<span class="string">arg1:</span> Type1, <span class="string">arg2:</span> Type2) =&gt; FunctionBody
+</code></pre><p>Scala:</p>
+<pre><code>case class <span class="function"><span class="title">Person</span><span class="params">(firstName:String, lastName:String)</span></span>
+
+val p1 = <span class="function"><span class="title">Person</span><span class="params">(<span class="string">"Michael"</span>, <span class="string">"Bevilacqua"</span>)</span></span> 
+val p2 = <span class="function"><span class="title">Person</span><span class="params">(<span class="string">"Pedro"</span>, <span class="string">"Vasquez"</span>)</span></span>
+val p3 = <span class="function"><span class="title">Person</span><span class="params">(<span class="string">"Robert"</span>, <span class="string">"Aarons"</span>)</span></span>
+val people = <span class="function"><span class="title">Vector</span><span class="params">(p3, p2, p1)</span></span>
+
+people.<span class="function"><span class="title">sortWith</span><span class="params">((p1, p2)</span></span> =&gt; p1<span class="class">.firstName</span> &lt; p2.firstName)
+</code></pre><p>sortWith()方法期望接它的比较函数能够返回一个布尔值来帮助他判断第一个参数是否大于第二个参数.该匿名函数就是一个比较器.</p>
+<h3 id="范例:具名函数">范例:具名函数</h3><p>对上面的例子进行扩展,首先比较first-name,相同则比较last-name,仍然相同则比较mid-name.</p>
+<p>Java中将比较代码从匿名内部类中提取出来,并迁移到一个具名类中,Scala中将比较代码迁移到一个具名函数中.</p>
+<p>在Java中,如果需要封装的代码逻辑比较小时,匿名类或函数是不错的选择.一旦该逻辑变得庞大,这种嵌入的逻辑会显得十分混乱.因此转为使用一个具名类:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ComplicatedNameComprator</span> <span class="keyword">implements</span> <span class="title">Comprator</span>&lt;<span class="title">Person</span>&gt;</span>{
+    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(Person p1, Person p2)</span></span>{
+        &lt;&lt;complicatedSortLogic&gt;&gt;
+    }
+}
+</code></pre><p>Scala:</p>
+<pre><code><span class="label">case</span> class Person(firstName: <span class="keyword">String, </span>middleName: <span class="keyword">String, </span>lastName: <span class="keyword">String) </span>
+<span class="label">val</span> <span class="literal">p1</span> = Person(<span class="string">"Aaron"</span>, <span class="string">"Jeffrey"</span>, <span class="string">"Smith"</span>)
+<span class="label">val</span> <span class="literal">p2</span> = Person(<span class="string">"Aaron"</span>, <span class="string">"Bailey"</span>, <span class="string">"Zanthar"</span>)
+<span class="label">val</span> <span class="literal">p3</span> = Person(<span class="string">"Brian"</span>, <span class="string">"Adams"</span>, <span class="string">"Smith"</span>)
+<span class="label">val</span> people = Vector(<span class="literal">p1</span>, <span class="literal">p2</span>, <span class="literal">p3</span>)
+
+<span class="label">def</span> complicatedSort(<span class="literal">p1</span>:Person, <span class="literal">p2</span>:Person) = {
+    <span class="preprocessor">if</span> (<span class="literal">p1</span>.firstName != <span class="literal">p2</span>.firstName)
+        <span class="literal">p1</span>.firstName &lt; <span class="literal">p2</span>.firstName
+    <span class="preprocessor">else</span> <span class="preprocessor">if</span> (<span class="literal">p1</span>.lastName != <span class="literal">p2</span>.lastName)
+        <span class="literal">p1</span>.lastName &lt; <span class="literal">p2</span>.LastName
+    <span class="preprocessor">else</span> 
+        <span class="literal">p1</span>.middleName &lt; <span class="literal">p2</span>.middleName
+}
+
+<span class="label">people.sortWith</span>(complicatedSort)
+</code></pre><h3 id="结论">结论</h3><p>函数式接口有点奇怪,这源于Java将每个事物都转换为对象这一作风.</p>
+<h2 id="替代承载状态的函数式接口">替代承载状态的函数式接口</h2><h3 id="目的-1">目的</h3><p>将一些状态与程序逻辑封装在一起,以支持对这些程序逻辑的传递,以及将其存储于数据结构当中,通常还可以将这段封装后的程序逻辑作为任何其他头等程序的构造元素来处理.</p>
+<h3 id="概述-1">概述</h3><p>上一个模式中,我们看到了如何使用高阶函数替代函数式接口,但是我们看到的实例中并没有承载任何状态.本模式中将使用闭包构造元素,以及他将如何替代需要状态的函数式接口.</p>
+<h3 id="别名-1">别名</h3><ol>
+<li>函数对象(Function Object)</li>
+<li>Functoid</li>
+<li>函子(Functor)</li>
+</ol>
+<h3 id="函数式替代方案-1">函数式替代方案</h3><p>函数式世界中的函数其实是闭包这一强大的程序构造元素的一部分.一个闭包将函数与该函数创建时的状态进行了打包.这意味着这个函数在被调用时,可以引用他在创建时所在作用域中的所有变量.</p>
+<p>一个闭包由一个函数和该函数创建时的可用状态组成:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/%E5%87%BD%E6%95%B0%E5%BC%8F%E9%97%AD%E5%8C%85.png" alt="闭包" title="闭包"></p>
+<h3 id="简单的代码,闭包">简单的代码,闭包</h3><p>我们将创建一个由一组其他比较器组成的复合比较器,这意味着我们要将这组比较器存储在一个地方.</p>
+<p>Java中我们将它们以入参的方式提供给自定义comprator实现的构造器,然后将它们存储在一个字段中,而Scala中只需要使用闭包.</p>
+<p>Java:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ComposedComprator</span>&lt;<span class="title">T</span>&gt; <span class="keyword">implements</span> <span class="title">Comprator</span>&lt;<span class="title">T</span>&gt; </span>{
+    <span class="keyword">private</span> Comprator&lt;T&gt; comprators;
+    <span class="function"><span class="keyword">public</span> <span class="title">ComposedComprator</span><span class="params">(Comprator&lt;T&gt;..comprators)</span></span>{
+        <span class="keyword">this</span>.comprators = comprators;
+    }
+    <span class="annotation">@override</span>
+    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(T o1, T o2)</span></span>{
+        <span class="comment">// 遍历比较器并逐个调用比较器的比较方法</span>
+    }
+}
+</code></pre><p>Java中创建一个名为ComposedComparator的Comprator实现,拥有一个可变长参数的构造器,接收一个比较器数组,并将他们存储在一个字段中.compare()方法调用时逐个调用数组中的比较器,返回第一个非0的结果.</p>
+<p>Scala中实现一个名为makeComposedComparison()的高阶函数,该函数使用可变长参数作为入参,接收一个比较函数的数组,并返回一个能逐个执行这些函数的函数.</p>
+<p>Scala与Java解决方案的另一个差别是如何返回最终的结果.Java中对比较器逐个迭代返回第一个非零结果,Scala中使用map()来对输入运行比较器,然后查找第一个非零结果.</p>
+<p>Scala:</p>
+<pre><code><span class="label">def</span> makeComposedComprasion(comparsion:(Person,Person) =&gt; Int*) = {
+    (<span class="literal">p1</span>:Person, <span class="literal">p2</span>:Person) =&gt;
+        comparsion.map(<span class="keyword">cmp </span>=&gt; <span class="keyword">cmp(p1, </span><span class="literal">p2</span>)).find(_ != <span class="number">0</span>).getOrElse(<span class="number">0</span>)
+}
+</code></pre><p>比如我们组装两个比较函数:</p>
+<pre><code>def <span class="function"><span class="title">firstNameComparison</span><span class="params">(p1: Person, p2: Person)</span></span> = p1<span class="class">.firstName</span><span class="class">.compareTo</span>(p2.firstName)
+def <span class="function"><span class="title">lastNameComparison</span><span class="params">(p1: Person, p2: Person)</span></span> = p1<span class="class">.lastName</span><span class="class">.compareTo</span>(p2.lastName)
+val firstAndLastNameComparison = <span class="function"><span class="title">makeComposedComparison</span><span class="params">( firstNameComparison, lastNameComparison )</span></span>
+</code></pre><p>然后进行测试:</p>
+<pre><code>val p1 = <span class="function"><span class="title">Person</span><span class="params">(<span class="string">"John"</span>, <span class="string">""</span>, <span class="string">"Adams"</span>)</span></span>
+val p2 = <span class="function"><span class="title">Person</span><span class="params">(<span class="string">"John"</span>, <span class="string">"Quincy"</span>, <span class="string">"Adams"</span>)</span></span>
+scala&gt; <span class="function"><span class="title">firstAndLastNameComparison</span><span class="params">(p1, p2)</span></span> 
+res0: Int = <span class="number">0</span>
+</code></pre><h2 id="替代命令模式">替代命令模式</h2></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/06/Functional-Programming-Patterns-in-Scala-Chatper-2/" rel="next">Functional Programming Patterns in Scala: Chatper 2</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">72</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#替代函数式接口"><span class="nav-number">1.</span> <span class="nav-text">替代函数式接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#目的"><span class="nav-number">1.1.</span> <span class="nav-text">目的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">1.2.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#别名"><span class="nav-number">1.3.</span> <span class="nav-text">别名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数式替代方案"><span class="nav-number">1.4.</span> <span class="nav-text">函数式替代方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#范例:匿名函数"><span class="nav-number">1.5.</span> <span class="nav-text">范例:匿名函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#范例:具名函数"><span class="nav-number">1.6.</span> <span class="nav-text">范例:具名函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结论"><span class="nav-number">1.7.</span> <span class="nav-text">结论</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#替代承载状态的函数式接口"><span class="nav-number">2.</span> <span class="nav-text">替代承载状态的函数式接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#目的-1"><span class="nav-number">2.1.</span> <span class="nav-text">目的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#概述-1"><span class="nav-number">2.2.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#别名-1"><span class="nav-number">2.3.</span> <span class="nav-text">别名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#函数式替代方案-1"><span class="nav-number">2.4.</span> <span class="nav-text">函数式替代方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简单的代码,闭包"><span class="nav-number">2.5.</span> <span class="nav-text">简单的代码,闭包</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#替代命令模式"><span class="nav-number">3.</span> <span class="nav-text">替代命令模式</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
