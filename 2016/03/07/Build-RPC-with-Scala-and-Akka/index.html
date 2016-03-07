@@ -1,0 +1,715 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Akka,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="使用Scala和Akka构建RPC系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Build RPC with Scala and Akka">
+<meta property="og:url" content="http://yoursite.com/2016/03/07/Build-RPC-with-Scala-and-Akka/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="使用Scala和Akka构建RPC系统">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/RPC.png">
+<meta property="og:updated_time" content="2016-03-07T14:58:22.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Build RPC with Scala and Akka">
+<meta name="twitter:description" content="使用Scala和Akka构建RPC系统">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Build RPC with Scala and Akka | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Build RPC with Scala and Akka
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-07T21:38:01+08:00" content="2016-03-07">
+            2016-03-07
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Spark中的RPC是基于Akka实现的,Akka的设计目标就是分布式,Actor之间的交互都是基于消息,并且所有动作都是异步的.</p>
+<p>在Spark中的应用中会有需要实现RPC的功能,比如:从一个一直运行的SparkStreaming应用程序中实时获取的数据,或者更新一些变量等等,这时候,可以使用Akka的Remote Actor,将SparkStreaming应用程序作为一个Remote Actor(Server),当需要获取数据时,可以向Server发送请求消息,Server收到请求之后,需要等待Server将数据响应回来之后,才能处理并退出,这里的客户端,对于Server来说其实也是一个Remote Actor.</p>
+<h2 id="Server端">Server端</h2><p>Server端作为一个Remote Actor,在本机的2555端口对外提供服务.</p>
+<p>在接收到消息类型为AkkaMessage之后,将消息做一个简单的处理(在前面加上response_标识),并封装成Response消息类型,响应给请求者:</p>
+<pre><code><span class="keyword">import</span> akka.actor.{ <span class="type">Actor</span>, <span class="type">Props</span> }
+<span class="keyword">import</span> akka.actor.<span class="type">ActorSystem</span>
+<span class="keyword">import</span> com.typesafe.config.<span class="type">ConfigFactory</span>
+
+<span class="class"><span class="keyword">object</span> <span class="title">ServerActor</span> {</span>
+    <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">AkkaMessage</span>(</span>message:<span class="type">String</span>)
+    <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Response</span>(</span>response:<span class="type">String</span>)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">props</span>:</span> <span class="type">Props</span> = <span class="type">Props</span>(<span class="keyword">new</span> <span class="type">ServerActor</span>) 
+
+    <span class="function"><span class="keyword">def</span> <span class="title">main</span>(</span>args:<span class="type">Array</span>[<span class="type">String</span>]):<span class="type">Unit</span> = {
+        <span class="function"><span class="keyword">val</span> <span class="title">serverSystem</span>(</span><span class="string">"server-system"</span>, <span class="type">ConfigFactory</span>.parseString(<span class="string">"""
+            akka{
+                actor {
+                    provider = "akka.remote.RemoteActorRefProvider"
+                }
+                remote {
+                    enabled-transports = ["akka.remote.netty.tcp"]
+                    netty.tcp {
+                        hostname = "127.0.0.1"
+                        port = 2552
+                    }
+                }
+            }
+        """</span>
+        ))
+
+        serverSystem.actorOf(<span class="type">ServerActor</span>.props,<span class="string">"server-actor"</span>)
+    }
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">ServerActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span>{</span>
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">receive</span>:</span><span class="type">Receive</span> = {
+        <span class="keyword">case</span> msg:<span class="type">AkkaMessage</span> =&gt; {
+            println(s<span class="string">"Server got message: ${msg.message}"</span>)
+            sender ! <span class="type">Response</span>(s<span class="string">"response_${msg.message}"</span>)
+        }
+        <span class="keyword">case</span> _ =&gt; println(<span class="string">"Unsupport Message!"</span>)
+    }
+}
+</code></pre><p>一般akka配置文件写在application.conf中,本例便于展示.</p>
+<h2 id="Client端">Client端</h2><p>Client端启动之后同样作为一个Remote Actor.</p>
+<p>接收到请求者的消息类型为AkkaMessage之后,将其转发至Server端.</p>
+<p>接收到Server端返回的Response之后,将其响应给消息的请求者.</p>
+<p>请求者在向Client端的Actor发送一个AkkaMessage消息之后,等待响应之后,再继续发送下一个消息:</p>
+<pre><code><span class="keyword">import</span> akka.actor.{ <span class="type">Actor</span>, <span class="type">Props</span> }
+<span class="keyword">import</span> akka.actor.{ <span class="type">ActorSystem</span>, <span class="type">ActorSelection</span> }
+<span class="keyword">import</span> com.typesafe.config.<span class="type">ConfigFactory</span>
+<span class="keyword">import</span> scala.concurrent.{ <span class="type">Await</span>, <span class="type">Future</span> }
+<span class="keyword">import</span> akka.pattern.ask
+<span class="keyword">import</span> akka.util.<span class="type">Timeout</span>
+<span class="keyword">import</span> scala.concurrent.duration._
+<span class="keyword">import</span> scala.concurrent._
+<span class="keyword">import</span> <span class="type">ServerActor</span>._
+
+<span class="class"><span class="keyword">object</span> <span class="title">ClientActor</span> {</span>
+
+    <span class="function"><span class="keyword">def</span> <span class="title">props</span>:</span><span class="type">Props</span> = <span class="type">Props</span>(<span class="keyword">new</span> <span class="type">ClientActor</span>)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">main</span>(</span>args: <span class="type">Array</span>[<span class="type">String</span>]) : <span class="type">Unit</span> = {
+        <span class="function"><span class="keyword">val</span> <span class="title">clientSystem</span> =</span> <span class="type">ActorSystem</span>(<span class="string">"ClientSystem"</span>, <span class="type">ConfigFactory</span>.parseString(<span class="string">"""
+            akka {
+                actor {
+                    provider = "akka.remote.RemoteActorRefProvider"
+                }
+            }
+        """</span>))
+        <span class="keyword">var</span> client = clientSystem.actorOf(<span class="type">ClientActor</span>.props)
+        <span class="keyword">var</span> msgs = <span class="type">Array</span>[<span class="type">AkkaMessage</span>](<span class="type">AkkaMessage</span>(<span class="string">"message1"</span>),<span class="type">AkkaMessage</span>(<span class="string">"message2"</span>),<span class="type">AkkaMessage</span>(<span class="string">"message3"</span>),<span class="type">AkkaMessage</span>(<span class="string">"message4"</span>))
+
+        <span class="keyword">implicit</span> <span class="function"><span class="keyword">val</span> <span class="title">timeout</span> =</span> <span class="type">Timeout</span>(<span class="number">3</span> seconds)
+
+        msgs.foreach { x =&gt; 
+            <span class="function"><span class="keyword">val</span> <span class="title">future</span> =</span> client ? x
+            <span class="function"><span class="keyword">val</span> <span class="title">result</span> =</span> <span class="type">Await</span>.result(future,timeout.duration).asInstanceOf[<span class="type">Response</span>]
+            println(<span class="string">"收到的反馈： "</span> + result)
+        }
+
+        <span class="comment">// 异步发送模式</span>
+        <span class="comment">//     msgs.foreach { x =&gt; </span>
+        <span class="comment">//       client ! x</span>
+        <span class="comment">//     }</span>
+
+        clientSystem.shutdown()
+    }    
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">ClientActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+    <span class="comment">//远程Actor</span>
+    <span class="keyword">var</span> remoteActor : <span class="type">ActorSelection</span> = <span class="literal">null</span>
+    <span class="comment">//当前Actor</span>
+    <span class="keyword">var</span> localActor : akka.actor.<span class="type">ActorRef</span> = <span class="literal">null</span>
+
+    <span class="annotation">@throws</span>[<span class="type">Exception</span>](classOf[<span class="type">Exception</span>])
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">preStart</span>(</span>): <span class="type">Unit</span> = {
+        remoteActor = context.actorSelection(<span class="string">"akka.tcp://lxw1234@127.0.0.1:2555/user/server"</span>)
+        println(<span class="string">"远程服务端地址 : "</span> + remoteActor)
+    }
+
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">receive</span>:</span> <span class="type">Receive</span> = {
+        <span class="comment">//接收到消息类型为AkkaMessage后，将消息转发至远程Actor</span>
+        <span class="keyword">case</span> msg: <span class="type">AkkaMessage</span> =&gt; {
+            println(<span class="string">"客户端发送消息 : "</span> + msg)
+            <span class="keyword">this</span>.localActor = sender()
+            remoteActor ! msg
+        }
+        <span class="comment">//接收到远程Actor发送的消息类型为Response，响应</span>
+        <span class="keyword">case</span> res: <span class="type">Response</span> =&gt; {
+            localActor ! res
+        }
+        <span class="keyword">case</span> _ =&gt; println(<span class="string">"客户端不支持的消息类型 .. "</span>)
+      }
+}
+</code></pre><p>本代码实例中的实现不够优雅,或者说是不符合Scala和Akka中的使用惯例,仅用作RPC思想的模式学习.</p>
+<p><a href="http://lxw1234.com/archives/2016/03/617.htm?hmsr=toutiao.io&amp;utm_medium=toutiao.io&amp;utm_source=toutiao.io" title="lxw的大数据学习天地" target="_blank" rel="external">参考: lxw的大数据学习天地</a></p>
+<h2 id="RPC解释">RPC解释</h2><p>RPC,Remote Procedure Call Protoco,即远程过程调用协议,它是一种通过网络从远程计算机服务上请求服务,而不需要了解底层网络技术的协议.</p>
+<p>知乎用户 @用心阁 关于RPC的解释:</p>
+<p>指,有两台服务器A和B,一个应用部署在A服务器上,想要调用B服务器上应用提供的函数/方法,由于不在一个内存空间,不能直接调用,需要通过网络技术来表达调用的语义和传达调用的数据.</p>
+<p>比如一个方法的定义如下: Employee getEmployeeByName(String fullName)</p>
+<ol>
+<li>首先要解决通讯问题,主要是通过客户端和服务端之间建立TCP连接,远程过程调用的所有交换的数据都在这个连接里传输.连接可以是按需连接,调用结束后就断开,也可以是长连接,多个远程过程调用公用一个连接.</li>
+<li>要解决寻址的问题,也就是说,A服务器上应用怎么告诉底层的RPC框架,如何连接到B服务器(如IP和端口),方法的名称是什么,这样才能完成调用.比如基于WEB服务栈的RPC,就需要提供一个endpoint URI,或者使用UDDI(发现和集成服务)上查找.如果是RMI(一种基于Java的远程方法调用)调用的话,还需要一个RMI Registry来注册服务的地址.</li>
+<li>第三,当A服务器上的应用发起远程过程调用时,方法参数需要通过底层的网络协议如TCP传递到B服务器,由于网络协议是基于二进制的,内存中的参数的值需要序列化成二进制格式,也就是序列化(Serialize)和编组(marshal),通过寻址和传输将序列化的二进制数据传递给B服务器.</li>
+<li>B服务器收到请求后,需要对参数进行反序列化,恢复为内存中的表达方式,然后找到对应的方法(寻址的一部分)进行本地调用,然后得到返回值.</li>
+<li>返回值还要发送给A服务器上的应用,也要经过序列化的方式发送,服务器A接收到以后,再反序列化,恢复为内存中的表达式,交给A服务器上的应用.</li>
+</ol>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/RPC.png" alt="RPC" title="RPC"></p>
+<p>为什么要使用RPC呢,就是无法在一个进程内,甚至一个计算机内通过本地调用的方式完成需求,比如在不同的系统间通讯,甚至不同的组织间的通讯.</p>
+<p>RPC的协议有很多,比如最早的CORBA,Java RMI,Web Service的RPC风格,Hessian,Thrift,甚至Rest API.协议是指调用信息和答复信息,即对调用过程的处理方式的约定.</p>
+<h2 id="关于Netty">关于Netty</h2><p>Netty框架不仅限于RPC,更多的是作为一种网络协议的实现框架,比如Http,TCP,由于RPC需要高效的网络通信,就可能选择Netty作为基础,最新的Spark版本已由Akka迁移到Netty.</p>
+<p>除了网络通信,RPC还需要有比较高效的序列化框架,以及寻址方式.如果是带会话状态的RPC,还需要有会话和状态的保持功能.</p>
+<p>大体上说,Netty就是提供一种时间驱动的,责任链式的网络协议实现方式,更多详细介绍参考&lt;<netty in="" action="">&gt;.</netty></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Akka/" rel="tag">#Akka</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/07/How-to-improve-query-efficiency-with-big-table/" rel="prev">How to improve query efficiency with big table</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/06/Functional-Programming-Patterns-in-Scala-Chatper-3/" rel="next">Functional Programming Patterns in Scala: Chatper 3</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">74</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">29</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Server端"><span class="nav-number">2.</span> <span class="nav-text">Server端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Client端"><span class="nav-number">3.</span> <span class="nav-text">Client端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RPC解释"><span class="nav-number">4.</span> <span class="nav-text">RPC解释</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关于Netty"><span class="nav-number">5.</span> <span class="nav-text">关于Netty</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

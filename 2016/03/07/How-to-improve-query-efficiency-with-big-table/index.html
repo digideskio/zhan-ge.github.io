@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="akka,scala," />
+  <meta name="keywords" content="SQL," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="Akka并发:并发和并行">
+<meta name="description" content="在一个千万级的数据库查寻中，如何提高查询效率?">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Akka Concurrency: Concurrency and Parallelism">
-<meta property="og:url" content="http://yoursite.com/2015/10/04/Akka-Concurrency-Concurrency-and-Parallelism/index.html">
+<meta property="og:title" content="How to improve query efficiency with big table">
+<meta property="og:url" content="http://yoursite.com/2016/03/07/How-to-improve-query-efficiency-with-big-table/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Akka并发:并发和并行">
-<meta property="og:updated_time" content="2015-10-04T09:26:29.000Z">
+<meta property="og:description" content="在一个千万级的数据库查寻中，如何提高查询效率?">
+<meta property="og:updated_time" content="2016-03-07T15:52:57.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Akka Concurrency: Concurrency and Parallelism">
-<meta name="twitter:description" content="Akka并发:并发和并行">
+<meta name="twitter:title" content="How to improve query efficiency with big table">
+<meta name="twitter:description" content="在一个千万级的数据库查寻中，如何提高查询效率?">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Akka Concurrency: Concurrency and Parallelism | Hexo </title>
+  <title> How to improve query efficiency with big table | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Akka Concurrency: Concurrency and Parallelism
+              How to improve query efficiency with big table
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-10-04T16:27:21+08:00" content="2015-10-04">
-            2015-10-04
+          <time itemprop="dateCreated" datetime="2016-03-07T23:11:26+08:00" content="2016-03-07">
+            2016-03-07
           </time>
         </span>
 
@@ -185,119 +185,50 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="Parallelism_vs-_Concurrency">Parallelism vs. Concurrency</h2><p>Parallelism: 指两个或两个以上事件或活动在同一时刻发生,并行性使多个程序同一时刻可在不同CPU上同时执行.并行的行为是真正的同时执行,在多核或多个机器上,并且并行是无状态的.</p>
-<p>Concurrency: 指两个或两个以上的事件或活动在同一时间间隔内发生。并发的实质是一个物理CPU(也可以多个物理CPU) 在若干道程序之间多路复用，并发性是对有限物理资源强制行使多用户共享以提高效率。</p>
-<p>并行是物理上同时发生,并发是逻辑上同时发生.系统中有多个任务同时存在即为并发,系统中有多个任务同时执行则为并发.并发是并行的子集.如果在单核CPU上,只能存在并发而不可能存在并行.</p>
-<h2 id="状态共享式并发">状态共享式并发</h2><p>首先定义一个简单的User类:</p>
-<pre><code><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> User {
-    <span class="keyword">private</span> <span class="built_in">String</span> first = <span class="string">""</span>;
-    <span class="keyword">private</span> <span class="built_in">String</span> last = <span class="string">""</span>;
-    <span class="keyword">public</span> <span class="built_in">String</span> getFirstName() {
-        <span class="keyword">return</span> <span class="keyword">this</span>.first;
-    }
-    <span class="keyword">public</span> <span class="built_in">void</span> setFirstName(<span class="built_in">String</span> s) {
-        <span class="keyword">this</span>.first = s;
-    }
-    <span class="keyword">public</span> <span class="built_in">String</span> getLastName() {
-        <span class="keyword">return</span> <span class="keyword">this</span>.last;
-    }
-    <span class="keyword">public</span> <span class="built_in">void</span> setLastName(<span class="built_in">String</span> s) {
-        <span class="keyword">this</span>.last = s;
-    }
-}
-</code></pre><p>让这个类支持并发,不允许两个不同的线程同时修改属性,因此增加同步属性:</p>
-<pre><code><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>{
-    <span class="keyword">private</span> String first = <span class="string">""</span>;
-    <span class="keyword">private</span> String last = <span class="string">""</span>;
-    <span class="function"><span class="keyword">synchronized</span> <span class="keyword">public</span> String <span class="title">getFirstName</span><span class="params">()</span> </span>{
-        <span class="keyword">return</span> <span class="keyword">this</span>.first;
-    }
-    <span class="function"><span class="keyword">synchronized</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFirstName</span><span class="params">(String s)</span> </span>{
-        <span class="keyword">this</span>.first = s;
-    }
-    <span class="function"><span class="keyword">synchronized</span> <span class="keyword">public</span> String <span class="title">getLastName</span><span class="params">()</span> </span>{
-        <span class="keyword">return</span> <span class="keyword">this</span>.last;
-    }
-    <span class="function"><span class="keyword">synchronized</span> <span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setLastName</span><span class="params">(String s)</span> </span>{
-        <span class="keyword">this</span>.last = s;
-    }
-}
-</code></pre><p>如果对属性字段使用”volatile”的话效果会不会更好?</p>
-<pre><code><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title">User</span> {
-    <span class="keyword">private</span> <span class="keyword">volatile</span> String first = <span class="string">""</span>;
-    <span class="keyword">private</span> <span class="keyword">volatile</span> String last = <span class="string">""</span>;
-    <span class="function"><span class="keyword">public</span> String <span class="title">getFirstName</span>(<span class="params"></span>) </span>{
-        <span class="keyword">return</span> <span class="keyword">this</span>.first;
-    }
-    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFirstName</span>(<span class="params">String s</span>) </span>{
-        <span class="keyword">this</span>.first = s;
-    }
-    <span class="function"><span class="keyword">public</span> String <span class="title">getLastName</span>(<span class="params"></span>) </span>{
-        <span class="keyword">return</span> <span class="keyword">this</span>.last;
-    }
-    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setLastName</span>(<span class="params">String s</span>) </span>{
-        <span class="keyword">this</span>.last = s;
-    }
-}
-</code></pre><p>但是当你在并发程序中调用这段代码的时候:</p>
-<pre><code><span class="keyword">user</span>.<span class="built_in">set</span>FirstName(<span class="string">"Spider"</span>);
-<span class="keyword">user</span>.<span class="built_in">set</span>FirstName(<span class="string">"Green"</span>);
-<span class="keyword">user</span>.<span class="built_in">set</span>LastName(<span class="string">"Man"</span>);
-<span class="keyword">user</span>.<span class="built_in">set</span>LastName(<span class="string">"Lantern"</span>);
-System.<span class="keyword">out</span>.println(<span class="keyword">user</span>.getFirstName() + <span class="string">" "</span> + <span class="keyword">user</span>.getLastName());
-</code></pre><p>你会发现你得到的结果是”Spider Lantern”,这就是真正的问题所在.解决这种问题的办法:</p>
-<pre><code>import java.util.concurrent.locks.ReentrantLock;
-<span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">class</span> <span class="title">User</span> {
-    <span class="keyword">private</span> ReentrantLock <span class="keyword">lock</span> = <span class="keyword">new</span> ReentrantLock();
-    <span class="keyword">private</span> String first = <span class="string">""</span>;
-    <span class="keyword">private</span> String last = <span class="string">""</span>;
-    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">lock</span>(<span class="params"></span>) </span>{
-        <span class="keyword">lock</span>.<span class="keyword">lock</span>();
-    }
-    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">unlock</span>(<span class="params"></span>) </span>{
-        <span class="keyword">lock</span>.unlock();
-    }
-    <span class="function"><span class="keyword">public</span> String <span class="title">getFirstName</span>(<span class="params"></span>) </span>{
-        <span class="keyword">return</span> <span class="keyword">this</span>.first;
-    }
-    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setFirstName</span>(<span class="params">String s</span>) </span>{
-        <span class="keyword">try</span> { <span class="keyword">lock</span>();
-            <span class="keyword">this</span>.first = s;
-        } <span class="keyword">finally</span> {
-            unlock(); }
-    }
-    <span class="function"><span class="keyword">public</span> String <span class="title">getLastName</span>(<span class="params"></span>) </span>{
-        <span class="keyword">return</span> <span class="keyword">this</span>.last;
-    }
-    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setLastName</span>(<span class="params">String s</span>) </span>{
-        <span class="keyword">try</span> { <span class="keyword">lock</span>();
-            <span class="keyword">this</span>.last = s;
-        } <span class="keyword">finally</span> {
-            unlock();
-        } 
-    }
-}
-</code></pre><p>整个实现都是在围绕”并发锁”,使用的时候:</p>
-<pre><code>try {
-    <span class="keyword">user</span>.lock();
-    System.<span class="keyword">out</span>.println(<span class="keyword">user</span>.getFirstName() + <span class="string">" "</span> + <span class="keyword">user</span>.getLastName());
-  } finally {
-    <span class="keyword">user</span>.unlock();
-}
-</code></pre><p>这样就很好了解决了上面的问题,但是,如果遇到这样的使用情况:</p>
-<pre><code>// Thread <span class="number">1</span>
-  <span class="keyword">user</span>.<span class="built_in">set</span>FirstName(<span class="string">"Green"</span>);
-// Thread <span class="number">2</span>
-  try {
-    <span class="keyword">user</span>.lock();
-    System.<span class="keyword">out</span>.println(<span class="keyword">user</span>.getFirstName() + <span class="string">" "</span> + <span class="keyword">user</span>.getLastName());
-  } finally {
-    <span class="keyword">user</span>.unlock();
-}
-// Thread <span class="number">1</span>
-<span class="keyword">user</span>.<span class="built_in">set</span>LastName(<span class="string">"Lantern"</span>);
-</code></pre><p>同样的错误又发生了.</p>
-<h2 id="不可变性">不可变性</h2></span>
+        <span itemprop="articleBody"><h2 id="数据库设计方面">数据库设计方面</h2><ol>
+<li><p>对查询进行优化,应尽量避免全表扫描,首先应考虑在where和order by操作涉及的列上建立索引.</p>
+</li>
+<li><p>应尽量避免在where子句中对字段进行null值判断,否则将导致引擎放弃使用索引而进行全表扫描,如: slect id from t where numm is null,可以在null上设置默认值为0,确保null列中没有null值,然后使用查询: select id from t where numm = 0.</p>
+</li>
+<li><p>并不是所有索引对查询都有效,SQL是根据表中数据进行查询优化的,当索隐列有大量数据重复时,查询可能不会去利用索引,如一表中有字段sex,male,female几乎各一半,那么即使在sex字段上添加索引也对查询效率起不了作用.</p>
+</li>
+<li><p>索引并不是越多越好,索引固然可以提高select效率,但同时也降低了insert和update的效率,因为这两种操作有时会重建索引,索引怎样建索引要慎重考虑,是具体情况而定.一个表的索引数最高不要超过6个.</p>
+</li>
+<li><p>应尽可能的避免更新索引数据列,因为索引数据列的顺序就是表记录的物理存储顺序,一旦该列值改变将导致整个表记录的顺序调整,会耗费相当大的资源.若应用系统需要频繁更新索引数据列,那么需要考虑该字段建索引的必要.</p>
+</li>
+<li><p>尽量使用数字型字段,若只含数字信息的字段尽量不要设计成字符型,这将会降低查询和连接的性能,并增加存储开销.这是因为引擎在处理查询和连接时,会逐个比较字符串中的字符,而对数字而言只要比较一次就够了.</p>
+</li>
+<li><p>尽可能的使用varchar/nvarchar代替char/nchar,因为首先边长字段存储空间小,可以节省存储空间,其次对于查询来说,在一个相对较小的字段内搜索效率显然要高些.</p>
+</li>
+<li><p>尽量使用表变量来代替临时表,如果表包含大量数据,请注意索引非常有限(只有主键索引).</p>
+</li>
+<li><p>避免频繁创建和删除临时表,以减少系统表资源的消耗.</p>
+</li>
+<li><p>临时表并不是不可用,适当的使用它们可以使某些例程更有效.例如,当需要重复引用大型表或常用数据中的数据集时.但是对于一次性事件,最好使用导出表.</p>
+</li>
+<li><p>在新建临时表时,如果一次插入数据量很大,那么可以使用select into代替create table,避免造成大量log,以提高速度.如果数据量不大,为了缓和系统表的资源,应先create table,然后insert.</p>
+</li>
+<li><p>如果使用到了临时表,在存储过程的最后务必将所有的临时表显式删除,先truncate table,然后drop table,这样可以避免系统表的较长时间锁定.</p>
+</li>
+</ol>
+<h2 id="SQL语句方面">SQL语句方面</h2><ol>
+<li><p>应尽量避免在where子句中使用 != 或 &lt;&gt; 操作符,否则引擎将放弃使用索引而进行全表扫描.</p>
+</li>
+<li><p>应尽量避免在where子句使用 or 连接条件,否则引擎将放弃使用索引而进行全表扫描.比如: select id from t where num=10 or num =20,可以改为: select id from t where num=10 union all select id form t where num=20.</p>
+</li>
+<li><p>in 和 not in 也要慎用,否则会导致全表扫描,比如: select id from t where id in (1,2,3)改为select id from t where id between 1 and 3.</p>
+</li>
+<li><p>下面的查询也将导致全表扫描: select id from t where name like ‘%abc%’.</p>
+</li>
+<li><p>如果在where子句中使用参数,也会导致全表扫描.因为SQL只有在运行时才会解析局部变量,但优化程序不能讲访问计划的选择推迟到运行时,它必须在编译时进行选择.然而,如果在编译时建立访问计划,变量的值还是未知的,因而无法作为索引的输入项.</p>
+</li>
+<li><p>应尽量在where子句中对字段记性表达式操作,否则引擎将放弃使用索引而进行全表扫描.select id from t where num/2=100 应改为: select id from t where num=100*2.</p>
+</li>
+<li><p>应尽量在where子句中对字段进行函数操作,否则引擎将放弃使用索引而进行全表扫描. select id from t where substring(name,1,3)=’abc’–name以abc开头的id select id from t where datediff(day,createdate,’2005-11-30′)=0–‘2005-11-30’生成的id 应改为: select id from t where name like ‘abc%’ select id from t where createdate&gt;=’2005-11-30′ and createdate&lt;’2005-12-1′.</p>
+</li>
+<li></li>
+</ol>
+</span>
       
     </div>
 
@@ -305,9 +236,7 @@ System.<span class="keyword">out</span>.println(<span class="keyword">user</span
       
         <div class="post-tags">
           
-            <a href="/tags/akka/" rel="tag">#akka</a>
-          
-            <a href="/tags/scala/" rel="tag">#scala</a>
+            <a href="/tags/SQL/" rel="tag">#SQL</a>
           
         </div>
       
@@ -316,13 +245,11 @@ System.<span class="keyword">out</span>.println(<span class="keyword">user</span
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/10/04/Akka-Concurrency-Akka-Does-Concurrency/" rel="prev">Akka Concurrency: Akka Does Concurrency</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/10/04/Akka-Concurrency-Preface/" rel="next">Akka Concurrency: Preface</a>
+              <a href="/2016/03/07/Build-RPC-with-Scala-and-Akka/" rel="next">Build RPC with Scala and Akka</a>
             
           </div>
         </div>
@@ -426,7 +353,7 @@ System.<span class="keyword">out</span>.println(<span class="keyword">user</span
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Parallelism_vs-_Concurrency"><span class="nav-number">1.</span> <span class="nav-text">Parallelism vs. Concurrency</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#状态共享式并发"><span class="nav-number">2.</span> <span class="nav-text">状态共享式并发</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#不可变性"><span class="nav-number">3.</span> <span class="nav-text">不可变性</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库设计方面"><span class="nav-number">1.</span> <span class="nav-text">数据库设计方面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL语句方面"><span class="nav-number">2.</span> <span class="nav-text">SQL语句方面</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
