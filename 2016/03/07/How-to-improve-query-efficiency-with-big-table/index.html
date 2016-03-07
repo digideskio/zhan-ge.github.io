@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/07/How-to-improve-query-efficiency-with-big-table/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="在一个千万级的数据库查寻中，如何提高查询效率?">
-<meta property="og:updated_time" content="2016-03-07T15:52:57.000Z">
+<meta property="og:updated_time" content="2016-03-07T16:18:57.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="How to improve query efficiency with big table">
 <meta name="twitter:description" content="在一个千万级的数据库查寻中，如何提高查询效率?">
@@ -214,7 +214,7 @@
 <h2 id="SQL语句方面">SQL语句方面</h2><ol>
 <li><p>应尽量避免在where子句中使用 != 或 &lt;&gt; 操作符,否则引擎将放弃使用索引而进行全表扫描.</p>
 </li>
-<li><p>应尽量避免在where子句使用 or 连接条件,否则引擎将放弃使用索引而进行全表扫描.比如: select id from t where num=10 or num =20,可以改为: select id from t where num=10 union all select id form t where num=20.</p>
+<li><p>应尽量避免在where子句使用 or 连接条件,否则引擎将放弃使用索引而进行全表扫描.比如: select id from t where num=10 or num =20;可以改为:select id from t where num=10 union all select id form t where num=20;</p>
 </li>
 <li><p>in 和 not in 也要慎用,否则会导致全表扫描,比如: select id from t where id in (1,2,3)改为select id from t where id between 1 and 3.</p>
 </li>
@@ -226,8 +226,42 @@
 </li>
 <li><p>应尽量在where子句中对字段进行函数操作,否则引擎将放弃使用索引而进行全表扫描. select id from t where substring(name,1,3)=’abc’–name以abc开头的id select id from t where datediff(day,createdate,’2005-11-30′)=0–‘2005-11-30’生成的id 应改为: select id from t where name like ‘abc%’ select id from t where createdate&gt;=’2005-11-30′ and createdate&lt;’2005-12-1′.</p>
 </li>
-<li></li>
+<li><p>不要在where子句中的 = 符号左边进行函数或算术运算或其他表达式运算,否则系统将可能无法正确使用索引.</p>
+</li>
+<li><p>不要写一些没有意义的查询,如需要生成一个空表结构,select col1,col2 into #t from t where 1=0,这样的代码不会返回任何结果集,然是会消耗系统资源,使用: create table #t(…)</p>
+</li>
+<li><p>很多时候使用exists代替in是个好选择,select num from a where num in(select num from b),替代为: select num from a where exists(select 1 from b where num=a.num).</p>
+</li>
+<li><p>任何地方都不要使用select <em> from t, 用具体的字段代替 </em> 符号,不要返回用不到的字段.</p>
+</li>
+<li><p>尽量避免使用游标,因为游标的效率太差,如果游标操作的数据超过一万行,那么就应该考虑改写.</p>
+</li>
+<li><p>尽量避免向客户端返回大量数据,若数据量过大,应考虑响应需求是否合理.</p>
+</li>
+<li><p>尽量避免大事务操作,提高系统并发能力.</p>
+</li>
 </ol>
+<h2 id="Java方面">Java方面</h2><ol>
+<li><p>尽可能少的创建对象.</p>
+</li>
+<li><p>合理摆正系统设计的位置,大量数据操作和少量数据操作一定是分开的,大量数据操作肯定不是ORM框架搞定的.</p>
+</li>
+<li><p>使用JDBC链接库操作数据.</p>
+</li>
+<li><p>控制好内存,让数据流起来,而不是全部读到内存再处理,而是边读边处理.</p>
+</li>
+<li><p>合理利用内存,使用缓存.</p>
+</li>
+</ol>
+<h2 id="如何优化数据库,如何提高数据库性能">如何优化数据库,如何提高数据库性能</h2><ol>
+<li><p>硬件调整性能,最有可能影响性能的是磁盘和网络吞吐量,解决办法是扩大虚拟内存,并保证有足够可以扩充的空间.把数据库服务器上不必要的服务关闭,把数据库服务器和主域服务器分开,把SQL数据库服务器的吞吐量调为最大,多余一个核.</p>
+</li>
+<li><p>调整数据库,若对该表的查询频率比较高,则建立索引,建立索引时,想尽对该表的所有查询操作,按照where选择条件建立索引,尽量为整形键建立为有且只有一个簇集索引.</p>
+</li>
+<li><p>使用存储过程,建立查询条件索引仅仅是提高速度的前提条件,响应速度的提高还依赖于对索引的使用.因为人们在使用SQL时往往会陷入一个误区,即太关注于所得结果是否正确,特别是对数据量特别大的数据库操作时,是否建立索引对索引的使用好坏对程序的响应速度影响并不大,因此程序员在写程序时就忽略了不同的实现方法之间可能存在的性能差距,这种性能差异在数据量特别大时或是大型复杂的数据环境中,比如联机事务处理OLTP或决策支持系统DSS,表现的尤为明显.在工作实践中发现,不良的SQL往往来自不恰当的索引设计,不充分的连接条件和不优化的where子句.</p>
+</li>
+</ol>
+<p><a href="http://www.kuqin.com/shuoit/20160226/350862.html" title="参考" target="_blank" rel="external">参考链接</a></p>
 </span>
       
     </div>
@@ -353,7 +387,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库设计方面"><span class="nav-number">1.</span> <span class="nav-text">数据库设计方面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL语句方面"><span class="nav-number">2.</span> <span class="nav-text">SQL语句方面</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库设计方面"><span class="nav-number">1.</span> <span class="nav-text">数据库设计方面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL语句方面"><span class="nav-number">2.</span> <span class="nav-text">SQL语句方面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java方面"><span class="nav-number">3.</span> <span class="nav-text">Java方面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如何优化数据库,如何提高数据库性能"><span class="nav-number">4.</span> <span class="nav-text">如何优化数据库,如何提高数据库性能</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
