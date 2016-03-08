@@ -1,0 +1,648 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Nginx," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Nginx配置与使用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Nginx 1">
+<meta property="og:url" content="http://yoursite.com/2016/03/08/Simple-Nginx-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Nginx配置与使用">
+<meta property="og:updated_time" content="2016-03-08T14:43:55.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Nginx 1">
+<meta name="twitter:description" content="Nginx配置与使用">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Nginx 1 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Nginx 1
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-08T21:28:37+08:00" content="2016-03-08">
+            2016-03-08
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="安装Nginx">安装Nginx</h2><p>为了支持rewrite功能,安装pcre:</p>
+<pre><code>yum <span class="keyword">install</span> pcre*
+</code></pre><p>为了支持ssl,安装openssl:</p>
+<pre><code>yum <span class="keyword">install</span> openssl*
+</code></pre><p>安装nginx:</p>
+<pre><code>wget http://nginx.org/download/nginx-1.9.12.tar.gz
+./configure  --prefix=/usr/local/nginx-1.9.12 \
+-<span class="ruby">-with-http_realip_module \
+</span>-<span class="ruby">-with-http_ssl_module --with-http_spdy_module \
+</span>-<span class="ruby">-with-http_stub_status_module --with-pcre \
+</span>-<span class="ruby">-add-<span class="class"><span class="keyword">module</span>=../<span class="title">ngx_cache_purge</span>-1.9</span></span>
+</code></pre><p>–prefix=/usr/local/nginx-1.9.12: 安装路径<br>–with-http_stub_status_module: 支持状态查询<br>–with-http_realip_module:启用realip模块（将用户IP转发给后端服务器）<br>–with-http_ssl_module: 支持https<br>–with-http_spdy_module: 支持google的spdy,前提是必须安装ssl支持<br>–with-pcre: 为了支持rewrite重写功能,必须定制pcre<br>–add-module=../ngx_cache_purge-1.9: 添加缓存清除扩展模块</p>
+<p>configure完成后:</p>
+<pre><code><span class="built_in">make</span> &amp;&amp; <span class="built_in">make</span> install
+</code></pre><h2 id="启动,关闭,重置">启动,关闭,重置</h2><p>直接启动:</p>
+<pre><code>/usr/local/nginx-<span class="number">1.9</span><span class="number">.12</span>/sbin/nginx
+</code></pre><p>启动后进行测试:</p>
+<pre><code>curl -s http:<span class="comment">//localhost | grep nginx.com</span>
+nginx<span class="class">.com</span>.
+</code></pre><p>关闭:</p>
+<pre><code>/usr/<span class="built_in">local</span>/nginx-<span class="number">1.9</span>.<span class="number">12</span>/sbin/nginx <span class="operator">-s</span> stop
+</code></pre><p>当有修改配置文件时,进行reload:</p>
+<pre><code>/usr/<span class="built_in">local</span>/nginx-<span class="number">1.9</span>.<span class="number">12</span>/sbin/nginx <span class="operator">-s</span> reload
+</code></pre><h2 id="更新现有的版本">更新现有的版本</h2><h3 id="使用升级脚本">使用升级脚本</h3><pre><code>wget soft.vpser.<span class="keyword">net</span>/lnmp/upgrade_nginx.<span class="keyword">sh</span>;<span class="keyword">sh</span> upgrade_nginx.<span class="keyword">sh</span>
+</code></pre><p>然后按提示输入要更新的版本号,确认后回车,程序开始安装.</p>
+<h3 id="手动升级">手动升级</h3><p>首先下载需要升级版本的源码文件,解压后进入对应目录,然后查看当前版本的配置信息:</p>
+<pre><code><span class="title">nginx</span> -V
+</code></pre><p>会看到当前版本的所有配置信息:</p>
+<pre><code>-<span class="ruby">-prefix=<span class="regexp">/etc/nginx</span> --conf-path=<span class="regexp">/etc/nginx</span><span class="regexp">/nginx.conf --error-log-path=/var</span><span class="regexp">/log/nginx</span><span class="regexp">/error.log \
+</span></span>-<span class="ruby"><span class="regexp">-http-client-body-temp-path=/var</span><span class="regexp">/lib/nginx</span><span class="regexp">/body --http-fastcgi-temp-path=/var</span><span class="regexp">/lib/nginx</span><span class="regexp">/fastcgi \
+</span></span>-<span class="ruby"><span class="regexp">-http-log-path=/var</span><span class="regexp">/log/nginx</span><span class="regexp">/access.log --http-proxy-temp-path=/var</span><span class="regexp">/lib/nginx</span><span class="regexp">/proxy \
+</span></span>-<span class="ruby"><span class="regexp">-http-scgi-temp-path=/var</span><span class="regexp">/lib/nginx</span><span class="regexp">/scgi --http-uwsgi-temp-path=/var</span><span class="regexp">/lib/nginx</span><span class="regexp">/uwsgi \
+</span></span>-<span class="ruby"><span class="regexp">-lock-path=/var</span><span class="regexp">/lock/nginx</span>.lock --pid-path=<span class="regexp">/var/run</span><span class="regexp">/nginx.pid --with-debug \
+</span></span>-<span class="ruby"><span class="regexp">-with-http_addition_module --with-http_dav_module --with-http_geoip_module \
+</span></span>-<span class="ruby"><span class="regexp">-with-http_gzip_static_module --with-http_image_filter_module --with-http_realip_module \
+</span></span>-<span class="ruby"><span class="regexp">-with-http_stub_status_module --with-http_ssl_module --with-http_sub_module --with-http_xslt_module \
+</span></span>-<span class="ruby"><span class="regexp">-with-ipv6 --with-sha1=/usr</span><span class="regexp">/include/openssl</span> --with-md5=<span class="regexp">/usr/include</span><span class="regexp">/openssl --with-mail --with-mail_ssl_module</span></span>
+</code></pre><p>然后执行configure命令并跟上上面的配置信息:</p>
+<pre><code>.<span class="regexp">/configure --prefix=/</span>etc<span class="regexp">/nginx --conf-path=/</span>etc<span class="regexp">/nginx/</span>nginx.conf \ .....
+</code></pre><p>如果执行中遇到什么错误,进行修复后重新执行以上命令:</p>
+<ol>
+<li><p>配置 –with-http_xslt_module 时提示 the HTTP XSLT module requires the libxml2/libxslt libraries: yum install -y libxml2 libxml2-devel libxslt libxslt-devel</p>
+</li>
+<li><p>配置 –with-http_image_filter_module 时提示 the HTTP image filter module requires the GD library: yum install -y libgdata libgdata-devel</p>
+</li>
+<li><p>配置 –with-http_geoip_module 时提示 the GeoIP module requires the GeoIP library: 安装geoip对应的驱动</p>
+</li>
+<li><p>rewrite需要pcre支持, 错误提示：./configure: error: the HTTP rewrite module requires the PCRE library: yum install -y pcre*</p>
+</li>
+</ol>
+<p>没有提示错误后进行make:</p>
+<pre><code><span class="built_in">make</span>
+</code></pre><p>编译完成后多出一个nginx文件夹,就是已编译好的nginx程序.</p>
+<p>备份旧的nginx程序的名字,并复制新的程序进去,首先cd到旧的nginx目录:</p>
+<pre><code>mv <span class="regexp">/usr/</span>sbin<span class="regexp">/nginx /u</span>sr<span class="regexp">/sbin/</span>nginx-backends
+cp objs<span class="regexp">/nginx /u</span>sr<span class="regexp">/sbin/</span>nginx
+</code></pre><p>执行检查命令对配置进行检查:</p>
+<pre><code>/usr/sbin/nginx -t
+
+nginx: the configuration <span class="keyword">file</span> /etc/nginx/nginx.<span class="keyword">conf</span> <span class="keyword">syntax</span> is ok
+nginx: configuration <span class="keyword">file</span> /etc/nginx/nginx.<span class="keyword">conf</span> <span class="keyword">test</span> is successful
+</code></pre><p>然后回到新版nginx的解压目录,执行更新:</p>
+<pre><code><span class="built_in">make</span> upgrade
+</code></pre><p>但是得到一个错误:</p>
+<pre><code><span class="string">make:</span> <span class="regexp">/etc/</span>nginx<span class="regexp">/sbin/</span><span class="string">nginx:</span> Command not found
+<span class="string">make:</span> *** [upgrade] Error <span class="number">127</span>
+</code></pre><p>用文本编辑器打开Makefile文件,将upgrade节点中的/etc/nginx/sbin/nginx改为/usr/sbin/nginx -t,保存后关闭并重新执行:</p>
+<pre><code><span class="built_in">make</span> upgrade
+</code></pre><p>然后执行命令进行版本检查:</p>
+<pre><code>nginx -V
+<span class="number">1.9</span><span class="number">.12</span>
+</code></pre><p><a href="http://www.cnblogs.com/terrysun/archive/2012/11/22/2782472.html" title="参考链接" target="_blank" rel="external">参考链接</a><br><a href="https://linux.cn/article-4279-weixin.html#rd?sukey=16298ae1a3e33631ae8309091c0bb24ad4e4c2e078cb0e12bd412d7164bd87195ae4296a29b2d3e60bafff12d9541ecd" title="参考链接" target="_blank" rel="external">参考链接</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Nginx/" rel="tag">#Nginx</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/08/Simple-Nginx-2/" rel="prev">Simple Nginx 2</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/07/How-to-improve-query-efficiency-with-big-table/" rel="next">How to improve query efficiency with big table</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">78</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">30</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Nginx"><span class="nav-number">1.</span> <span class="nav-text">安装Nginx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动,关闭,重置"><span class="nav-number">2.</span> <span class="nav-text">启动,关闭,重置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#更新现有的版本"><span class="nav-number">3.</span> <span class="nav-text">更新现有的版本</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用升级脚本"><span class="nav-number">3.1.</span> <span class="nav-text">使用升级脚本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#手动升级"><span class="nav-number">3.2.</span> <span class="nav-text">手动升级</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

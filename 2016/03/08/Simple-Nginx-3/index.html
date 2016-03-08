@@ -1,0 +1,693 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Nginx," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="nginx安装配置与清缓存模块安装,root和alias文件路径配置">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Nginx 3">
+<meta property="og:url" content="http://yoursite.com/2016/03/08/Simple-Nginx-3/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="nginx安装配置与清缓存模块安装,root和alias文件路径配置">
+<meta property="og:updated_time" content="2016-03-08T15:13:09.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Nginx 3">
+<meta name="twitter:description" content="nginx安装配置与清缓存模块安装,root和alias文件路径配置">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Nginx 3 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Nginx 3
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-08T22:39:55+08:00" content="2016-03-08">
+            2016-03-08
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="内核参数优化">内核参数优化</h2><p>修改sysctl.conf,增加以下内容:</p>
+<pre><code>vim sysctl<span class="class">.conf</span>
+
+net<span class="class">.ipv4</span><span class="class">.netfilter</span><span class="class">.ip_conntrack_tcp_timeout_established</span> = <span class="number">1800</span>
+net<span class="class">.ipv4</span><span class="class">.ip_conntrack_max</span> = <span class="number">16777216</span>　＃　如果使用默认参数,容易出现网络丢包
+net<span class="class">.ipv4</span><span class="class">.netfilter</span><span class="class">.ip_conntrack_max</span> = <span class="number">16777216</span>＃　如果使用默认参数,容易出现网络丢包
+net<span class="class">.ipv4</span><span class="class">.tcp_max_syn_backlog</span> = <span class="number">65536</span>
+net<span class="class">.core</span><span class="class">.netdev_max_backlog</span> =  <span class="number">32768</span>
+net<span class="class">.core</span><span class="class">.somaxconn</span> = <span class="number">32768</span>
+net<span class="class">.core</span><span class="class">.wmem_default</span> = <span class="number">8388608</span>
+net<span class="class">.core</span><span class="class">.rmem_default</span> = <span class="number">8388608</span>
+net<span class="class">.core</span><span class="class">.rmem_max</span> = <span class="number">16777216</span>
+net<span class="class">.core</span><span class="class">.wmem_max</span> = <span class="number">16777216</span>
+net<span class="class">.ipv4</span><span class="class">.tcp_timestamps</span> = <span class="number">0</span>
+net<span class="class">.ipv4</span><span class="class">.tcp_synack_retries</span> = <span class="number">2</span>
+net<span class="class">.ipv4</span><span class="class">.tcp_syn_retries</span> =
+net<span class="class">.ipv4</span><span class="class">.tcp_tw_recycle</span> = <span class="number">1</span>
+net<span class="class">.ipv4</span><span class="class">.tcp_tw_reuse</span> = <span class="number">1</span>
+net<span class="class">.ipv4</span><span class="class">.tcp_mem</span> = <span class="number">94500000</span> <span class="number">915000000</span> <span class="number">927000000</span>
+net<span class="class">.ipv4</span><span class="class">.tcp_max_orphans</span> = <span class="number">3276800</span>
+net<span class="class">.ipv4</span><span class="class">.ip_local_port_range</span> = <span class="number">1024</span>  <span class="number">65535</span>
+</code></pre><p>生效配置:</p>
+<pre><code><span class="title">sysctl</span> –p
+</code></pre><p>修改iptables启动脚本,在star()函数里面加上:</p>
+<pre><code>vim <span class="regexp">/etc/</span>init.d/iptables
+<span class="regexp">/sbin/</span>sysctl  -p
+</code></pre><h2 id="配置范例站点">配置范例站点</h2><table border="1"><br><tr><br>    <td>序号</td><br>    <td>域名</td><br>    <td>目录</td><br></tr><br><tr><br>    <td>1</td><br>    <td>www.heytool.com</td><br>    <td>/www/html/www.heytool.com</td><br></tr><br><tr><br>    <td>2</td><br>    <td>bbs.heytool.com</td><br>    <td>/www/html/bbs.heytool.com</td><br></tr><br></table>
+
+<h2 id="修改Nginx配置文件">修改Nginx配置文件</h2><pre><code><span class="title">vim</span> nginx.conf
+
+user  nobody nobody;                                <span class="comment"># 运行nginx的所属组和所有者</span>
+<span class="title">worker_processes</span>  <span class="number">2</span>;                                <span class="comment"># 开启两个nginx工作进程,一般几个CPU核心就写几</span>
+<span class="title">error_log</span>  logs/error.log  <span class="built_in">notice</span>;                  <span class="comment"># 错误日志路径</span>
+<span class="title">pid</span>        logs/nginx.pid; <span class="comment"># pid路径</span>
+<span class="title">events</span> {
+    <span class="title">worker_connections</span>  <span class="number">1024</span>;                       <span class="comment"># 一个进程能同时处理1024个请求</span>
+}
+<span class="title">http</span> {
+    <span class="title">include</span>       mime.types;
+    <span class="title">default_type</span>  application/octet-stream;
+
+    <span class="title">log_format</span>  main  <span class="string">'<span class="variable">$remote_addr</span> - <span class="variable">$remote_user</span> [<span class="variable">$time_local</span>] "<span class="variable">$request</span>" '</span>
+        <span class="string">'<span class="variable">$status</span> <span class="variable">$body_bytes_sent</span> "<span class="variable">$http_referer</span>" '</span>
+        <span class="string">'"<span class="variable">$http_user_agent</span>" "<span class="variable">$http_x_forwarded_for</span>"'</span>;
+    <span class="title">access_log</span>  logs/access.log  main;              <span class="comment"># 默认访问日志路径</span>
+    <span class="title">sendfile</span>        <span class="built_in">on</span>;
+    <span class="title">keepalive_timeout</span>  <span class="number">65</span>;                          <span class="comment"># keepalive超时时间</span>
+
+    <span class="comment"># 开始配置一个域名,一个server配置段一般对应一个域名</span>
+
+    <span class="title">server</span> {
+        <span class="title">listen</span>       <span class="number">80</span>;                            <span class="comment"># 在本机所有ip上监听80,也可以写为192.168.1.202:80,这样的话,就只监听192.168.1.202上的80口</span>
+        <span class="title">server_name</span>  www.heytool.com;               <span class="comment"># 域名</span>
+        <span class="title">root</span>   /www/html/www.heytool.com;           <span class="comment"># 站点根目录（程序目录）</span>
+        <span class="title">index</span>  index.html index.htm;                <span class="comment"># 索引页文件</span>
+        <span class="title">location</span> / {  <span class="comment"># 可以有多个location</span>
+            <span class="title">root</span>   /www/html/www.heytool.com;       <span class="comment"># 站点根目录（程序目录）</span>
+        }
+
+        <span class="title">error_page</span>   <span class="number">500</span> <span class="number">502</span> <span class="number">503</span> <span class="number">504</span>  /50x.html;    <span class="comment"># 定义错误页面,如果是500错误,则把站点根目录下的50x.html返回给用户</span>
+        <span class="title">location</span> = /50x.html {
+            <span class="title">root</span>   /www/html/www.heytool.com;
+        }
+    }
+
+    <span class="comment"># 开始配置站点bbs.heytool.com</span>
+
+    <span class="title">server</span> {
+        <span class="title">listen</span>       <span class="number">80</span>;
+        <span class="title">server_name</span>  bbs.heytool.com;
+        <span class="title">root</span>   /www/html/bbs.heytool.com;
+        <span class="title">index</span>  index.html index.htm;
+        <span class="title">location</span> / {
+            <span class="title">root</span>   /www/html/bbs.heytool.com;
+        }
+        <span class="title">error_page</span>   <span class="number">500</span> <span class="number">502</span> <span class="number">503</span> <span class="number">504</span>  /50x.html;
+        <span class="title">location</span> = /50x.html {
+            <span class="title">root</span>   /www/html/bbs.heytool.com;
+        }
+    }
+}
+</code></pre><h2 id="root和alias文件路径配置">root和alias文件路径配置</h2><p>Nginx指定文件路径有两种方式,root和alias,主要区别在于如何杰斯location后面的uri,这会使两者以不同的方式将请求映射到服务器文件上.</p>
+<p>使用语法:</p>
+<pre><code>[root]
+语法：root path
+默认值：root html
+配置段：http、server、location、<span class="keyword">if</span>
+
+[<span class="type">alias</span>]
+语法：<span class="type">alias</span> path
+配置段：location
+</code></pre><p>root实例:</p>
+<pre><code><span class="title">location</span> <span class="regexp">~ ^/weblogs/</span> {
+ <span class="title">root</span> /data/weblogs/www.ttlsa.com;          <span class="comment"># path</span>
+ <span class="title">autoindex</span> <span class="built_in">on</span>;
+ <span class="title">auth_basic</span>            <span class="string">"Restricted"</span>;
+ <span class="title">auth_basic_user_file</span>  passwd/weblogs;
+}
+</code></pre><p>如果请求的URI是/weblogs/httplogs/www.ttlsa.com-access.log,web服务器将会返回服务器上的/data/weblogs/www.ttlsa.com/weblogs/httplogs/www.ttlsa.com-access.log文件.</p>
+<p>即,root会根据完整的URI请求来映射,也就是/path/URI.因此前面的映射为 [path]/weblogs/httplogs/www.ttlsa.com-access.log</p>
+<p>alias实例:</p>
+<pre><code>location ^~ /binapp/ {  
+    <span class="built_in">limit</span>_conn <span class="built_in">limit</span> <span class="number">4</span>;
+    <span class="built_in">limit</span>_rate <span class="number">200</span>k;
+    internal;  
+    <span class="built_in">alias</span> /data/statics/bin/apps/;          <span class="comment"># path</span>
+}
+</code></pre><p>alias则会把location中的path丢掉,把当前指向匹配到的目录指向指定的目录.</p>
+<p>如果一个请求的URI是/binapp/a.ttlsa.com/favicon,web服务器将会返回服务器上 [/data/statics/bin/apps]/a.ttlsa.com/favicon.jgp文件.</p>
+<p>注意事项:</p>
+<ol>
+<li>在使用alias时,目录后一定要加 “/“</li>
+<li>alias可以指定任何名称</li>
+<li>alias在使用正则匹配时,必须要捕捉到匹配的内容并在指定的内容处使用</li>
+<li>alias只能位于location中</li>
+</ol>
+<p><a href="https://www.ttlsa.com/nginx/nginx-root_alias-file-path-configuration/" title="参考链接" target="_blank" rel="external">参考链接</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Nginx/" rel="tag">#Nginx</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/08/Simple-Nginx-4/" rel="prev">Simple Nginx 4</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/08/Simple-Nginx-2/" rel="next">Simple Nginx 2</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">78</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">30</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#内核参数优化"><span class="nav-number">1.</span> <span class="nav-text">内核参数优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置范例站点"><span class="nav-number">2.</span> <span class="nav-text">配置范例站点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改Nginx配置文件"><span class="nav-number">3.</span> <span class="nav-text">修改Nginx配置文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#root和alias文件路径配置"><span class="nav-number">4.</span> <span class="nav-text">root和alias文件路径配置</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

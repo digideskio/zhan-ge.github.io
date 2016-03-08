@@ -1,0 +1,666 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Nginx," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="ngx_http_core_module模块提供的变量与日志配置">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Nginx 4">
+<meta property="og:url" content="http://yoursite.com/2016/03/08/Simple-Nginx-4/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="ngx_http_core_module模块提供的变量与日志配置">
+<meta property="og:updated_time" content="2016-03-08T15:46:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Nginx 4">
+<meta name="twitter:description" content="ngx_http_core_module模块提供的变量与日志配置">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Nginx 4 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Nginx 4
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-08T23:13:13+08:00" content="2016-03-08">
+            2016-03-08
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="ngx_http_core_module模块变量">ngx_http_core_module模块变量</h2><p>ngx_http_core_module模块在处理请求时,会有大量的变量,这些变量可以通过访问日志进行记录,也可以用于其他nginx模块.</p>
+<p>在我们对请求做策略如改写时等等都会用到一些变量,一下是对这些变量的总结:</p>
+<pre><code>参数名称                    注释
+<span class="variable">$arg</span>_PARAMETER            HTTP 请求中某个参数的值，如/index.&lt;a href=<span class="string">"http://www.ttlsa.com/php/"</span> title=<span class="string">"php"</span>target=<span class="string">"_blank"</span>&gt;php&lt;/a&gt;?site=www.ttlsa.com，可以用<span class="variable">$arg</span>_site取得www.ttlsa.com这个值.
+<span class="variable">$args</span> HTTP                请求中的完整参数。例如，在请求/index.php?width=<span class="number">400</span>&amp;height=<span class="number">200</span> 中，<span class="variable">$args</span>表示字符串width=<span class="number">400</span>&amp;height=<span class="number">200</span>.
+<span class="variable">$binary</span>_remote_addr        二进制格式的客户端地址。例如：\x0A\xE0B\x0E
+<span class="variable">$body</span>_bytes_sent        表示在向客户端发送的http响应中，包体部分的字节数
+<span class="variable">$content</span>_length            表示客户端请求头部中的Content-Length 字段
+<span class="variable">$content</span>_type            表示客户端请求头部中的Content-Type 字段
+<span class="variable">$cookie</span>_COOKIE            表示在客户端请求头部中的cookie 字段
+<span class="variable">$document</span>_root            表示当前请求所使用的root 配置项的值
+<span class="variable">$uri</span>                    表示当前请求的URI，不带任何参数
+<span class="variable">$document</span>_uri            与<span class="variable">$uri</span> 含义相同
+<span class="variable">$request</span>_uri            表示客户端发来的原始请求URI，带完整的参数。<span class="variable">$uri</span>和<span class="variable">$document</span>_uri未必是用户的原始请求，在内部重定向后可能是重定向后的URI，而<span class="variable">$request</span>_uri 永远不会改变，始终是客户端的原始URI.
+<span class="variable">$host</span>                    表示客户端请求头部中的Host字段。如果Host字段不存在，则以实际处理的server（虚拟主机）名称代替。如果Host字段中带有端口，如IP:PORT，那么<span class="variable">$host</span>是去掉端口的，它的值为IP。<span class="variable">$host</span> 是全小写的。这些特性与http_HEADER中的http_host不同，http_host只取出Host头部对应的值。 
+<span class="variable">$hostname</span>                表示 Nginx所在机器的名称，与 gethostbyname调用返回的值相同      
+<span class="variable">$http</span>_HEADER            表示当前 HTTP请求中相应头部的值。HEADER名称全小写。例如，示请求中 Host头部对应的值 用 <span class="variable">$http</span>_host表示
+<span class="variable">$sent</span>_http_HEADER        表示返回客户端的 HTTP响应中相应头部的值。HEADER名称全小写。例如，用 <span class="variable">$sent</span><span class="number">_</span> http_content_type表示响应中 Content-Type头部对应的值      
+<span class="variable">$is</span>_args                表示请求中的 URI是否带参数，如果带参数，<span class="variable">$is</span>_args值为 ?，如果不带参数，则是空字符串      
+<span class="variable">$limit</span>_rate                表示当前连接的限速是多少，<span class="number">0</span>表示无限速      
+<span class="variable">$nginx</span>_version            表示当前 Nginx的版本号     
+<span class="variable">$query</span>_string            请求 URI中的参数，与 <span class="variable">$args</span>相同，然而 <span class="variable">$query</span>_string是只读的不会改变      
+<span class="variable">$remote</span>_addr            表示客户端的地址      
+<span class="variable">$remote</span>_port            表示客户端连接使用的端口      
+<span class="variable">$remote</span>_user            表示使用 Auth Basic Module时定义的用户名      
+<span class="variable">$request</span>_filename        表示用户请求中的 URI经过 root或 alias转换后的文件路径      
+<span class="variable">$request</span>_body            表示 HTTP请求中的包体，该参数只在 proxy_pass或 fastcgi_pass中有意义      
+<span class="variable">$request</span>_body_file        表示 HTTP请求中的包体存储的临时文件名      
+<span class="variable">$request</span>_completion        当请求已经全部完成时，其值为 “ok”。若没有完成，就要返回客户端，则其值为空字符串；或者在断点续传等情况下使用 HTTP range访问的并不是文件的最后一块，那么其值也是空字符串。
+<span class="variable">$request</span>_method            表示 HTTP请求的方法名，如 GET、PUT、POST等      
+<span class="variable">$scheme</span>                    表示 HTTP scheme，如在请求 https://nginx.com/中表示 https      
+<span class="variable">$server</span>_addr            表示服务器地址      
+<span class="variable">$server</span>_name            表示服务器名称      
+<span class="variable">$server</span>_port            表示服务器端口      
+<span class="variable">$server</span>_protocol        表示服务器向客户端发送响应的协议，如 HTTP/<span class="number">1.1</span>或 HTTP/<span class="number">1.0</span>
+</code></pre><h2 id="日志配置">日志配置</h2><p>Nginx有一个非常灵活的的日志记录模式,每个级别的配置可以使用各自独立的访问日志,日志格式通过log_format命令来定义,ngx_http_log_module是用来定义请求日志格式的.</p>
+<h3 id="access_log指令">access_log指令</h3><p>语法:<br>    access_log path [format [buffer=size [flush=time]]];<br>    access_log path format gzip[=level] [buffer=size] [flush=time];<br>    access_log syslog:server=address[,parameter=value] [format];<br>    access_log off;</p>
+<p>默认值: access_log logs/access.log combined;<br>配置段: http, server, location, if in location, limit_except<br>配置项: gzip压缩等级,buffer设置内存缓冲区大小,flush保持在缓冲区中的最长时间,以及关闭日志.</p>
+<p>使用默认combined格式记录日志：access_log logs/access.log 或 access_log logs/access.log combined;</p>
+<h3 id="log_format指令">log_format指令</h3><p>语法:</p>
+<pre><code>log_format <span class="property">name</span> <span class="type">string</span> …;
+</code></pre><p>默认值: log_format combined “…”;<br>配置段: http</p>
+<p>name表示格式名称,string表示等义的格式.log_format有一个默认的无需设置的combined格式,相当于apache的combined格式:</p>
+<pre><code><span class="title">log_format</span>  combined  <span class="string">'<span class="variable">$remote_addr</span> - <span class="variable">$remote_user</span>  [<span class="variable">$time_local</span>]  '</span>
+                                   <span class="string">' "<span class="variable">$request</span>"  <span class="variable">$status</span>  <span class="variable">$body_bytes_sent</span>  '</span>
+                                   <span class="string">' "<span class="variable">$http_referer</span>"  "<span class="variable">$http_user_agent</span>" '</span>;
+</code></pre><p>如果nginx位于负载均衡器,squid或nginx反向代理之后,即作为web服务器使用,web服务器无法获取到真实的IP地址了, $remote_addr只能获取反向代理的IP地址.而在负载均衡服务器中,可以在转发请求的http头信息中,增加X-Forwarded-For信息,用来记录客户端的真实IP和客户端请求的服务器地址:</p>
+<pre><code><span class="title">log_format</span>  porxy  <span class="string">'<span class="variable">$http_x_forwarded_for</span> - <span class="variable">$remote_user</span>  [<span class="variable">$time_local</span>]  '</span>
+                             <span class="string">' "<span class="variable">$request</span>"  <span class="variable">$status</span> <span class="variable">$body_bytes_sent</span> '</span>
+                             <span class="string">' "<span class="variable">$http_referer</span>"  "<span class="variable">$http_user_agent</span>" '</span>;
+</code></pre><p>日志格式中允许包含的变量注释如下：</p>
+<pre><code><span class="variable">$remote</span>_addr, <span class="variable">$http</span>_x_forwarded_for 记录客户端IP地址
+<span class="variable">$remote</span>_user 记录客户端用户名称
+<span class="variable">$request</span> 记录请求的URL和HTTP协议
+<span class="variable">$status</span> 记录请求状态
+<span class="variable">$body</span>_bytes_sent 发送给客户端的字节数，不包括响应头的大小； 该变量与Apache模块mod_log_config里的“<span class="decorator">%B</span>”参数兼容。
+<span class="variable">$bytes</span>_sent 发送给客户端的总字节数。
+<span class="variable">$connection</span> 连接的序列号。
+<span class="variable">$connection</span>_requests 当前通过一个连接获得的请求数量。
+<span class="variable">$msec</span> 日志写入时间。单位为秒，精度是毫秒。
+<span class="variable">$pipe</span> 如果请求是通过HTTP流水线(pipelined)发送，pipe值为“p”，否则为“.”。
+<span class="variable">$http</span>_referer 记录从哪个页面链接访问过来的
+<span class="variable">$http</span>_user_agent 记录客户端浏览器相关信息
+<span class="variable">$request</span>_length 请求的长度（包括请求行，请求头和请求正文）。
+<span class="variable">$request</span>_time 请求处理时间，单位为秒，精度毫秒； 从读入客户端的第一个字节开始，直到把最后一个字符发送给客户端后进行日志写入为止。
+<span class="variable">$time</span>_iso8601 ISO8601标准格式下的本地时间。
+<span class="variable">$time</span>_local 通用日志格式下的本地时间。
+</code></pre><p>注意: 返回给客户端的响应头拥有”sent<em>http</em>“前缀,比如$sent_http_content_range.</p>
+<p>实例:</p>
+<pre><code><span class="title">http</span> {
+    <span class="title">log_format</span>  main  <span class="string">'<span class="variable">$remote_addr</span> - <span class="variable">$remote_user</span> [<span class="variable">$time_local</span>] "<span class="variable">$request</span>" '</span>
+                                        <span class="string">'"<span class="variable">$status</span>" <span class="variable">$body_bytes_sent</span> "<span class="variable">$http_referer</span>" '</span>
+                                        <span class="string">'"<span class="variable">$http_user_agent</span>" "<span class="variable">$http_x_forwarded_for</span>" '</span>
+                                        <span class="string">'"<span class="variable">$gzip_ratio</span>" <span class="variable">$request_time</span> <span class="variable">$bytes_sent</span> <span class="variable">$request_length</span>'</span>;
+
+    <span class="title">log_format</span> srcache_log <span class="string">'<span class="variable">$remote_addr</span> - <span class="variable">$remote_user</span> [<span class="variable">$time_local</span>] "<span class="variable">$request</span>" '</span>
+                                <span class="string">'"<span class="variable">$status</span>" <span class="variable">$body_bytes_sent</span> <span class="variable">$request_time</span> <span class="variable">$bytes_sent</span> <span class="variable">$request_length</span> '</span>
+                                <span class="string">'[<span class="variable">$upstream_response_time</span>] [<span class="variable">$srcache_fetch_status</span>] [<span class="variable">$srcache_store_status</span>] [<span class="variable">$srcache_expire</span>]'</span>;
+
+    <span class="title">open_log_file_cache</span> max=<span class="number">1000</span> inactive=<span class="number">60s</span>;
+
+    <span class="title">server</span> {
+        <span class="title">server_name</span> ~^(www\.)?(.+)$;
+        <span class="title">access_log</span> logs/<span class="variable">$2</span>-access.log main;
+        <span class="title">error_log</span> logs/<span class="variable">$2</span>-<span class="built_in">error</span>.log;
+
+        <span class="title">location</span> /srcache {
+            <span class="title">access_log</span> logs/access-srcache.log srcache_log;
+        }
+    }
+}
+</code></pre><h3 id="open_log_file_cache指令">open_log_file_cache指令</h3><p><a href="https://www.ttlsa.com/nginx/the-ngx_http_core_module-module-provides-variable/" title="参考链接" target="_blank" rel="external">参考链接</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Nginx/" rel="tag">#Nginx</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/08/Simple-Nginx-3/" rel="next">Simple Nginx 3</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">78</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">30</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ngx_http_core_module模块变量"><span class="nav-number">1.</span> <span class="nav-text">ngx_http_core_module模块变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日志配置"><span class="nav-number">2.</span> <span class="nav-text">日志配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#access_log指令"><span class="nav-number">2.1.</span> <span class="nav-text">access_log指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#log_format指令"><span class="nav-number">2.2.</span> <span class="nav-text">log_format指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#open_log_file_cache指令"><span class="nav-number">2.3.</span> <span class="nav-text">open_log_file_cache指令</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
