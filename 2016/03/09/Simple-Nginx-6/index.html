@@ -1,0 +1,729 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Nginx," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="正向代理与反向代理及配置方法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Nginx 6">
+<meta property="og:url" content="http://yoursite.com/2016/03/09/Simple-Nginx-6/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="正向代理与反向代理及配置方法">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Reverse-Server.png">
+<meta property="og:updated_time" content="2016-03-09T08:28:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Nginx 6">
+<meta name="twitter:description" content="正向代理与反向代理及配置方法">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Nginx 6 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Nginx 6
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-09T15:28:48+08:00" content="2016-03-09">
+            2016-03-09
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="什么是正向代理和反向代理">什么是正向代理和反向代理</h2><p>反向代理(Reverse Proxy)方式是指,以代理服务器来接收internet上的连接请求,然后将请求转发给内部网络上的服务器,并将从服务器上得到的结果返回给internet上请求的客户端,此时代理服务器对外的表现就是一个服务器.</p>
+<p>通常的代理服务器,只用于代理内部网络对internet的连接请求,客户机必须指定代理服务器,并将原来直接要发送到Web服务器上的请求发送到代理服务器中.由于外部网络上的主机并不会配置并使用这个代理服务器,普通代理服务器也会被设计为在internet上搜寻多个不确定的服务器.而不是针对internet上多个客户机的请求访问某一个固定的服务器,因此普通的web服务器不支持外部对内部的网络访问请求.</p>
+<p>当一个代理服务器能够能够代理外部网络上的主机,访问内部网络时,这种代理服务的方式叫做反向代理服务.此时代理服务器对外就表现为一个Web服务器,外部网络就可以简单把他当做一个标准的Web服务器而不需要特定的配置.不同之处在于,这个服务器没有保存任何网页上的真实数据,所有的静态网页或CGI程序,都保存在内部服务器上.因此对反向代理服务器的攻击并不会使得网页信息遭到破坏,这样就增强了Web服务的安全性.</p>
+<p>为何叫做反向?</p>
+<p>从原理上来说,代理服务器都是处理来自客户端的请求,并将其转发到目的服务器上,所以代理服务器的工作并没有任何反向的意思,而下面这张图说明了叫做反向代理的原因:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Reverse-Server.png" alt="Reverse-Server" title="Reverse-Server"></p>
+<p>从结构上来看,正向代理和反向代理的左右两边换了一下,原本代理服务器的客户端来自内网,其和代理服务器组成一个LAN,而在反向代理中,代理服务器和服务器成了一组,所以从结构上来看,是反向的.</p>
+<h2 id="正向代理配置">正向代理配置</h2><pre><code><span class="title">server</span> {
+    <span class="title">resolver</span> <span class="number">8.8.8.8</span>;                           <span class="comment"># 配置DNS解析地址,如Google public DNS,可以有多个进行轮询</span>
+    <span class="title">resolver_timeout</span> <span class="number">5s</span>;                        <span class="comment"># 超时设置</span>
+
+    <span class="title">listen</span> <span class="number">0.0.0.0:8080</span>;                        
+
+    <span class="title">access_log</span>  /home/reistlin/logs/proxy.access.log;
+    <span class="title">error_log</span>   /home/reistlin/logs/proxy.<span class="built_in">error</span>.log;
+
+    <span class="title">location</span> / {
+        <span class="title">proxy_pass</span> <span class="variable">$scheme</span>://<span class="variable">$host</span><span class="variable">$request_uri</span>; <span class="comment"># 配置正向代理参数,均由Nginx变量构成</span>
+        <span class="title">proxy_set_header</span> Host <span class="variable">$http_host</span>;
+
+        <span class="title">proxy_buffers</span> <span class="number">256</span> <span class="number">4k</span>;                   <span class="comment"># 配置缓存大小</span>
+        <span class="title">proxy_max_temp_file_size</span> <span class="number">0</span>;             <span class="comment"># 关闭磁盘缓存读写减少IO</span>
+
+        <span class="title">proxy_connect_timeout</span> <span class="number">30</span>;               <span class="comment"># 代理超时设置</span>
+
+        <span class="title">proxy_cache_valid</span> <span class="number">200</span> <span class="number">302</span> <span class="number">10m</span>;          <span class="comment"># 配置代理服务器HTTP状态缓存时间</span>
+        <span class="title">proxy_cache_valid</span> <span class="number">301</span> <span class="number">1h</span>;
+        <span class="title">proxy_cache_valid</span> any <span class="number">1m</span>;
+    }
+}
+</code></pre><h2 id="反向代理配置">反向代理配置</h2><p>基本配置:</p>
+<pre><code><span class="title">user</span> www www;
+<span class="title">worker_processes</span> <span class="number">1</span>;
+<span class="title">error_log</span> logs/error.log;
+<span class="title">pid</span> logs/nginx.pid;
+<span class="title">worker_rlimit_nofile</span> <span class="number">65535</span>;
+<span class="title">events</span> {
+    <span class="title">use</span> <span class="built_in">epoll</span>;
+    <span class="title">worker_connections</span> <span class="number">65535</span>;
+}
+<span class="title">http</span> {
+    <span class="title">include</span> mime.types;
+    <span class="title">default_type</span> application/octet-stream;
+    <span class="title">include</span> /usr/local/nginx/conf/reverse-proxy.conf;
+    <span class="title">sendfile</span> <span class="built_in">on</span>;
+    <span class="title">keepalive_timeout</span> <span class="number">65</span>;
+    <span class="title">gzip</span> <span class="built_in">on</span>;
+    <span class="title">client_max_body_size</span> <span class="number">50m</span>; <span class="comment">#缓冲区代理缓冲用户端请求的最大字节数,可以理解为保存到本地再传给用户</span>
+    <span class="title">client_body_buffer_size</span> <span class="number">256k</span>;
+    <span class="title">client_header_timeout</span> <span class="number">3m</span>;
+    <span class="title">client_body_timeout</span> <span class="number">3m</span>;
+    <span class="title">send_timeout</span> <span class="number">3m</span>;
+    <span class="title">proxy_connect_timeout</span> <span class="number">300s</span>; <span class="comment">#nginx跟后端服务器连接超时时间(代理连接超时)</span>
+    <span class="title">proxy_read_timeout</span> <span class="number">300s</span>; <span class="comment">#连接成功后，后端服务器响应时间(代理接收超时)</span>
+    <span class="title">proxy_send_timeout</span> <span class="number">300s</span>;
+    <span class="title">proxy_buffer_size</span> <span class="number">64k</span>; <span class="comment">#设置代理服务器（nginx）保存用户头信息的缓冲区大小</span>
+    <span class="title">proxy_buffers</span> <span class="number">4</span> <span class="number">32k</span>; <span class="comment">#proxy_buffers缓冲区，网页平均在32k以下的话，这样设置</span>
+    <span class="title">proxy_busy_buffers_size</span> <span class="number">64k</span>; <span class="comment">#高负荷下缓冲大小（proxy_buffers*2）</span>
+    <span class="title">proxy_temp_file_write_size</span> <span class="number">64k</span>; <span class="comment">#设定缓存文件夹大小，大于这个值，将从upstream服务器传递请求，而不缓冲到磁盘</span>
+    <span class="title">proxy_ignore_client_abort</span> <span class="built_in">on</span>; <span class="comment">#不允许代理端主动关闭连接</span>
+    <span class="title">server</span> {
+        <span class="title">listen</span> <span class="number">80</span>;
+        <span class="title">server_name</span> localhost;
+        <span class="title">location</span> / {
+            <span class="title">root</span> html;
+            <span class="title">index</span> index.html index.htm;
+        }
+        <span class="title">error_page</span> <span class="number">500</span> <span class="number">502</span> <span class="number">503</span> <span class="number">504</span> /50x.html;
+        <span class="title">location</span> = /50x.html {
+            <span class="title">root</span> html;
+        }
+    }
+}
+</code></pre><p>反向代理配置:</p>
+<pre><code>server
+{
+    listen <span class="number">80</span>;
+    server_name xxx123.tk;
+    location / {
+        proxy_redirect off;
+        proxy_set_header Host <span class="variable">$host</span>;
+        proxy_set_header X-Real-IP <span class="variable">$remote</span>_addr;
+        proxy_set_header X-Forwarded-For <span class="variable">$proxy</span>_add_x_forwarded_for;
+        proxy_pass http://<span class="number">192.168</span>.<span class="number">10.38</span>:<span class="number">3000</span>;
+    }
+    access_log logs/xxx123.tk_access.log;
+}
+
+server
+{
+    listen <span class="number">80</span>;
+    server_name xxx456.tk;
+    location / {
+        proxy_redirect off;
+        proxy_set_header Host <span class="variable">$host</span>;
+        proxy_set_header X-Real-IP <span class="variable">$remote</span>_addr;
+        proxy_set_header X-Forwarded-For <span class="variable">$proxy</span>_add_x_forwarded_for;
+        proxy_pass http://<span class="number">192.168</span>.<span class="number">10.40</span>:<span class="number">80</span>;
+    }
+    access_log logs/xxx456.tk_access.log;
+}
+</code></pre><p>首先,将域名指向该反向代理服务器的公网IP,这是访问域名xxx123.tk时,会将请求代理到192.168.10.38:3000服务器,xxx456.tk会被代理到192.168.10.40:80服务器.</p>
+<p>负载均衡配置:</p>
+<pre><code><span class="title">upstream</span> monitor_server {
+    <span class="title">server</span> <span class="number">192.168.0.131:80</span>;
+    <span class="title">server</span> <span class="number">192.168.0.132:80</span>;
+}
+
+<span class="title">server</span>
+{
+    <span class="title">listen</span> <span class="number">80</span>;
+    <span class="title">server_name</span> nagios.xxx123.tk;
+    <span class="title">location</span> / {
+        <span class="title">proxy_redirect</span> <span class="built_in">off</span>;
+        <span class="title">proxy_set_header</span> Host <span class="variable">$host</span>;
+        <span class="title">proxy_set_header</span> X-Real-IP <span class="variable">$remote_addr</span>;
+        <span class="title">proxy_set_header</span> X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>; 
+        <span class="title">proxy_pass</span> <span class="url">http://monitor_server</span>;
+    }
+    <span class="title">access_log</span> logs/nagios.xxx123.tk_access.log;
+}
+</code></pre><p>以上配置将nagios.xxx123.tk的请求分发到131和132这两台服务器.</p>
+<p>由于http请求都是由反向代理服务器传递给后端的服务器,所以后端的机器原来的访问日志记录的访问IP都是反向代理服务器的IP,如果需要真实的请求IP,需要修改后端机器的日志格式,这里假设后端也是一台nginx服务,在后端nginx配置文件中:</p>
+<pre><code><span class="title">log_format</span> access <span class="string">'<span class="variable">$HTTP_X_REAL_IP</span> - <span class="variable">$remote_user</span> [<span class="variable">$time_local</span>] "<span class="variable">$request</span>" '</span>
+<span class="string">'<span class="variable">$status</span> <span class="variable">$body_bytes_sent</span> "<span class="variable">$http_referer</span>" '</span>
+<span class="string">'"<span class="variable">$http_user_agent</span>" <span class="variable">$HTTP_X_Forwarded_For</span>'</span>;
+
+<span class="title">access_log</span> logs/access.log access;
+</code></pre><p>对比原来的日志配置:</p>
+<pre><code># log_format main '<span class="label">$remote_addr</span> - <span class="label">$remote_user</span> [<span class="label">$time_local</span>] <span class="string">"$request"</span> '
+#  '<span class="label">$status</span> <span class="label">$body_bytes_sent</span> <span class="string">"$http_referer"</span> '
+#  '<span class="string">"$http_user_agent"</span> <span class="string">"$http_x_forwarded_for"</span>';
+
+# access_log logs/access.<span class="keyword">log</span> main;
+</code></pre><h2 id="支持websocket配置">支持websocket配置</h2><pre><code><span class="title">upstream</span> ws_server {
+  <span class="title">server</span> <span class="number">127.0.0.1:3000</span>;
+}
+
+<span class="title">server</span> {
+  <span class="title">listen</span> <span class="number">80</span>;
+  <span class="title">server_name</span> ws.repo;
+
+  <span class="title">location</span> / {
+    <span class="title">proxy_pass</span> <span class="url">http://ws_server/</span>;
+    <span class="title">proxy_redirect</span> <span class="built_in">off</span>;
+
+    <span class="title">proxy_http_version</span> <span class="number">1</span>.<span class="number">1</span>;
+    <span class="title">proxy_set_header</span> Upgrade <span class="variable">$http_upgrade</span>;
+    <span class="title">proxy_set_header</span> Connection <span class="string">"upgrade"</span>;
+  }
+}
+</code></pre><p><a href="https://www.ttlsa.com/nginx/use-nginx-proxy/" title="参考链接" target="_blank" rel="external">参考链接</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Nginx/" rel="tag">#Nginx</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/09/Simple-Nginx-7/" rel="prev">Simple Nginx 7</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/09/Simple-Nginx-5/" rel="next">Simple Nginx 5</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">82</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">31</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是正向代理和反向代理"><span class="nav-number">1.</span> <span class="nav-text">什么是正向代理和反向代理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#正向代理配置"><span class="nav-number">2.</span> <span class="nav-text">正向代理配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#反向代理配置"><span class="nav-number">3.</span> <span class="nav-text">反向代理配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#支持websocket配置"><span class="nav-number">4.</span> <span class="nav-text">支持websocket配置</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

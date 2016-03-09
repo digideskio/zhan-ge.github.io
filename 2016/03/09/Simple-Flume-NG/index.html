@@ -1,0 +1,932 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Flume," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Flume的原理和使用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Flume-NG">
+<meta property="og:url" content="http://yoursite.com/2016/03/09/Simple-Flume-NG/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Flume的原理和使用">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Flume.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agentbyagent.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent2.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent3.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent4.png">
+<meta property="og:updated_time" content="2016-03-09T14:55:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Flume-NG">
+<meta name="twitter:description" content="Flume的原理和使用">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Flume-NG | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Flume-NG
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-09T20:53:17+08:00" content="2016-03-09">
+            2016-03-09
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="介绍">介绍</h2><p>Flume是一个分布式可靠可用的系统,它能够将不同数据源的海量日志数据进行高效的收集,聚合,移动,最后存储到一个中心化数据存储系统中.同时支持failover和负载均衡.</p>
+<p>Flume使用Java编写,官方推荐运行环境为JDK7(2016.3).</p>
+<h2 id="架构">架构</h2><p>Flume的架构主要有以下核心概念:</p>
+<ol>
+<li>Event: 一个数据单元,带有一个可选的消息头</li>
+<li>Flow: Event从源头到达目标点的迁移过程的抽象</li>
+<li>Client: 操作位于源点处的Event,将其发送到Agent</li>
+<li>Agent: 一个独立的Flume进程,包含组件Source,Channel,Sink</li>
+<li>Source: 用来消费传递到该组件的Event</li>
+<li>Channel: 中转Event的一个临时存储,保存有Source组件传递过来的Event</li>
+<li>Sink: 从Channel中读取并移除Event,将Event传递到Flow Pipeline中的下一个Agent(如果有的话)</li>
+</ol>
+<h3 id="数据流">数据流</h3><p>Flume的核心是把数据从数据源收集过来,再送到目的地.为了保证输送一定成功,在送到目的地之前,会先缓存数据,待数据真正到达目的地之后,删除自己缓存的数据.</p>
+<p>数据传输的基本单位是Event,如果是文本文件,通常是一行记录,这也是事务的基本单位.Event从Source,流向Channel,再到Sink,本身为一个byte数组,并可携带headers信息.Event代表一个数据流的最小完整单元,从外部数据源来,向外部目的地去.</p>
+<p>其运行核心是Agent,它是一个完整的数据手机工具,含有三个核心组件,分别是source,channel,sink,通过这些组件,Event可以从一个地方流向另一个地方,如下图:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Flume.png" alt="flume" title="flume"></p>
+<ol>
+<li><p>source可以接收外部发送过来的数据.不同的source可以接收不同的数据格式.比如有目录池(spooling directory)数据源,即监控指定文件夹中的新文件变化,如果目录中有新文件产生,就会立刻读取内容.</p>
+</li>
+<li><p>channel是一个存储池,接收source的输出,知道有sink消费掉channel中的数据.channel中的数据直到进入到下一个channel中h或者进入终端才会被删除.当sink写入失败后,可以自动重启,不会造成数据丢失,因此很可靠.</p>
+</li>
+<li><p>sink会消费channel中的数据,然后送给外部源或者其他source,可以写入到HDFS或HBase中</p>
+</li>
+</ol>
+<h3 id="核心组件">核心组件</h3><h4 id="Source">Source</h4><p>Client操作数据的来源,支持Avro,log4j,syslog,或http post(json),可以让应用程序和已有的Source直接打交道,如AvroSource,SyslogTcpSource.也可以写一个Source,以IPC或RPC的方式接入自己的应用,Avro和Thrift都可以(分别有NettyAvroRpcClient和ThriftRpcClient实现了RpcClient接口),其中Avro是默认的RPC协议.</p>
+<p>对现有程序改动最小的使用方式是直接读取原来程序记录的日志文件,基本可以实现无缝接入,无需对现有程序进行任何改动,对于直接读取文件Source,有两种方式:</p>
+<ol>
+<li><p>ExecSource: 以运行Linux命令的方式,只需的输出最新的数据,如 <code>tail -F 文件名</code>指令,这种方式下,取的文件名必须是指定的.ExecSource可以实现对日志的实时收集,但是在Flume不运行或这指令执行出错时,将无法收集到数据,无法保证数据的完整性.</p>
+</li>
+<li><p>SpoolSource: 检测配置的目录下新增的文件,并将文件中的数据读取出来,需注意两点: 拷贝到spool目录下的文件不可以再打开编辑,spool目录下不能包含子目录.</p>
+</li>
+</ol>
+<p>SpoolSource虽然无法实现实时的收集数据,但是可以实现以分钟的方式分割文件,趋近于实时.</p>
+<p>如果应用无法实现以分钟切割日志文件的话,可以两种收集方式结合使用.在实际使用的过程中,可以结合log4j使用,将log4j的文件分割机制设置为每分钟一次,将文件拷贝到spool的监控目录.</p>
+<p>log4j有一个TimeRolling的插件,可以把log4j分割文件到spool目录,基本实现了实时监控.Flume在传完文件之后,将会修改文件的后缀,变为.COMPLETED(该后缀可以自定义配置).</p>
+<p>Flume Source可以支持的类型:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Source类型</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Avro Source</td>
+<td style="text-align:left">支持Avro协议（实际上是Avro RPC），内置支持</td>
+</tr>
+<tr>
+<td style="text-align:left">Thrift Source</td>
+<td style="text-align:left">支持Thrift协议，内置支持</td>
+</tr>
+<tr>
+<td style="text-align:left">Exec Source</td>
+<td style="text-align:left">基于Unix的command在标准输出上生产数据</td>
+</tr>
+<tr>
+<td style="text-align:left">JMS Source</td>
+<td style="text-align:left">从JMS系统（消息、主题）中读取数据，ActiveMQ已经测试过</td>
+</tr>
+<tr>
+<td style="text-align:left">Spooling Directory Source</td>
+<td style="text-align:left">监控指定目录内数据变更</td>
+</tr>
+<tr>
+<td style="text-align:left">Twitter 1% firehose Source</td>
+<td style="text-align:left">通过API持续下载Twitter数据，试验性质</td>
+</tr>
+<tr>
+<td style="text-align:left">Netcat Source</td>
+<td style="text-align:left">监控某个端口，将流经端口的每一个文本行数据作为Event输入</td>
+</tr>
+<tr>
+<td style="text-align:left">Sequence Generator Source</td>
+<td style="text-align:left">序列生成器数据源，生产序列数据</td>
+</tr>
+<tr>
+<td style="text-align:left">Syslog Sources</td>
+<td style="text-align:left">读取syslog数据，产生Event，支持UDP和TCP两种协议</td>
+</tr>
+<tr>
+<td style="text-align:left">HTTP Source</td>
+<td style="text-align:left">基于HTTP POST或GET方式的数据源，支持JSON、BLOB表示形式</td>
+</tr>
+<tr>
+<td style="text-align:left">Legacy Sources</td>
+<td style="text-align:left">兼容老的Flume OG中Source（0.9.x版本）</td>
+</tr>
+</tbody>
+</table>
+<h4 id="Channel">Channel</h4><p>当前有几个Channel可供选择,分别是 Memory Channel,JDBCChannel,File Channel,Psuedo Transaction Channel,比较常见的前三种channel.</p>
+<ol>
+<li>MemoryChannel 可以实现高速的吞吐,但是无法保证数据的完整性.</li>
+<li>MemoryRecoverChannel 在官方文档的建议下已经使用FileChannel替代.</li>
+<li>FileChannel 保证数据的完整性和一致性,在具体配置FileChannel时,建议FileChannel设置的目录和程序日志文件保存的目录设成不同的磁盘,以便提高效率.</li>
+</ol>
+<p>FileChannel是一个持久化隧道,它持久化所有的事件,并将其存储到磁盘中.因此,即使Java虚拟机当掉,或者操作系统崩溃或重启,再或者事件没有在管道中成功的传递到下一个代理(agent),都不会造成数据丢失. Memory Channel是一个不稳定的隧道,原因是它在内存中存储所有事件.如果Java进程死掉,任何存储在内存中的事件将会丢失.另外,内存的空间受到RAM大小的限制,而File Channel这方面是他的优势,只要磁盘空间足够,它就可以将所有的事件数据存储到磁盘上.</p>
+<p>Flume Channel支持的类型:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Channel类型</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Memory Channel</td>
+<td style="text-align:left">Event数据存储在内存中</td>
+</tr>
+<tr>
+<td style="text-align:left">JDBC Channel</td>
+<td style="text-align:left">Event数据存储在持久化存储中，当前Flume Channel内置支持Derby</td>
+</tr>
+<tr>
+<td style="text-align:left">File Channel</td>
+<td style="text-align:left">Event数据存储在磁盘文件中</td>
+</tr>
+<tr>
+<td style="text-align:left">Spillable Memory Channel</td>
+<td style="text-align:left">Event数据存储在内存中和磁盘上，当内存队列满了，会持久化到磁盘文件（当前试验性的，不建议生产环境使用）</td>
+</tr>
+<tr>
+<td style="text-align:left">Pseudo Transaction Channel</td>
+<td style="text-align:left">测试用途</td>
+</tr>
+<tr>
+<td style="text-align:left">Custom Channel</td>
+<td style="text-align:left">自定义Channel实现</td>
+</tr>
+</tbody>
+</table>
+<h4 id="Sink">Sink</h4><p>Sink在设置存储数据时,可以向文件系统,数据库,hadoop存数据,在日志数据较少时,可以将数据存储在文件系统中,并且设定一定的文件间隔保存数据,在日志数据较多时,可以将响应的日志数据存储到Hadoop中,便于日后进行响应的数据分析.</p>
+<p>Flume Sink支持的类型:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Channel类型</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">HDFS Sink</td>
+<td style="text-align:left">数据写入HDFS</td>
+</tr>
+<tr>
+<td style="text-align:left">Logger Sink</td>
+<td style="text-align:left">数据写入日志文件</td>
+</tr>
+<tr>
+<td style="text-align:left">Avro Sink</td>
+<td style="text-align:left">数据被转换成Avro Event，然后发送到配置的RPC端口上</td>
+</tr>
+<tr>
+<td style="text-align:left">Thrift Sink</td>
+<td style="text-align:left">数据被转换成Thrift Event，然后发送到配置的RPC端口上</td>
+</tr>
+<tr>
+<td style="text-align:left">IRC Sink</td>
+<td style="text-align:left">数据在IRC上进行回放</td>
+</tr>
+<tr>
+<td style="text-align:left">File Roll Sink</td>
+<td style="text-align:left">存储数据到本地文件系统</td>
+</tr>
+<tr>
+<td style="text-align:left">Null Sink</td>
+<td style="text-align:left">丢弃到所有数据</td>
+</tr>
+<tr>
+<td style="text-align:left">HBase Sink</td>
+<td style="text-align:left">数据写入HBase数据库</td>
+</tr>
+<tr>
+<td style="text-align:left">Morphline Solr Sink</td>
+<td style="text-align:left">数据发送到Solr搜索服务器（集群）</td>
+</tr>
+<tr>
+<td style="text-align:left">ElasticSearch Sink</td>
+<td style="text-align:left">数据发送到Elastic Search搜索服务器（集群）</td>
+</tr>
+<tr>
+<td style="text-align:left">Kite Dataset Sink</td>
+<td style="text-align:left">写数据到Kite Dataset，试验性质的</td>
+</tr>
+<tr>
+<td style="text-align:left">Custom Sink</td>
+<td style="text-align:left">自定义Sink实现</td>
+</tr>
+</tbody>
+</table>
+<p>更多Sink参考官方文档.</p>
+<h3 id="可靠性">可靠性</h3><p>核心是把数据从数据源收集过来,再送到目的地,为了保证输送一定成功,在送达目的地之前,会先缓存数据,带数据真正到达目的地之后,删除自己缓存的数据.</p>
+<p>Flume使用事务性的方式保证传送Event整个过程的可靠性.Sink必须在Event被存入Channel后,或者,已经被传到到下一个agent中,又或者,已经被存入外部数据目的地之后,才能把Event从Channel中remove掉.</p>
+<p>这样的数据流里的Event无论是在一个agent里还是多个agent之间流转,都能保证可靠,因为以上事务event能被存储起来.而Channel的多种实现在可恢复性上有不同的保证,也保证了event不同程度的可靠性.比如Flume支持在本地保存一份文件channel作为备份,而memory channel将event存储在内存queue里,速度快,但丢失的话无法恢复.</p>
+<h3 id="可恢复性">可恢复性</h3><h2 id="使用场景">使用场景</h2><p>下面展示集中Flow Pipeline,及各自适应的场景:</p>
+<h3 id="多个agent顺序连接">多个agent顺序连接</h3><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/flume-agentbyagent.png" alt="agent1" title="agent1"></p>
+<p>可以将多个agent顺序连接起来,将最初的数据源经过收集,存储到最终的存储系统中.这是最简单的情况,一般情况下,应该控制这种顺序连接的agent的数量,因为数据流经的路径变长了,如果不考虑failover的话,出现故障将影响整个Flow上Agent的收集工作.</p>
+<h3 id="多个agent的数据汇集到一个agent">多个agent的数据汇集到一个agent</h3><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent2.png" alt="agent2" title="agent2"></p>
+<p>这种情况应用的场景比较多,比如要收集Web网站的行为日志,Web网站为了可用性使用的负载均衡的集群模式,每个节点都产生用户行为日志,可以为每个节点都配置一个Agent来单独收集日志数据,然后多个Agent将数据最终汇聚到一个用来存储数据的存储系统,如HDFS.</p>
+<h3 id="多路Agent">多路Agent</h3><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent3.png" alt="agent3" title="agent3"></p>
+<p>这种模式有两种方式,一种用来复制,另一种用来分流.复制方式可以将最前端的数据复制多份,分别传递到多个channel中,每个channel中接收到的数据都是相同的.</p>
+<p>配置格式实例入下:</p>
+<pre><code><span class="comment"># List the sources, sinks and channels for the agent</span>
+<span class="variable">&lt;Agent&gt;</span>.sources = <span class="variable">&lt;Source1&gt;</span>
+<span class="variable">&lt;Agent&gt;</span>.sinks = <span class="variable">&lt;Sink1&gt;</span> <span class="variable">&lt;Sink2&gt;</span>
+<span class="variable">&lt;Agent&gt;</span>.channels = <span class="variable">&lt;Channel1&gt;</span> <span class="variable">&lt;Channel2&gt;</span>
+
+<span class="comment"># set list of channels for source (separated by space)</span>
+<span class="variable">&lt;Agent&gt;</span>.sources.<span class="variable">&lt;Source1&gt;</span>.channels = <span class="variable">&lt;Channel1&gt;</span> <span class="variable">&lt;Channel2&gt;</span>
+
+<span class="comment"># set channel for sinks</span>
+<span class="variable">&lt;Agent&gt;</span>.sinks.<span class="variable">&lt;Sink1&gt;</span>.channel = <span class="variable">&lt;Channel1&gt;</span>
+<span class="variable">&lt;Agent&gt;</span>.sinks.<span class="variable">&lt;Sink2&gt;</span>.channel = <span class="variable">&lt;Channel2&gt;</span>
+
+<span class="variable">&lt;Agent&gt;</span>.sources.<span class="variable">&lt;Source1&gt;</span>.selector.type = replicating
+</code></pre><p>上面指定了selector的type为replication,其他的配置没有指定,使用的复制方式,Source1会将数据分别存储到channel1和channel2,这两个channel中的数据是相同的,然后数据分别被传送到sink1和sink2.</p>
+<p>分流方式,selector可以根据header的值来确定数据传递到哪一个channel,配置格式如下:</p>
+<pre><code><span class="comment"># Mapping for multiplexing selector</span>
+<span class="variable">&lt;Agent&gt;</span>.sources.<span class="variable">&lt;Source1&gt;</span>.selector.type = multiplexing
+<span class="variable">&lt;Agent&gt;</span>.sources.<span class="variable">&lt;Source1&gt;</span>.selector.header = <span class="variable">&lt;someHeader&gt;</span>
+<span class="variable">&lt;Agent&gt;</span>.sources.<span class="variable">&lt;Source1&gt;</span>.selector.mapping.<span class="variable">&lt;Value1&gt;</span> = <span class="variable">&lt;Channel1&gt;</span>
+<span class="variable">&lt;Agent&gt;</span>.sources.<span class="variable">&lt;Source1&gt;</span>.selector.mapping.<span class="variable">&lt;Value2&gt;</span> = <span class="variable">&lt;Channel1&gt;</span> <span class="variable">&lt;Channel2&gt;</span>
+<span class="variable">&lt;Agent&gt;</span>.sources.<span class="variable">&lt;Source1&gt;</span>.selector.mapping.<span class="variable">&lt;Value3&gt;</span> = <span class="variable">&lt;Channel2&gt;</span>
+<span class="comment">#...</span>
+
+<span class="variable">&lt;Agent&gt;</span>.sources.<span class="variable">&lt;Source1&gt;</span>.selector.<span class="keyword">default</span> = <span class="variable">&lt;Channel2&gt;</span>
+</code></pre><p>上面的selector的type的值为multiplexing,同时配置selector的header信息,还配置了多个selector的mapping值,即header的值,如果:header的值为value1和value2,数据从Source1路由到channel1,如果header的值为value2和value3,数据从source1路由到channel2.</p>
+<h3 id="实现loadbalance功能">实现loadbalance功能</h3><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent4.png" alt="agent4" title="agent4"></p>
+<p>Load balancing Sink Processor能够实现loadbalance功能,上图agent1是一个路由节点,负责将channel暂存的Event均衡到对应的多个Sink组件上,而每个Sink组件分别连接到一个独立的agent上,实例配置:</p>
+<pre><code>a1<span class="class">.sinkgroups</span> = g1
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.sinks</span> = k1 k2 k3
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.type</span> = load_balance
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.backoff</span> = true
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.selector</span> = round_robin
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.selector</span><span class="class">.maxTimeOut</span>=<span class="number">10000</span>
+</code></pre><h3 id="实现failover功能">实现failover功能</h3><p>Failover Sink Processor能够实现failover功能,具体流程类型loadbalance,但是内部处理机制与loadbalance完全不同,它维护的是一个优先级sink组件列表,只有有一个sink组件可用,Event就被传递到该组件.如果一个Sink能够处理Event,则会加入到一个Pool中,否则会被移除Pool并计算失败次数,设置一个惩罚因子,实例配置如下:</p>
+<pre><code>a1<span class="class">.sinkgroups</span> = g1
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.sinks</span> = k1 k2 k3
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.type</span> = failover
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.priority</span><span class="class">.k1</span> = <span class="number">5</span>
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.priority</span><span class="class">.k2</span> = <span class="number">7</span>
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.priority</span><span class="class">.k3</span> = <span class="number">6</span>
+a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.maxpenalty</span> = <span class="number">20000</span>
+</code></pre><h2 id="安装和使用">安装和使用</h2><p>安装方式参考官方文档.</p>
+<h3 id="实例:_avro数据源">实例: avro数据源</h3><p>安装成功之后,在 <code>/etc/flume/conf</code> 目录创建f1.conf文件,内容如下:</p>
+<pre><code>agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.type</span> = memory
+
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.avro-source1</span><span class="class">.channels</span> = ch-<span class="number">1</span>
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.avro-source1</span><span class="class">.type</span> = avro
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.avro-source1</span><span class="class">.bind</span> = <span class="number">0.0</span>.<span class="number">0.0</span>
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.avro-source1</span><span class="class">.port</span> = <span class="number">41414</span>
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.avro-source1</span><span class="class">.threads</span> = <span class="number">5</span>
+
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.log-sink1</span><span class="class">.channel</span> = ch-<span class="number">1</span>
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.log-sink1</span><span class="class">.type</span> = logger
+
+agent-<span class="number">1</span><span class="class">.channels</span> = ch-<span class="number">1</span>
+agent-<span class="number">1</span><span class="class">.sources</span> = avro-source1
+agent-<span class="number">1</span><span class="class">.sinks</span> = log-sink1
+</code></pre><p>然后启动agent:</p>
+<pre><code>$ flume-ng agent -c /etc/flume-ng/conf -f /etc/flume-ng/conf/f1<span class="class">.conf</span> -Dflume<span class="class">.root</span><span class="class">.logger</span>=DEBUG,console -n agent-<span class="number">1</span>
+</code></pre><p>参数说明:</p>
+<ol>
+<li>-n 指定agent名称</li>
+<li>-c 指定配置文件目录</li>
+<li>-f 指定配置文件</li>
+<li>-Dflume.root.logger=DEBUG,console 设置日志等级</li>
+</ol>
+<p>下面启动一个avro-client客户端生产数据:</p>
+<pre><code>$ flume-ng avro-client -c /etc/flume-ng/conf -H localhost -<span class="tag">p</span> <span class="number">41414</span> -F /etc/passwd -Dflume<span class="class">.root</span><span class="class">.logger</span>=DEBUG,console
+</code></pre><h3 id="spooldir数据源">spooldir数据源</h3><p>在 <code>/etc/flume/conf</code> 目录创建f2.conf文件,内容如下:</p>
+<pre><code>agent-<span class="number">1</span><span class="class">.channels</span> = ch-<span class="number">1</span>
+agent-<span class="number">1</span><span class="class">.sources</span> = src-<span class="number">1</span>
+
+agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.type</span> = memory
+
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.type</span> = spooldir
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.channels</span> = ch-<span class="number">1</span>
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.spoolDir</span> = /root/log
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.fileHeader</span> = true
+
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.log-sink1</span><span class="class">.channel</span> = ch-<span class="number">1</span>
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.log-sink1</span><span class="class">.type</span> = logger
+
+agent-<span class="number">1</span><span class="class">.sinks</span> = log-sink1
+</code></pre><p>然后启动agent:</p>
+<pre><code>$ flume-ng agent -c /etc/flume-ng/conf -f /etc/flume-ng/conf/f2<span class="class">.conf</span> -Dflume<span class="class">.root</span><span class="class">.logger</span>=DEBUG,console -n agent-<span class="number">1</span>
+</code></pre><p>手动拷贝一个文件到 ‘/root/log’ 目录,观察日志输出和 ‘/root/log’ 下的变化.</p>
+<h3 id="spooldir数据源并写入HDFS">spooldir数据源并写入HDFS</h3><pre><code>agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.type</span> = file
+agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.checkpointDir</span>= /root/checkpoint
+agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.dataDirs</span>= /root/data
+
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.type</span> = spooldir
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.channels</span> = ch-<span class="number">1</span>
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.spoolDir</span> = /root/log
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.deletePolicy</span>= never
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.fileHeader</span> = true
+
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.interceptors</span> =i1
+agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.interceptors</span><span class="class">.i1</span><span class="class">.type</span> = timestamp
+
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.channel</span> = ch-<span class="number">1</span>
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.type</span> = hdfs
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.path</span> = hdfs:<span class="comment">//cdh1:8020/user/root/events/%Y-%m-%d</span>
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.filePrefix</span> = logs
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.inUsePrefix</span> = .
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.rollInterval</span> = <span class="number">30</span>
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.rollSize</span> = <span class="number">0</span>
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.rollCount</span> = <span class="number">0</span>
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.batchSize</span> = <span class="number">1000</span>
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.writeFormat</span> = text
+agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.fileType</span> = DataStream
+<span class="id">#agent-1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.fileType</span> = CompressedStream
+<span class="id">#agent-1</span><span class="class">.sinks</span><span class="class">.sink_hdfs</span><span class="class">.hdfs</span><span class="class">.codeC</span> = lzop
+
+agent-<span class="number">1</span><span class="class">.channels</span> = ch-<span class="number">1</span>
+agent-<span class="number">1</span><span class="class">.sources</span> = src-<span class="number">1</span>
+agent-<span class="number">1</span><span class="class">.sinks</span> = sink_hdfs
+</code></pre><p>说明:</p>
+<ol>
+<li>通过 interceptors 往 header 里添加 timestamp，这样做，可以在 hdfs.path 引用系统内部的时间变量或者主机的 hostname。</li>
+<li>通过设置 hdfs.inUsePrefix，例如设置为 .时，hdfs 会把该文件当做隐藏文件，以避免在 mr 过程中读到这些临时文件，引起一些错误</li>
+<li>如果使用 lzo 压缩，则需要手动创建 lzo 索引，可以通过修改 HdfsSink 的代码，通过代码创建索引</li>
+<li>FileChannel 的目录最好是和 spooldir 的数据目录处于不同磁盘。</li>
+</ol>
+<h2 id="最佳实践">最佳实践</h2><ol>
+<li>模块命名规则: Source以src开头,channel以ch开头,sink以sink开头</li>
+<li>模块之间的内部通信统一使用Avor接口</li>
+<li><p>将日志采集系统分为三层:Agent,Collector,Store.</p>
+<ul>
+<li>其中Agent层每个机器部署一个进程,负责单机的日志收集工作;</li>
+<li>collector层部署在中心服务器,负责接收agent发送的日志,并且将日志根据路由规则写入响应的Store层;</li>
+<li>Store层负责永久或临时的日志存储服务,或者将日志导流到其他服务器.</li>
+</ul>
+</li>
+<li><p>扩展MemoryChannel和FileChannel,提供DualChannel实现,以提供高存储和大缓存,即官方中提供的Spillable Memory Channel</p>
+</li>
+<li>监控collector HdfsSink写数据到hdfs的速递,FileChannel中拥堵的events数量,以及写hdfs状态(查看是否有 .tmp 文件生成).</li>
+</ol>
+<p>美团对 flume 的改进代码见 <a href="https://github.com/javachen/mt-flume" title="github" target="_blank" rel="external">github</a>.</p>
+<h2 id="参考列表">参考列表</h2><ol>
+<li><a href="http://www.cnblogs.com/oubo/archive/2012/05/25/2517751.html" title="Oubo的博客: Flume日志收集" target="_blank" rel="external">Oubo的博客: Flume日志收集</a></li>
+<li><a href="http://blog.csdn.net/weijonathan/article/details/18301321" title="Jonathan.Wei的专栏: flume-ng+Kafka+Storm+HDFS 实时系统搭建" target="_blank" rel="external">Jonathan.Wei的专栏: flume-ng+Kafka+Storm+HDFS 实时系统搭建</a></li>
+<li><a href="http://www.cnblogs.com/windcarp/p/3872578.html#_常见的source" title="DeadBeef: Flume采集处理日志文件" target="_blank" rel="external">DeadBeef: Flume采集处理日志文件</a></li>
+<li><a href="http://ydt619.blog.51cto.com/316163/1230597" title="改变你成就你: Flume-ng分布式环境的部署和配置(三)" target="_blank" rel="external">改变你成就你: Flume-ng分布式环境的部署和配置(三)</a></li>
+<li><a href="http://linux.it.net.cn/e/server/2014/0911/4713.html" title="Flume环境部署和配置详解及案例大全" target="_blank" rel="external">Flume环境部署和配置详解及案例大全</a></li>
+<li><a href="http://tech.meituan.com/mt-log-system-arch.html" title="美团点评技术团队: 基于Flume的美团日志收集系统(一)架构和设计" target="_blank" rel="external">美团点评技术团队: 基于Flume的美团日志收集系统(一)架构和设计</a></li>
+<li><a href="http://tech.meituan.com/mt-log-system-optimization.html" title="美团点评技术团队: 基于Flume的美团日志收集系统(二)改进和优化" target="_blank" rel="external">美团点评技术团队: 基于Flume的美团日志收集系统(二)改进和优化</a></li>
+<li><a href="http://shiyanjun.cn/archives/915.html" title="简单之美: Flume(NG)架构设计要点及配置实践" target="_blank" rel="external">简单之美: Flume(NG)架构设计要点及配置实践</a></li>
+<li><a href="http://blog.javachen.com/2014/07/22/flume-ng.html" title="JavaChen Blog: Flume-ng的原理和使用" target="_blank" rel="external">JavaChen Blog: Flume-ng的原理和使用</a></li>
+</ol>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Flume/" rel="tag">#Flume</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/09/Simple-Nginx-7/" rel="next">Simple Nginx 7</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">82</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">31</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构"><span class="nav-number">2.</span> <span class="nav-text">架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据流"><span class="nav-number">2.1.</span> <span class="nav-text">数据流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#核心组件"><span class="nav-number">2.2.</span> <span class="nav-text">核心组件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Source"><span class="nav-number">2.2.1.</span> <span class="nav-text">Source</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Channel"><span class="nav-number">2.2.2.</span> <span class="nav-text">Channel</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Sink"><span class="nav-number">2.2.3.</span> <span class="nav-text">Sink</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可靠性"><span class="nav-number">2.3.</span> <span class="nav-text">可靠性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可恢复性"><span class="nav-number">2.4.</span> <span class="nav-text">可恢复性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用场景"><span class="nav-number">3.</span> <span class="nav-text">使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#多个agent顺序连接"><span class="nav-number">3.1.</span> <span class="nav-text">多个agent顺序连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多个agent的数据汇集到一个agent"><span class="nav-number">3.2.</span> <span class="nav-text">多个agent的数据汇集到一个agent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多路Agent"><span class="nav-number">3.3.</span> <span class="nav-text">多路Agent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现loadbalance功能"><span class="nav-number">3.4.</span> <span class="nav-text">实现loadbalance功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现failover功能"><span class="nav-number">3.5.</span> <span class="nav-text">实现failover功能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装和使用"><span class="nav-number">4.</span> <span class="nav-text">安装和使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实例:_avro数据源"><span class="nav-number">4.1.</span> <span class="nav-text">实例: avro数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spooldir数据源"><span class="nav-number">4.2.</span> <span class="nav-text">spooldir数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spooldir数据源并写入HDFS"><span class="nav-number">4.3.</span> <span class="nav-text">spooldir数据源并写入HDFS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最佳实践"><span class="nav-number">5.</span> <span class="nav-text">最佳实践</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考列表"><span class="nav-number">6.</span> <span class="nav-text">参考列表</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

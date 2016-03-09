@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/08/Simple-Nginx-4/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="ngx_http_core_module模块提供的变量与日志配置">
-<meta property="og:updated_time" content="2016-03-08T15:46:33.000Z">
+<meta property="og:updated_time" content="2016-03-09T03:16:33.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Nginx 4">
 <meta name="twitter:description" content="ngx_http_core_module模块提供的变量与日志配置">
@@ -276,7 +276,121 @@
         }
     }
 }
-</code></pre><h3 id="open_log_file_cache指令">open_log_file_cache指令</h3><p><a href="https://www.ttlsa.com/nginx/the-ngx_http_core_module-module-provides-variable/" title="参考链接" target="_blank" rel="external">参考链接</a></p>
+</code></pre><h3 id="open_log_file_cache指令">open_log_file_cache指令</h3><p>语法:</p>
+<pre><code>open_log_file_cache max=N <span class="string">[inactive=time]</span> <span class="string">[min_uses=N]</span> <span class="string">[valid=time]</span>;
+open_log_file_cache off;
+</code></pre><p>默认值:open_log_file_cache off;<br>配置端:http,server,location;</p>
+<p>对于每一条日志,都是先打开文件,再写人,然后再关闭,可以通过open_log_file_cache设置日志文件缓存,格式如下:</p>
+<p>参数注释:</p>
+<pre><code><span class="label">max:</span>设置缓存中的最大文件描述符数量，如果缓存被占满，采用LRU算法将描述符关闭。
+<span class="label">inactive:</span>设置存活时间，默认是<span class="number">10</span>s
+<span class="label">min_uses:</span>设置在inactive时间段内，日志文件最少使用多少次后，该日志文件描述符记入缓存中，默认是<span class="number">1</span>次
+<span class="label">valid:</span>设置检查频率，默认<span class="number">60</span>s
+off：禁用缓存
+</code></pre><p>配置实例:</p>
+<pre><code>open_log_file_cache max=<span class="number">1000</span> inactive=<span class="number">20</span>s valid=<span class="number">1</span>m min_uses=<span class="number">2</span>;
+</code></pre><h2 id="log_not_found指令">log_not_found指令</h2><pre><code>语法: log_not_found <span class="command"><span class="keyword">on</span> | <span class="title">off</span>;</span>
+默认值: log_not_found <span class="command"><span class="keyword">on</span>;</span>
+配置段: <span class="keyword">http</span>, server, location
+</code></pre><p>是否在error_log中记录不存在的错误。默认是</p>
+<h2 id="log_subrequest指令">log_subrequest指令</h2><pre><code>语法: log_subrequest <span class="keyword">on</span> | <span class="keyword">off</span>;
+默认值: log_subrequest <span class="keyword">off</span>;
+配置段: http, server, location
+</code></pre><p>是否在access_log中记录子请求的访问日志。默认不记录。</p>
+<h2 id="rewrite_log指令">rewrite_log指令</h2><p>由ngx_http_rewrite_module模块提供的。用来记录重写日志的。对于调试重写规则建议开启。 Nginx重写规则指南</p>
+<pre><code>语法: rewrite_log <span class="keyword">on</span> | <span class="keyword">off</span>;
+默认值: rewrite_log <span class="keyword">off</span>;
+配置段: http, server, location, <span class="keyword">if</span>
+</code></pre><p>启用时将在error log中记录notice级别的重写日志。</p>
+<h2 id="error_log指令">error_log指令</h2><pre><code>语法: error_log file |<span class="string"> stderr </span>|<span class="string"> syslog:server=address[,parameter=value] [debug </span>|<span class="string"> info </span>|<span class="string"> notice </span>|<span class="string"> warn </span>|<span class="string"> error </span>|<span class="string"> crit </span>|<span class="string"> alert </span>|<span class="string"> emerg];
+默认值: error_log logs/error.log error;
+配置段: main, http, server, location</span>
+</code></pre><p>配置错误日志。</p>
+<h2 id="日志切割">日志切割</h2><h3 id="logrotate日志管理工具">logrotate日志管理工具</h3><p>logrotate是一个日志文件管理工具,负责把日志文件压缩轮转删除,并创建新的日志文件,我们可以根据日志文件的大小时间来进行转存.</p>
+<p>配置实例:</p>
+<pre><code>/<span class="keyword">var</span>/<span class="keyword">log</span>/messages {
+    <span class="keyword">rotate</span> 5
+    <span class="literal">weekly</span>
+    postrotate
+        /sbin/killall -HUP syslogd
+    endscript
+}
+
+<span class="string">"/var/log/httpd/access.log"</span> /<span class="keyword">var</span>/<span class="keyword">log</span>/httpd/<span class="keyword">error</span>.<span class="keyword">log</span> {
+    <span class="keyword">rotate</span> 5
+    mail www@my.org
+    size 100k
+    sharedscripts
+    postrotate
+        /sbin/killall -HUP httpd
+    endscript
+}
+
+/<span class="keyword">var</span>/<span class="keyword">log</span>/<span class="keyword">news</span><span class="comment">/* {
+    monthly
+    rotate 2
+    olddir /var/log/news/old
+    missingok
+    postrotate
+        kill -HUP ‘cat /var/run/inn.pid‘
+    endscript
+    nocompress
+}</span>
+</code></pre><p>配置选项说明:</p>
+<pre><code>compress：通过gzip 压缩转储旧的日志
+nocompress：不需要压缩时，用这个参数
+copytruncate：用于还在打开中的日志文件，把当前日志备份并截断
+nocopytruncate：备份日志文件但是不截断
+<span class="operator"><span class="keyword">create</span> <span class="keyword">mode</span> owner <span class="keyword">group</span>：使用指定的文件模式创建新的日志文件
+nocreate：不建立新的日志文件
+delaycompress：和 <span class="keyword">compress</span> 一起使用时，转储的日志文件到下一次转储时才压缩
+nodelaycompress：覆盖 delaycompress 选项，转储同时压缩。
+<span class="keyword">errors</span> address：专储时的错误信息发送到指定的Email 地址
+ifempty：即使是空文件也转储，这个是 logrotate 的缺省选项。
+notifempty：如果是空文件的话，不转储
+mail address：把转储的日志文件发送到指定的<span class="keyword">E</span>-mail 地址
+nomail：转储时不发送日志文件
+olddir <span class="keyword">directory</span>：转储后的日志文件放入指定的目录，必须和当前日志文件在同一个文件系统
+noolddir：转储后的日志文件和当前日志文件放在同一个目录下
+prerotate/endscript：在转储以前需要执行的命令可以放入这个对，这两个关键字必须单独成行
+postrotate/endscript：在转储以后需要执行的命令可以放入这个对，这两个关键字必须单独成行
+sharedscripts：所有的日志文件都轮转完毕后统一执行一次脚本
+daily：指定转储周期为每天
+weekly：指定转储周期为每周
+monthly：指定转储周期为每月
+rotate <span class="keyword">count</span>：指定日志文件删除之前转储的次数，<span class="number">0</span> 指没有备份，<span class="number">5</span> 指保留<span class="number">5</span> 个备份
+<span class="keyword">size</span> <span class="keyword">size</span>：当日志文件到达指定的大小时才转储，<span class="keyword">Size</span> 可以指定 <span class="keyword">bytes</span> (缺省)以及KB (sizek)或者MB</span>
+</code></pre><p>命令参数说明:</p>
+<pre><code>logrotate --help
+
+Usage: logrotate [OPTION...] &lt;configfile&gt;
+  -<span class="ruby">d, --debug               调试模式，输出调试结果，并不执行。隐式-v参数
+</span>  -<span class="ruby">f, --force               强制模式，对所有相关文件进行rotate
+</span>  -<span class="ruby">m, --mail=command        发送邮件 (instead of <span class="string">`/bin/mail')
+</span></span>  -<span class="ruby"><span class="string">s, --state=statefile     状态文件，对于运行在不同用户情况下有用
+</span></span>  -<span class="ruby"><span class="string">v, --verbose             显示debug信息</span></span>
+</code></pre><h3 id="定义日志滚轮策略">定义日志滚轮策略</h3><pre><code><span class="xml">vim nginx-log-rotate
+
+/data/weblogs/*.log </span><span class="expression">{
+    <span class="variable">nocompress</span>
+    <span class="variable">daily</span>
+    <span class="variable">copytruncate</span>
+    <span class="variable">create</span>
+    <span class="variable">notifempty</span>
+    <span class="variable">rotate</span> 7
+    <span class="variable">olddir</span> <span class="end-block">/data</span><span class="end-block">/weblogs</span><span class="end-block">/old</span>_<span class="variable">log</span>
+    <span class="variable">missingok</span>
+    <span class="variable">dateext</span>
+    <span class="variable">postrotate</span>
+        <span class="end-block">/bin</span><span class="end-block">/kill -HUP </span>`<span class="variable">cat</span> <span class="end-block">/var</span><span class="end-block">/run</span><span class="end-block">/nginx.pid </span>2&gt; <span class="end-block">/dev</span><span class="end-block">/null</span>` 2&gt; <span class="end-block">/dev</span><span class="end-block">/null </span>|| <span class="variable">true</span>
+    <span class="variable">endscript</span>
+}</span><span class="xml"></span>
+</code></pre><p>注意:如果使用通配符模式/data/weblogs/*.log,则/data/weblogs/路径下的所有log文件都会被切割,如果需要切割固定的文件,直接指定该文件即可.</p>
+<h3 id="设置定时任务">设置定时任务</h3><pre><code>crontab -<span class="literal">e</span>
+59 23 * * * root ( /usr/sbin/logrotate -f /PATH/TO/nginx-<span class="keyword">log</span>-<span class="keyword">rotate</span>)
+crontab -<span class="keyword">l</span>
+</code></pre><p>这样每天23:59:00会定时进行切割.</p>
+<p><a href="https://www.ttlsa.com/nginx/the-ngx_http_core_module-module-provides-variable/" title="参考链接" target="_blank" rel="external">参考链接</a></p>
 </span>
       
     </div>
@@ -293,6 +407,8 @@
       
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/09/Simple-Nginx-5/" rel="prev">Simple Nginx 5</a>
             
           </div>
 
@@ -360,7 +476,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">78</span>
+              <span class="site-state-item-count">82</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -374,7 +490,7 @@
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">30</span>
+              <span class="site-state-item-count">31</span>
               <span class="site-state-item-name">标签</span>
               </a>
           </div>
@@ -402,7 +518,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ngx_http_core_module模块变量"><span class="nav-number">1.</span> <span class="nav-text">ngx_http_core_module模块变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日志配置"><span class="nav-number">2.</span> <span class="nav-text">日志配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#access_log指令"><span class="nav-number">2.1.</span> <span class="nav-text">access_log指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#log_format指令"><span class="nav-number">2.2.</span> <span class="nav-text">log_format指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#open_log_file_cache指令"><span class="nav-number">2.3.</span> <span class="nav-text">open_log_file_cache指令</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ngx_http_core_module模块变量"><span class="nav-number">1.</span> <span class="nav-text">ngx_http_core_module模块变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日志配置"><span class="nav-number">2.</span> <span class="nav-text">日志配置</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#access_log指令"><span class="nav-number">2.1.</span> <span class="nav-text">access_log指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#log_format指令"><span class="nav-number">2.2.</span> <span class="nav-text">log_format指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#open_log_file_cache指令"><span class="nav-number">2.3.</span> <span class="nav-text">open_log_file_cache指令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#log_not_found指令"><span class="nav-number">3.</span> <span class="nav-text">log_not_found指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#log_subrequest指令"><span class="nav-number">4.</span> <span class="nav-text">log_subrequest指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rewrite_log指令"><span class="nav-number">5.</span> <span class="nav-text">rewrite_log指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#error_log指令"><span class="nav-number">6.</span> <span class="nav-text">error_log指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日志切割"><span class="nav-number">7.</span> <span class="nav-text">日志切割</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#logrotate日志管理工具"><span class="nav-number">7.1.</span> <span class="nav-text">logrotate日志管理工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定义日志滚轮策略"><span class="nav-number">7.2.</span> <span class="nav-text">定义日志滚轮策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置定时任务"><span class="nav-number">7.3.</span> <span class="nav-text">设置定时任务</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
