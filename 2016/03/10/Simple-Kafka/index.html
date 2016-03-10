@@ -1,0 +1,651 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Kafka," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Kafka分布式消息系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Kafka">
+<meta property="og:url" content="http://yoursite.com/2016/03/10/Simple-Kafka/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Kafka分布式消息系统">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/kafka1.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/kafka2.png">
+<meta property="og:updated_time" content="2016-03-10T15:18:45.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Kafka">
+<meta name="twitter:description" content="Kafka分布式消息系统">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Kafka | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Kafka
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-10T16:37:29+08:00" content="2016-03-10">
+            2016-03-10
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Kafka是一个分布式发布-订阅消息系统,是一个分布式的,可划分的,冗余备份的持久性的日志服务.它主要用于处理活跃的流式数据.</p>
+<p>主要起到两个作用:</p>
+<ol>
+<li>降低系统组网复杂度</li>
+<li>降低编程复杂度,各个子系统不再是各个协商接口,各个子系统类似插口插在插座上,Kafka承担高速数据总线的任务</li>
+</ol>
+<h2 id="主要特点">主要特点</h2><ol>
+<li>同时为发布和订阅提供高吞吐量.据了解,Kafka每秒可以生产约25万消息(50MB),每秒处理55万消息(110MB)</li>
+<li>可进行持久化操作.将消息持久化到磁盘,因此可用于批量消费,例如ETL,以及实时应用程序.通过将数据持久化到硬盘,以及replication防止数据丢失</li>
+<li>分布式系统,易于向外扩展.所有的producer,broker,consumer都会有多个,均为分布式.无需停机即可扩展服务.</li>
+<li>消息被处理的状态实在consumer端维护,而不是在server端维护,当失败时能自动平衡</li>
+<li>支持online和offline场景</li>
+</ol>
+<h2 id="架构">架构</h2><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/kafka1.png" alt="Kafka架构" title="Kafka架构"></p>
+<p>Kafka的整体架构非常简单,是显式分布式架构.producer,broker,consumer均有多个.producer和consumer实现Kafka注册的接口,数据从producer发送到broker,broker承担一个中间缓存和分发的作用.broker分发注册到系统中的consumer.broker的作用类似于缓存,即活跃的数据和离线处理系统之间的缓存.客户端可服务端的通信是基于简单高性能,且与编程语言无关的TCP协议.</p>
+<p>基本概念:</p>
+<ol>
+<li>Topic: 特质Kafka处理的消息源(feeds of messages)的不同分类</li>
+<li>Partition: Topic物理上的分组,一个topic可以分为多个partition,每个partition是一个有序的队列.其中每条消息都会分配一个有序的ID(offset)</li>
+<li>Message: 消息,是通信的基本单位,每个producer可以向一个Topic发送发布一些消息</li>
+<li>Producers: 消息和数据生产者,想Kafka的一个topic发布消息的过程称为producers</li>
+<li>Consumers: 消息和数据消费者,订阅topic并处理其发布的消息的过程称为consumers</li>
+<li>Broker: 缓存代理,Kafka中一台或多台服务器统称为Broker</li>
+</ol>
+<h2 id="消息发送的流程">消息发送的流程</h2><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/kafka2.png" alt="消息流程" title="消息流程"></p>
+<ol>
+<li>Producer 根据指定的partition方法(round-roubin,hash等)将消息发送到指定topic的partition中</li>
+<li>Kafka集群接收到Producer发送过来的消息后,将其持久化到硬盘,并保留消息指定时长(可配置),而不关心消息是否被消费</li>
+<li>Consumer从Kafka集群pull数据,并控制取消息的offset</li>
+</ol>
+<h2 id="Kafka的设计">Kafka的设计</h2><h3 id="吞吐量">吞吐量</h3><p>高吞吐是Kakfa需要实现的核心目标之一:</p>
+<ol>
+<li>数据磁盘持久化: 消息不在内存中cache,直接写入磁盘,充分利用磁盘的顺序读写性能</li>
+<li>zero-copy: 减少磁盘IO操作</li>
+<li>数据批量发送</li>
+<li>数据压缩</li>
+<li>Topic划分为多个partition,提高并行性(parallelism)</li>
+</ol>
+<h3 id="负载均衡">负载均衡</h3><ol>
+<li>Producer根据用户指定的算法,将消息发送的指定的partition</li>
+<li>存在多个partition,每个partition有自己的replication,每个replication分布在不同的Broker节点上</li>
+<li>多个partition需要选取出lead partition,lead复制读写,并由zookeeper负责failover</li>
+<li>通过zookeeper管理broker与consumer的动态加入与离开</li>
+</ol>
+<h3 id="拉去系统">拉去系统</h3><p>由于Kafka Broker会持久化数据,broker没有内存压力,因此,consumer非常适合采取pull的方式消费数据,具有以下几点好处:</p>
+<ol>
+<li>简化Kafka设计</li>
+<li>Consumer根据消费能力自助控制拉取速速</li>
+<li>Consumer根据自身情况自主选择消费方式,例如,批量,重复,从尾端开始消费等</li>
+</ol>
+<h3 id="可扩展性">可扩展性</h3><p>当需要增加broker节点时新增的broker会向zookeeper注册,而producer和consumer会根据注册在zookeeper上的watcher感知到这些变化,并及时作出调整.</p>
+<h2 id="Kafka的应用场景">Kafka的应用场景</h2><h3 id="消息队列">消息队列</h3><h3 id="行为跟踪">行为跟踪</h3><p>实时记录用户行为,以发布-订阅的方式存在topic中以便分析.</p>
+<h3 id="元信息监控">元信息监控</h3><h3 id="日志收集">日志收集</h3><h3 id="流处理">流处理</h3><h3 id="事件源">事件源</h3><h3 id="持久性日志">持久性日志</h3><h2 id="Kafka的设计要点">Kafka的设计要点</h2><ol>
+<li><p>直接利用Linux文件系统的cache来高速缓存数据</p>
+</li>
+<li><p>采用zero-copy提高发送性能.传统的数据发送需要发生4次上下文切换,采用sendfile系统调用之后,数据直接在内核态交换,系统上下文切换减少为2次,可以提高60%的发送性能.</p>
+</li>
+<li><p>数据在磁盘上存取代价为O(1).Kafka以topic来进行消息管理,每个topic有多个part,每个part对应一个逻辑log,由多个segment组成,每个segment中存储多条消息,消息ID由其逻辑位置决定,即从消息ID可以直接定位到其存储位置,避免ID到位置的额外映射.每个part在内存中对应一个index,记录每个segment中的第一条消息偏移.发布者发布到topic上的消息会被均匀的分布在每个part上(随机或根据用户指定的回调函数进行分布),broker收到发布消息后想对应part的最后一个segment上添加该消息,当某个setment上的消息数达到配置值或消息发布时间超过阈值时,segment上的消息会被flush到磁盘,只有flush到磁盘上的消息才能被订阅者订阅到,segment达到一定的大小后将不会再往该segment写数据,broker会创建一个新的segment.</p>
+</li>
+<li><p>显示分布式,所有的producer,broker,consumer都会为多个,均为分布式.producer和broker之间没有负载均衡.broker和consumer之间通过zookeeper进行负载均衡.所有的broker和consumer都会在zookeeper中进行注册,且zookeeper会保存他们的元数据信息.如果某个broker或consumer发生变化,所有其他的broker和consumer都会得到通知.</p>
+</li>
+</ol>
+<h2 id="与Flume的区别">与Flume的区别</h2><ol>
+<li><p>Kafka是一个通用型的系统.可有有很多的生产者和消费者分享这个主题.而Flume被设计成特定用途的工作,特定的向HDFS或HBase发送,Flume为了更好的为HDFS服务而做了特定的优化,并且与Hadoop的安全体系整合在了一起.基于这样的结论,若果被多个应用程序消费的话使用Kafka,面向单一或HDFS的话使用Flume.</p>
+</li>
+<li><p>Flume拥有许多配置的来源(source)和存储池(sink).Kafka拥有的是非常小的生产-消费体系.如果你的数据来源稳定,不需要额外的编码,那你可以使用Flume提供的source和sink,反之,如果你需要准备自己的生产者和消费者,则使用Kafka.</p>
+</li>
+<li><p>Flume可以在拦截器里面实时处理数据(比较局限,功能单一).这个特性对于过滤数据非常有用,而Kafka需要一个外部系统帮助处理数据.</p>
+</li>
+<li><p>无论Flume和Kafka,两个系统都可以保证不丢失数据.Flume不会复制事件.相应的,即使我们在使用一个可以信赖的文件通道,如果Flume Agent这个节点宕机了,你会失去所有的事件访问能力直到你修复这个节点.使用Kafka的管道特性不会有这个问题.</p>
+</li>
+<li><p>Flume和Kakfa可以配合使用.</p>
+</li>
+</ol>
+<p><a href="http://www.biaodianfu.com/kafka.html" title="标点符: 分布式消息系统：Kafka" target="_blank" rel="external">标点符: 分布式消息系统：Kafka</a><br><a href="http://tech.meituan.com/kafka-fs-design-theory.html" title="悠悠香草: Kafka 文件存储机制那些事" target="_blank" rel="external">悠悠香草: Kafka 文件存储机制那些事</a><br><a href="http://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.html" title="周明耀: Apache kafka 工作原理介绍" target="_blank" rel="external">周明耀: Apache kafka 工作原理介绍</a><br><a href="http://www.aboutyun.com/thread-9341-1-1.html" title="sstutu: kafka入门：简介、使用场景、设计原理、主要配置及集群搭建" target="_blank" rel="external">sstutu: kafka入门：简介、使用场景、设计原理、主要配置及集群搭建</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Kafka/" rel="tag">#Kafka</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/10/Paxos-Principle-and-Practice/" rel="next">Paxos Principle and Practice</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">84</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主要特点"><span class="nav-number">2.</span> <span class="nav-text">主要特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构"><span class="nav-number">3.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息发送的流程"><span class="nav-number">4.</span> <span class="nav-text">消息发送的流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的设计"><span class="nav-number">5.</span> <span class="nav-text">Kafka的设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#吞吐量"><span class="nav-number">5.1.</span> <span class="nav-text">吞吐量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡"><span class="nav-number">5.2.</span> <span class="nav-text">负载均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拉去系统"><span class="nav-number">5.3.</span> <span class="nav-text">拉去系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可扩展性"><span class="nav-number">5.4.</span> <span class="nav-text">可扩展性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的应用场景"><span class="nav-number">6.</span> <span class="nav-text">Kafka的应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息队列"><span class="nav-number">6.1.</span> <span class="nav-text">消息队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#行为跟踪"><span class="nav-number">6.2.</span> <span class="nav-text">行为跟踪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#元信息监控"><span class="nav-number">6.3.</span> <span class="nav-text">元信息监控</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日志收集"><span class="nav-number">6.4.</span> <span class="nav-text">日志收集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流处理"><span class="nav-number">6.5.</span> <span class="nav-text">流处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件源"><span class="nav-number">6.6.</span> <span class="nav-text">事件源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#持久性日志"><span class="nav-number">6.7.</span> <span class="nav-text">持久性日志</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的设计要点"><span class="nav-number">7.</span> <span class="nav-text">Kafka的设计要点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与Flume的区别"><span class="nav-number">8.</span> <span class="nav-text">与Flume的区别</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

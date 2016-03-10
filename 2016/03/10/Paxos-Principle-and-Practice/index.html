@@ -1,0 +1,668 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Paxos," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Paxos的原理和实践">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paxos Principle and Practice">
+<meta property="og:url" content="http://yoursite.com/2016/03/10/Paxos-Principle-and-Practice/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Paxos的原理和实践">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/paxos1.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/paxos2.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/paxos3.png">
+<meta property="og:updated_time" content="2016-03-10T07:20:53.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Paxos Principle and Practice">
+<meta name="twitter:description" content="Paxos的原理和实践">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Paxos Principle and Practice | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Paxos Principle and Practice
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-10T11:15:41+08:00" content="2016-03-10">
+            2016-03-10
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="数据库高可用性难题">数据库高可用性难题</h2><p>数据库的的数据一致和持续可用对电子商务和互联网金融的意义不言而喻,而这些业务在使用数据库时,无论MySQL还是Oracle,都会面临一个很难的取舍,就是如何处理主备库之间的同步.对于传统的主备模式或者一主多备模式,我们都要考虑这个问题,就是与备机保持强同步还是异步复制.</p>
+<p>对于强同步模式,要求主机必须把Redolog同步到备机之后,才能应答客户端,一旦主备之间出现网络抖动,或者备机宕机,这主机无法提供服务,这种模式实现了数据的强一致,但是牺牲了服务的可用性,且由于跨机房同步延迟过大使得跨机房的主备模式变得不实用.</p>
+<p>而对于异步复制模式,主机写本地成功后,就可以立即应答客户端,无需等待备机应答,这样一旦主机宕机无法启动,少量不同步的日志将丢失,这种模式实现的服务持续可用,但是牺牲了一致性.这种方式对应的就是Oracle的Max Protection和Max Performance模式,而Oracle另一个最常用的Max Availability模式,则是一个折中,在备机无应答时退化为Max performance模式,我任务本质上还是异步复制.</p>
+<p>主备模式还有一个无法绕开的问题,就是选主,最简单山寨的办法,搞一个单点,定时select一下主机和各个备机,貌似MHA就是这个原理,具体实现细节我就不太清楚了.一个改进的方案是使用Zookeeper的多点服务替代单点,各个数据库机器上使用一个Agent与单点保持Lease,主机lease过期后,立即设置为只读.改进的方案基本可以保证不会出现双主,而缺点是Zookeeper的可维护性问题,以及多lease的恢复时长问题.</p>
+<h2 id="Paxos协议简单回顾">Paxos协议简单回顾</h2><p>主备方式处理数据库高可用问题上有诸多缺陷,要改进这种同步方式,我们先来梳理一下数据库高可用的几个基本需求:</p>
+<ol>
+<li>数据不丢失</li>
+<li>服务持续可用</li>
+<li>自动的主备切换</li>
+</ol>
+<p>使用Paxos协议的日志同步可以实现这三个需求,而Paxos协议需要一个基本假设,主备之间有多数派机器(N/2 + 1)存活并且他们之间的网络通信正常,如果不满足这个条件,则无法启动这个服务,数据也无法写入和读取.</p>
+<p>我们先来回顾一下Paxos协议的内容.</p>
+<p><font color="Coral">首先,Paxos是一个解决分布式系统中,多个节点之间就某个值(提案)达成一致(决议)的通信协议.<font></font></font></p>
+<p>他能处理少数派离线的情况下,剩余的多数派节点仍能够达成一致.然后再来看一下协议内容,它是一个两阶段的通信协议:</p>
+<h3 id="第一阶段Prepare">第一阶段Prepare</h3><p>P1a: Propose 发送 Prepare</p>
+<p>Propose生成全局唯一且递增的提案ID(Proposalid,以 高位时间戳+低位机器IP,可以保证唯一性和递增性),想Paxos集群的所有机器发送PrepareRequest,这里无需携带提案内容,只携带Proposalid即可.</p>
+<p>P2b: Acceptor 应答 Prepare</p>
+<p>Acceptor接收到PrepareRequest之后,做出”两个承诺,一个应答”:</p>
+<p>另个承诺:</p>
+<ol>
+<li>第一,不再应答Proposalid小于等于(&lt;=)当前请求的PrepareRequest</li>
+<li>第二,不再应答小于(&lt;)当前请求的AcceptRequest</li>
+</ol>
+<p>一个应答:</p>
+<ol>
+<li>返回自己已经Accept过的提案中ProposalID最大的那个提案内容,如果没有则返回空值</li>
+</ol>
+<p>注意,两个承诺中,蕴含两个要点:</p>
+<ol>
+<li>就是应答当前请求前,也要按照”两个承诺”检查是否会违背之前处理PrepareRequest时做出的承诺</li>
+<li>应答前要在本地持久化当前ProposalID</li>
+</ol>
+<h3 id="第二阶段Accept">第二阶段Accept</h3><p>P2a: Proposer 发送 Accept</p>
+<p>提案生成规则: Proposer收到多数派应答的PrepareResponse后,从中选择ProposalID最大的天内容,作为要发起Accept的提案,如果这个提案为空值,则可以自己随意决定提案内容.然后携带上当前的ProposalID,想Paxos集群的所有机器发送AcceptRequest.</p>
+<p>P2b: Acceptor 应答Accept</p>
+<p>Acceptor收到AcceptRequest后,检查不违背自己之前作出的”两个承诺”情况下,持久化当前ProposalID和提案内容.最后Proposer收集到多数派应答的AcceptResponse后,形成决议.</p>
+<p>这里的两个承诺很重要.</p>
+<h2 id="Basic_Paxos同步日志的理论模型">Basic Paxos同步日志的理论模型</h2><p>上面是Lamport提出的算法理论,那么Paxos协议如何具体应用到Redolog同步上呢,我们先来看最简单的理论模型,就是在N个server的集群上,持久化数据库或者文件系统的操作日志,并且为每条日志分配连续递增的LogID,允许多个客户端并发的向集群内的任意机器发送日志同步请求.在这个场景下,不同LogID标识的日志都是一个个相互独立的Paxos instance,每条日志独立执行完整的Paxos两阶段协议.</p>
+<p>因此在执行Paxos之前,需要首先确定当前日志的PaxosID,理论上对每条日志都可以从1开始尝试,知道成功持久化当前日志,但是为了降低失败概率,可以先向集群内的Acceptor查询他们PrepareResponse过的最大的LogID,从多数派的应答中选择最大的LogID,加1后,作为本条日志的LogID.然后以当前LogID标识Paxos instance,开始执行Paxos两阶段协议.可能出现的情况是,并发情况下,当前LogID被其他日志使用,那么P2a阶段确定的提案内容可能就不是自己本次要同步的日志内容,这种情况下,就要重新决定LogID,然后重新开始执行Paxos协议.</p>
+<p>考虑集中异常情况,Proposer在P1b和P2b阶段没有收到多数派应答,可能是受到了其他LogID相同而Proposalid更大的Proposer的干扰,或者是网络机器的问题,这种情况下则要使用相同的LogID和新生成的Proposalid来重新执行Paxos协议.恢复时,按照LogID递增的顺序,针对每条日志执行完整的Paxos协议成功后,形成决议的日志才能进行回放.那么问题来了,比如ABC三个server,一条日志在AB上持久化成功,已经形成多数派,然后B宕机;另一种情况,ABC三个server,一条日志在A上持久化成功,超时未形成多数派,然后B宕机,上述两种情况,最终的状态都是A上有这条日志,C上没有,那应该如何处理呢?</p>
+<p>这里提一个名词,”最大Commit原则”,这个阳振坤博士给我讲授Paxos时提出的名词,我觉得他是Paxos中最重要隐含规则之一,<font color="Coral">一条超时为形成多数派应答的提案,我们既不能认为它已形成协议,也不能认为它未形成协议<font>,跟”薛定谔的猫”差不多,这条日志是”又死又活的”,只有当你观察(执行Paxos协议)它的时候,你才能得到确定的结果.因此对于上面的问题,答案就是无论如何都对这条日志重新执行Paxos.这也是为什么在恢复的时候,我们要对每条日志都执行Paxos的原因.</font></font></p>
+<h2 id="Multi_Paxos的应用">Multi Paxos的应用</h2><p>上述Basic Paxos只是理论模型,在实际工程场景下,比如数据库同步Redolog,还是需要集群内有一个leader,作为数据库主机,和多个备机联合组成一个Paxos集群,对Redolog进行持久化.此外持久化和回放时每条日志都执行完整的Paxos协议(3次网络交互,2次本地持久化),代价过大,需要优化处理.因此Multi Paxos协议,实现以下一个重要功能:</p>
+<ol>
+<li>自动选主</li>
+<li>简化同步逻辑</li>
+<li>简化回放逻辑</li>
+</ol>
+<p>我在刚刚学习Paxos的时候,曾近认为选主就是跑一轮”谁是leader”的决议,其实没有那么简单,因为Paxos协议的基本保证就是一旦决议形成,就不能更改,那么在此选主就没有办法处理了.因此对选主,需要变通下思路,还是执行Paxos协议,但是我们并不关心协议内容,而是关心”谁成功得到了多数派的AcceptResponse”,这个Server就是选主产生的leader.而多轮选主,就是针对同一个Paxos instance反复执行,最后赢得多数派Accept的Server当选leader.</p>
+<p>不幸的是执行Paxos胜出的”当选leader”还不能算是真正的leader,只能算是”当选leader”,就像美国总统一样,当选总统是赢得选举的总统,但是任期还未开始还不是真正的总统.在Multi Paxos中因为可能存在多个Server先后赢得了选主,因此新的”当选leader”还要立即写一条日志,以确认自己的leader身份,这里就顺势引出日志同步逻辑的简化,我们将leader选主看做Paxos的Prepare阶段,这个Prepare操作在逻辑上一次性的将后续所有即将产生的日志都执行Prepare,因此在leader任期内的日志同步,都使用同一个Proposalid,只执行Accept阶段即可.那么问题来了,各个备机在执行Accept的时候,需要注意什么.</p>
+<p>答案是上面提到过的”两个承诺”,因为我们已经把选主的那轮Paxos看做Prepare操作了,所以对于后续要Accept的日志,要遵守两个承诺,所以,对于先后胜出选主的多个”当选leader”,他们同步日志时携带的Proposlid的大小是不同的,只有最大的能够同步日志成功,成为正式的leader.</p>
+<p>再进一步简化,选主leader后,”当选leader”必先写一条日志以确认自己的leader身份,而协议允许多个”当选leader”产生,那么选主过程的本质其实就是为了拿到各个备机的”两个承诺”而已,选主过程本身产生的决议内容并没有实际的意义,所以可进一步简化为只执行Prepare阶段,而无需Accept.</p>
+<p>再进一步优化,与Raft协议不同,Multi Paxos并不要求新任leader本地拥有全部日志,因此新任leader与其他server相差了一些日志,他需要知道自己要补全那些日志.因此他要想多数派查询各个机器上的MaxLogD,以确认补全日志结束的LogID.这个操作称为GetMaxLogID,我们可以将这个操作与Prepare搭车一起发出.这个优化并非Multi Paxos的一部分,只是在一个工程比较有效的实现.</p>
+<p>回放逻辑的简化就比较好理解了,leader对每条形成多数派的日志,异步的写出一条”确认日志”即可,回放时如果一条日志拥有一条对应的”确认日志”,则不需要重新执行Paxos,直接放回即可.</p>
+<p>对于没有”确认日志”的,则需要重新执行Paxos.工程上为了避免”确认日志”和RedoLog距离过大而带来的复杂度,往往使用滑动窗口机制来控制他们的距离.同时”确认日志”也用来提示备机可以回放收到的日志了.与Raft协议不同,由于Multi Paxos允许日志不连续的确认(<font color="Coral">请思考:不连续确认的优势是什么?<font>),以及允许任何成员都可以当选leader,因此新任leader需要补全自己本地确缺失的日志,以及对未确认的日子重新执行Paxos.我把这个过程叫做日志的”重确认”,本质上就是按照”最大Commit原则”,使用当前的Proposlid,逐条对这些日志重新执行Paxos,成功后再补上对应的”确认日志”.</font></font></p>
+<p>相对于Raft协议连续性确认的特性,使用Multi Paxos同步日志,由于多条日志间允许乱序确认,理论上会出现一种被我们团队同学戏称为”幽灵复现”的诡异现象:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/paxos1.png" alt="paxos1" title="paxos1"></p>
+<p>第一轮中A被选为leader,写下了1-10号日志,其中1-5号日志形成了多数派,并且已给客户端应答,而对于6-10号日志,客户端超时未能得到应答.</p>
+<p>第二轮中,A宕机,B被选为leader,由于B和C的最大LogID都是5,因此B不会去重新确认6-10好日志,而是从6开始写新的日志,此时如果客户端来查询的话,是查询不到上一轮6-10号日志内容的,此后第二轮又写入了6-20号日志,但是只有6号和20号日志在多数派.</p>
+<p>第三轮中,A又被选为leader,从多数派中得到最大LogID为20,因此要将7-20号日志重新确认其中就包含了A上的7-10号日志,之后客户端再来查询的话,会发现上次查询不到的7-10号日志又像幽灵一样重新出现了.</p>
+<p>处理”幽灵复现”的问题,需要信任leader在完成日志重确认,开始写入新的RedoLog之前,写出一条StartWorking的日志,这条日志的内容中记录了当前leader的EpochID(可以使用Responsalid的值),并且leader每写一条日志都在日志内容中携带现在leader的EpochID.回放时,经过一条StartWroking日志之后,再遇到EpochID比他小的日志,就直接忽略掉,比如按照上面例子画出下图,7-19号日志要在回放时被忽略掉:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/paxos2.png" alt="paxos2" title="paxos2"></p>
+<h2 id="依赖时钟误差的变种Paxos选主协议简单分析">依赖时钟误差的变种Paxos选主协议简单分析</h2><p>阿里的阳振坤老师根据Paxos协议设计了一个简化版本的选主协议,相对Multi Paxos和Raft协议优势在于,他不需要持久化任何数据,引入选主窗口的概念,使得大部分场景下集群内的所有机器几乎能够同时发起选主请求,便于投票时对比预定的优先级,下面的图引用自OB团队在公开场合分享PPT中的图片:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/paxos3.png" alt="paxos3" title="paxos3"></p>
+<p>如图所示,选主协议规定选主窗口开启是当前时间是对一个T去余为0的时间,即,只能在,0,T,2T,3T…N*T的时间点上开启选主窗口,协议将以此选主划分为三个阶段:</p>
+<ol>
+<li>T1预投票开始即由各个选举组成员向集群里的其他机器发送拉票请求</li>
+<li>一段时间后进入T2预投票开始,选举组根据各个成员接收到的拉票请求,从中选出优先级最高的,给他投票应答</li>
+<li>一段时间后进入T3机票阶段,收到多数派成员投票的成员称为leader,并向投票组其他成员发送自己上任的消息</li>
+</ol>
+<p>假设时钟误差最大为Tdiff,网路传输单程最长耗时为Tst:</p>
+<ol>
+<li>收到预投票消息的时间区间 [T1 - Tdiff × 2，T1 + Tdiff × 2 + Tst = T2]</li>
+<li>收到投票消息的时间区间 [T2 - Tdiff×2，T2 + Tdiff × 2 + Tst = T3]</li>
+<li>收到广播消息的时间区间 [T3 - Tdiff×2，T3 + Tdiff × 2 + Tst = T4]</li>
+<li>选主耗时 Telect = T4-T1 = Tdiff × 6 + Tst × 3</li>
+</ol>
+<p>因此最差情况下,选主开始后,经过  Tdiff × 6 + Tst × 3 的 d 时间,就可以选出leader各个成员投出选票后,就从自己的T1时刻开始计时,认为leader持续lease时间内有效,在lease有效期内,Leader每隔Telect的时间就向其他成员发出续约请求,将lease时间顺延一个Telect,若果lease过期后leader没有续约,各个成员等待下一个选主窗口到来后发起选主.因此最差情况的无主时间是: Lease 时间 + Telect + 选主窗口间隔时间 T.</p>
+<p>这个选主算法对于Paxos和Raft更加简单,但是对时钟误差有比较强的依赖,时钟误差过大的情况下,会造成投票分裂无法选出主,甚至可能出现双主(不过话说任何保持 Leader 身份的 Lease 机制都得依赖时钟…),因此仅仅适合BAT这种配备原子钟和GPS校准时钟,能够控制始终误差在100ms以内的土豪机房.2015年闰秒时,这个选主算法已经上线支付宝,当时测了几个月吧,1秒的跳变已经太大,修改ntp配置缓慢校准,最后平稳过渡.</p>
+<h2 id="Q&amp;A">Q&amp;A</h2><h3 id="Zookeeper使用的Zab协议与Paxos协议有什么不同">Zookeeper使用的Zab协议与Paxos协议有什么不同</h3><ol>
+<li>Zab用的是Epoch和Count的组合来表示一个唯一值,而Raft用的是term和index</li>
+<li>Zab的Follower在投给一个leader之前必须和leader的日志达成一致,而Raft的Follower则简单的说是谁的term高就投给谁</li>
+<li>Raft协议的心跳是从Leader到Follower,而Zab协议相反</li>
+<li>Raft协议数据只能单向的从leader到follower(称为leader的条件之一就是拥有最新的Log),而Zab在Discovery阶段,一个Postpective leader需要将自己的log更新为Quorum里面最新的log,然后才好在Synchronization阶段将Quorum里其他机器的log都同步到一致.</li>
+</ol>
+<h3 id="Paxos能完成全球同步的业务吗,理论上支持多少机器同步">Paxos能完成全球同步的业务吗,理论上支持多少机器同步</h3><p>Paxos成员组横跨全球的案例我还没有见过paper,我个人认为它并不适合全球同步,原因是延迟太大,但是Google的Spanner和Amazon的Aurora完成了横跨北美多个IDC的同步,理论上多少都行,你能接受延迟就可以.</p>
+<h3 id="Paxos实现是独立的库或服务还是和具体的业务逻辑绑定,上线前如何验证Paxos算法实现的正确性">Paxos实现是独立的库或服务还是和具体的业务逻辑绑定,上线前如何验证Paxos算法实现的正确性</h3><p>OB实现的Paxos适合事务RedoLog库比较紧耦合的,没有独立的库.测试方案是一个Monkey tess,随机模拟各种异常环境,包括断网,网络延迟,服务宕机,包重复到达等情况保持压力和异常.另外一个是做了一个简单的虚拟机,来解释测试Case,通过人工构造各种极端的场景,来使系统立即进入一个梦境.</p>
+<h3 id="LogID和Proposalid都应该是不能重复的,这个是如何保证的,原子钟的精确性仅仅是为了选主吗">LogID和Proposalid都应该是不能重复的,这个是如何保证的,原子钟的精确性仅仅是为了选主吗</h3><p>首先,Leader任期内,LogID是由leader产生,没有重复性.其次,Leader产生后,会执行GetMaxLogID,从集群多数派拿到最大的LogID,加一后最为本届任期内的LogID起点,这也可以保证LogID不重复.Proposalid,高位使用64为时间戳,低位使用IP地址,可以保证唯一性和递增性.</p>
+<h3 id="在Paxos做Mater和Slave一致性保证时,Paxos日志回放应该怎么去做">在Paxos做Mater和Slave一致性保证时,Paxos日志回放应该怎么去做</h3><p>Master形成多数派确认后,异步的写出”确认日志”,Slave放到确认日志之后,才能去回放收到的正常日志.因此一般情况下,备机总是要落后主机一点点的.</p>
+<p><a href="http://mp.weixin.qq.com/s?__biz=MzAwMDU1MTE1OQ==&amp;mid=403582309&amp;idx=1&amp;sn=80c006f4e84a8af35dc8e9654f018ace&amp;3rd=MzA3MDU4NTYzMw==&amp;scene=6#rd" title="李凯: 架构师需要了解的Paxos原理、历程及实战" target="_blank" rel="external">李凯: 架构师需要了解的Paxos原理、历程及实战</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Paxos/" rel="tag">#Paxos</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/10/Simple-Kafka/" rel="prev">Simple Kafka</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/09/Simple-Flume-NG/" rel="next">Simple Flume-NG</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">84</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据库高可用性难题"><span class="nav-number">1.</span> <span class="nav-text">数据库高可用性难题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Paxos协议简单回顾"><span class="nav-number">2.</span> <span class="nav-text">Paxos协议简单回顾</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#第一阶段Prepare"><span class="nav-number">2.1.</span> <span class="nav-text">第一阶段Prepare</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第二阶段Accept"><span class="nav-number">2.2.</span> <span class="nav-text">第二阶段Accept</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic_Paxos同步日志的理论模型"><span class="nav-number">3.</span> <span class="nav-text">Basic Paxos同步日志的理论模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Multi_Paxos的应用"><span class="nav-number">4.</span> <span class="nav-text">Multi Paxos的应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#依赖时钟误差的变种Paxos选主协议简单分析"><span class="nav-number">5.</span> <span class="nav-text">依赖时钟误差的变种Paxos选主协议简单分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Q&A"><span class="nav-number">6.</span> <span class="nav-text">Q&A</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Zookeeper使用的Zab协议与Paxos协议有什么不同"><span class="nav-number">6.1.</span> <span class="nav-text">Zookeeper使用的Zab协议与Paxos协议有什么不同</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Paxos能完成全球同步的业务吗,理论上支持多少机器同步"><span class="nav-number">6.2.</span> <span class="nav-text">Paxos能完成全球同步的业务吗,理论上支持多少机器同步</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Paxos实现是独立的库或服务还是和具体的业务逻辑绑定,上线前如何验证Paxos算法实现的正确性"><span class="nav-number">6.3.</span> <span class="nav-text">Paxos实现是独立的库或服务还是和具体的业务逻辑绑定,上线前如何验证Paxos算法实现的正确性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LogID和Proposalid都应该是不能重复的,这个是如何保证的,原子钟的精确性仅仅是为了选主吗"><span class="nav-number">6.4.</span> <span class="nav-text">LogID和Proposalid都应该是不能重复的,这个是如何保证的,原子钟的精确性仅仅是为了选主吗</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在Paxos做Mater和Slave一致性保证时,Paxos日志回放应该怎么去做"><span class="nav-number">6.5.</span> <span class="nav-text">在Paxos做Mater和Slave一致性保证时,Paxos日志回放应该怎么去做</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
