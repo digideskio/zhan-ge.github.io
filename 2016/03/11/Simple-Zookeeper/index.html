@@ -1,0 +1,830 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Zookeeper," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Zookeeper的原理与实践">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Zookeeper">
+<meta property="og:url" content="http://yoursite.com/2016/03/11/Simple-Zookeeper/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Zookeeper的原理与实践">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/zk1.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/zk2.png">
+<meta property="og:updated_time" content="2016-03-12T10:27:47.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Zookeeper">
+<meta name="twitter:description" content="Zookeeper的原理与实践">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Zookeeper | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Zookeeper
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-11T14:39:32+08:00" content="2016-03-11">
+            2016-03-11
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>Zookeeper是一个分布式的,开发源码的分布式应用程序协调服务,它包含一个简单的原语集,分布式应用程序可以基于它实现同步服务,配置维护或命名服务等.</p>
+<p>其目的在于实现一种可靠的,可扩展的,分布式的,可配置的协调机制来统一系统的状态.</p>
+<h2 id="基本概念">基本概念</h2><h3 id="角色">角色</h3><p>Zookeeper中的角色基本有三类:</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Leader</td>
+<td style="text-align:left">领导者负责投票的发起和决议,更新系统状态</td>
+</tr>
+<tr>
+<td>Follower</td>
+<td style="text-align:left">跟谁者用于接收客户端请求并返回结果,在选主过程中发起投票</td>
+</tr>
+<tr>
+<td>ObSever</td>
+<td style="text-align:left">观察者可以接收客户端连接,将写请求转发给leader节点,但观察者不参与投票过程,只同步leader的状态.观察者的目的是为了扩展系统,提高读取速度</td>
+</tr>
+<tr>
+<td>Client</td>
+<td style="text-align:left">请求发起</td>
+</tr>
+</tbody>
+</table>
+<h3 id="设计目的">设计目的</h3><ol>
+<li>最终一致性: client无论连接到那个server,展示给他的都是同一个视图,这是zookeeper的最重要特性</li>
+<li>可靠性: 具有简单粗壮良好的性能,如果消息m被一台服务器接收,那么它将被所有服务器接收</li>
+<li>实时性: Zookeeper保证客户端将在一个时间间隔范围内获得服务器的更新信息,或者服务器失效的信息.但由于网络延迟等原因,Zookeeper不能保证两个客户端能同时得到刚更新的数据,如果需要最新数据,应该在读取数据之前调用sync().</li>
+<li>等待无关(wait-free): 慢的或者失效的client不得干预快速的client请求,使得每个client都能有效的等待.</li>
+<li>原子性: 更新只能成功或失败,没有中间状态</li>
+<li>顺序性: 包括全局有序或偏序两种.全局有序是指,如果消息a在消息b之前发送,则在所有服务器上消息a都在消息b之前发布.偏序是指,如果消息a在消息b只前被同一个发布者发布,a必将排在b前面.</li>
+</ol>
+<h2 id="数据模型">数据模型</h2><p>ZK会维护一个具有层次关系的数据结构,它非常类似于标准的文件系统:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/zk1.png" alt="数据模型" title="数据模型"></p>
+<p>这些数据结构有如下优点:</p>
+<ol>
+<li><p>每个子目录项,如NameService,被称为ZNode,这个ZNode被它所在的路径唯一标识,如Server1这个ZNode的标识为/NameService/Server1</p>
+</li>
+<li><p>ZNode可以有子目录节点,并且每个ZNode可以存储数据,注意EPHEMERAL(临时的)类型的目录节点不能有子节点</p>
+</li>
+<li><p>ZNode是有版本(version)的,每个ZNode存储的数据可以有多个版本,也就是一个访问路径中可以存储多份数据,version号自动增加</p>
+</li>
+<li><p>ZNode可以是临时节点(EPHEMERAL),可以是持久节点(PERSISTENT).如果创建的是临时节点,一旦创建EPHEMERAL的客户端与服务器失去联系,这个ZNode也将自动删除,zk的客户端和服务器采用长连接通信,每个客户端和服务器通过心跳保持连接,这个连接状态称为session,如果znode是临时节点,这个session失效,znode也就删除了.</p>
+</li>
+<li><p>znode的目录名可以自动编号,如APP1已经存在,在创建的话,会自动命名为APP2</p>
+</li>
+<li><p>znode可以被监控,包括这个节点中存储的数据的修改,子节点目录的变化等,一旦变化可以通知设置的客户端,这个事zk的核心特性,zk的很多功能都是基于这个特性实现的</p>
+</li>
+<li><p>ZXID,每次对zk的状态改变都会产生一个ZXID(Zookeeper Transaction ID),ZXID是全局有序的,如果zxid1小于zxid2,则zxid1在zxid之前发生</p>
+</li>
+</ol>
+<h2 id="Zookeeper_Session">Zookeeper Session</h2><p>Client和zk集群建立连接,整个session状态变化如图所示:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/zk2.png" alt="Session状态" title="Session状态"></p>
+<p>如果Client因为timeout可zk失去连接,client处于connecting状态,会自动尝试再去连接ZK,如果session有效期内成功连接到某个server,咋回到connected状态.</p>
+<p>注意: 如果网络状态不好,client和server失去连接,client会停留在当前状态,会主动尝试再次连接zk,client不能宣称自己的session expired,session expired是由ZK server决定的,client可以选择自己主动关闭session.</p>
+<h2 id="Zookeeper_Watch">Zookeeper Watch</h2><p>ZK Watch是一种监听通知机制,ZK的所有读操作getData(),getChildren(),exists()都可以设置监视(watch),监视时间可以理解为一次性的触发器,官方定义如下: a watch event is one-time trigger, sent to the client that set the watch, whichoccurs when the data for which the watch was set changes.</p>
+<p>Watch的三个关键点:</p>
+<ol>
+<li><p>一次性触发,one time trigger,当设置监视的数据发生变化时,监视时间会被发送到客户端,例如客户端调用了getData(“/znode1”, true),并且稍后znode1上的数据发生了改变或者被删除,客户端将会获取到/znode1发生变化的监视事件,而如果znode1再次发生了变化,除非客户端再次对zonde1设置监视,否则客户端不会收到事件通知.</p>
+</li>
+<li><p>发送至客户端,send to client.ZK客户端和服务端是通过socket通信的,由于网络存在故障,所以监视事件很可能不能成功的到达客户端,监视事件是异步发送至监视者的,ZK本身提供了顺序保证(ordering guarantee): 即客户端只有首先看到了监视事件后,才会感知到它所设置监视的znode发生了变化.网络延迟或其他因素可能导致不同的客户端在不同的时刻感知某一监视事件,但是不同的客户端所看到的一切具有一致的顺序.</p>
+</li>
+<li><p>被设置watch的数据,the data for which the watch set.这意味着znode本省具有不同的改变方式.你可以想象zk维护了两条监视链表: 数据监视和子节点监视.getData()和exists()设置数据监视,getChildren()设置子节点监视.或者可以想象ZK设置的不同监视返回不同的数据,getdata和exists返回节点的相关信息,getChildren返回子节点列表.因此,setData()会触发设置在某一节点上的数据监视,而一次成功的create()操作会则会发出当前节点上设置的数据监视和父节点的子节点监视.一次成功的delete()操作将会出发当前节点的数据监视和子节点监视事件,同时也会出发该节点父节点的child watch.</p>
+</li>
+</ol>
+<p>ZK中的监视是轻量级的,因此容易设置维护和分发.当客户端与ZK失去连接时,客户端并不会收到监视事件的通知,只有当客户端重新连接后,若在必要的情况下,以前注册的监视事件会重新被注册并触发,对于开发人员来说这通常是透明的.只有一种情况会导致监视事件的丢失: 即,通过exists()设置了某个znode节点的监视,但是如果客户端在该znode节点被创建和删除的事件间隔内与zk服务器失去了联系,该客户端及时稍后重新连接zk服务器也得不到事件通知.</p>
+<h2 id="工作原理">工作原理</h2><p>Zookeeper的核心是原子广播,这个机制保证了各个Server之间的同步,实现这个机制的协议为ZAB,ZAB协议有两种模式,恢复模式(选主)和广播模式(同步).当服务启动或者leader崩溃后,会进入恢复模式,当leader被选举出来,且大多数server完成了和leader的状态同步后,恢复模式就结束了.状态同步保证了leader和server具有相同的系统状态.</p>
+<p>为了保障事务的顺序一致性,zookeeper采用了递增的事务id号(zixd)来标识事务.所有的提议(proposal)都在被提出来时加上zxid.视线中zxid是一个64位数字,高32位是epoch用来标识leader关系是否改变,每次一个leader被选出来,epoch都会改变,标识当前leader的任期,低32位用于递增计数.</p>
+<p>每个server在工作中有三种状态:</p>
+<ol>
+<li>LOOKING: 当前server不知道leader是谁,正在搜寻</li>
+<li>LEADING: 当前server即为选举出来的leader</li>
+<li>FOLLOWING: leader已经选举出来,当前server与之同步</li>
+</ol>
+<h3 id="选主流程">选主流程</h3><p>当前leader崩溃或者leader失去了大多数的follower,这时候zk进入恢复模式,进而选出一个新的leader,让所有的server都恢复到一个正确状态.选举算法有两种,一种是基于basic paxos,一种是基于fast paxos,而zk正是使用的后者.</p>
+<p>与basic paxos不同的是,fast paxos是在选举过程中,某server首先向所有server提议自己要称为leader,当其他server收到提议以后,解决epoch和zxid冲突,并接受对方的提议,然后向对方发送接收提议完成的消息,重复这个流程,最后一定能选举出leader.</p>
+<h3 id="同步流程">同步流程</h3><p>选出leader以后,zk就进入状态同步过程:</p>
+<ol>
+<li>leader等待server连接</li>
+<li>follower连接leader,将最大的zxid发送给leader</li>
+<li>leader根据follower发送的zxid确认同步点</li>
+<li>同步完成后通知follower已经成为uptodate状态</li>
+<li>follower收到uptodate消息后,又可以重新接收client的请求进行服务了</li>
+</ol>
+<h3 id="Leader工作流程">Leader工作流程</h3><p>Leader主要有三个功能:</p>
+<ol>
+<li>恢复数据</li>
+<li>维持与follower和observe的心跳,接收他们的请求并判断其类型</li>
+<li>上面接收到的消息主要有PING消息,REQUEST消息,ACK消息,REVALIDATE消息,根据不同的消息类型进行对应的处理</li>
+</ol>
+<p>PING消息是learner的心跳信息,REQUEST消息是follower发送的提议信息,包括写请求和同步请求,ACK消息是follower对提议的回复,超过半数的follower通过,则commit提议,REVALIDATE消息是用来延长SESSION有效时间.</p>
+<h3 id="Follower的工作流程">Follower的工作流程</h3><p>Follower主要有4个功能:</p>
+<ol>
+<li>想leader发送请求(各种类型的消息)</li>
+<li>接收leader消息并进行处理</li>
+<li>接收client的请求,如果为写请求,发送给leader进行投票</li>
+<li>返回client结果</li>
+</ol>
+<p>Follower的消息循环处理如下几种来自leader的消息:</p>
+<ol>
+<li>PING消息: 心跳消息</li>
+<li>PROPOSAL消息: leader发起的投票,要求follower进行投票</li>
+<li>COMMIT消息: 服务器端最新一次提案的信息</li>
+<li>UPTODATE消息: 表明同步完成</li>
+<li>REVALIDATE消息: 根据leader的REVALIDATE结果,关闭该REVALIDATE的session还是允许其接受消息</li>
+<li>SYNC消息: 返回SYNC结果到客户端,这个消息最初由客户端发起,用来强制得到最新的更新.</li>
+</ol>
+<h2 id="Client_API">Client API</h2><p>Zookeeper Client Liarbry 提供了丰富的API供客户端使用,下面是一些常用的API:</p>
+<ol>
+<li><p>create(path, data, flags): 创建一个ZNode,path是其路径,data是要存储在该ZNode上的数据,flags常用的有:PERSISTEN, PERSISTENT_SEQUENTAIL, EPHEMERAL, EPHEMERAL_SEQUENTAIL</p>
+</li>
+<li><p>delete(path, version): 删除一个ZNode,可以通过version制定删除的版本,如果version是-1的话表示删除所有版本</p>
+</li>
+<li><p>exists(path, watch): 判断制定的ZNode是否存在,并设置是否Watch这个ZNode.这里如果设置watcher的话,watcher是在创建zookeeper实例时制定的,如果要设置特定的watcher的话,可以调用另外一个重载版本的exists(path, watcher),以下几个带watcher的API也是类似.</p>
+</li>
+<li><p>getData(path, watch): 读取指定ZNode上的数据,并设置是否watch这个ZNode</p>
+</li>
+<li><p>setData(path, watch): 设置指定ZNode上的数据,并设置是否watch这个ZNode</p>
+</li>
+<li><p>getChildren(path, watch): 获取指定ZNode的所有子ZNode的名字,并设置是否watch这个ZNode</p>
+</li>
+<li><p>sync(path): 把所有在sync之前的更新操作进行同步,达到每个请求都在半数以上的zookeeper server上生效,path参数目前没有用</p>
+</li>
+<li><p>setAcl(path, acl): 设置指定ZNode的acl信息</p>
+</li>
+<li><p>getAcl(path): 获取指定ZNode的acl信息</p>
+</li>
+</ol>
+<h2 id="典型应用场景">典型应用场景</h2><h3 id="名字服务,NameService">名字服务,NameService</h3><p>分布式应用中,通常需要一套完备的命名机制,技能产生唯一的标识,又方便人识别和记忆.上面提到,每个znode都可由由其路径唯一标识,路径本身也比较简洁直观,另外znode上还可以存储少量数据,这些都是实现NameService的基础.</p>
+<h3 id="配置管理,Configuration_Management">配置管理,Configuration Management</h3><p>在分布式系统中,通常都会遇到这样的场景:某个job的很多实例在运行,他们在运行时大多数配置项也是相同的,如果想要统一改某个配置,逐个实例去改的话比较低效,也比较容易出错.通过zk能够很好的解决这个问题.</p>
+<ol>
+<li>将公共的配置内容放到zk的某个znode上,比如/service/common-conf</li>
+<li>所有的实例在启动时都会传入zk集群的入口地址,并且在运行过程中Watch /service/common-conf这个znode</li>
+<li>如果集群管理员修改了这个common-conf,所有实例都会被通知到,各实例根据收到的通知修改自己的配置,并继续Watch /service/common-conf</li>
+</ol>
+<h3 id="组员管理,Group_Membership">组员管理,Group Membership</h3><p>在典型的master-slave结构的分布式系统中,master需要作为总管来管理所有的slave,当有slave加入或者slave宕机,master都需要感知这个事件,然后做出对应的调整,以便不影响整个集群对外提供服务.以HBase为例,HMaster管理了所有的RegionServer,当有新的RegionServer加入的时候,HMaster需要分配一些新的Region到该RegionServer上去,让其提供服务;当有RegionServer宕机时HMaster需要将该RegionServer之前服务的Region都重新分配到当前正在提供服务的其他RegionServer上去,以便不影响客户端的正常访问.下面是设置的基本步骤:</p>
+<ol>
+<li>Master在ZK上创建/service/slaves节点,并设置对该节点Watch</li>
+<li>每个Slave在成功启动后,创建唯一标识自己的临时节点 /service/slaves/${slave_id},并将自己的host:port等相关信息写入节点</li>
+<li>Master收到有新节点加入的通知时,做相应的处理</li>
+<li>如果有Slave宕机,由于它所对应的节点是临时性节点,在它的session超时后,zk会自动删除该节点</li>
+<li>Master收到有子节点消息的通知,做相应的处理</li>
+</ol>
+<h3 id="简单互斥锁,Simple_Lock">简单互斥锁,Simple Lock</h3><p>我们的知识,在传统的应用程序中,线程,进程的同步,都可以使用操作系统提供的机制来完成.但是在分布式系统中,多个进程之间的同步,操作系统层面就无能为力了.这时候就需要向ZK这样的分布式的协调服务来协助完成同步,下面是用ZK时间简单的互斥锁的的步骤,这个可以和线程间同步的mutex做类比来理解:</p>
+<ol>
+<li>多个进程尝试去在指定的目录下去创建一个临时性节点/locks/my_lock</li>
+<li>ZK能保证,只会有一个进程成功创建该节点,创建成功的节点就是抢到锁的进程,假设该进程为A</li>
+<li>其他进程都对/locks/my_lock进行Watch</li>
+<li>当A进程不再需要锁,可以显式的删除该节点释放锁,此时,其他节点就会收到ZK的通知,并尝试去创建该节点抢锁,如此循环反复</li>
+</ol>
+<h3 id="互斥锁,Simple_Lock_without_Herd_Effect">互斥锁,Simple Lock without Herd Effect</h3><p>上面的例子中有一个问题,每次抢锁都会有大量的进程去竞争,会造成羊群效应(Herd Effect),为了解决这个问题,我们可以通过下面的步骤来改进上述过程:</p>
+<ol>
+<li>每个进程都在ZK上创建一个临时的顺序节点/locks/lock_${seq}</li>
+<li>${seq}最小的为当前的持锁者,(${seq}是ZK生成的Sequential Number)</li>
+<li>其他进程都只watch比他小的的进程的对应节点,比如2 watch 1, 3 watch 2,以此类推</li>
+<li>当前持锁者释放后,比他次大的进程就会收到ZK的通知,成为新的持锁者,如此村环往复</li>
+</ol>
+<p>这里需要补充一点,通常在分布式系统中用ZK来做选主就是通过上面的机制来实现的,这里的持锁者就是当前的”主”.</p>
+<h3 id="读写锁,Read/Write_Lock">读写锁,Read/Write Lock</h3><p>我们知道,读写锁跟互斥锁相比不同的地方是,它分成了读和写两种模式,多个读可以并发执行,但写和读写都互斥,不能同时执行.利用ZK,在上面的基础上,稍作修改也能实现传统的读写锁的语义,下面是基本步骤:</p>
+<ol>
+<li>每个进程都在ZK上创建一个临时的顺序节点/locks/lock_${seq}</li>
+<li>${seq}最小的一个或多个节点为当前的持锁者,多个是因为多个读可以并发</li>
+<li>需要写锁的进程,Watch比他次小的进程对应的节点</li>
+<li>当前节点释放后,所有watch该节点的进程都会被通知到,他们成为新的持锁者,如此循环反复</li>
+</ol>
+<h3 id="屏障,Barrier">屏障,Barrier</h3><p>在分布式系统中,屏障是这样一种语义: 客户端需要多个进程完成各自的任务,然后才能继续往前进行下一步,下面是使用ZK来实现屏障的基本步骤:</p>
+<ol>
+<li>Client在ZK上创建屏障节点/barrier/my_barrier,并启动执行各个任务的进程</li>
+<li>Client通过exists()来watch节点/barrier/my_barrier</li>
+<li>每个任务进程在完成任务后,去检查是否达到指定的条件,如果没有达到就什么也不做,如果达到了就把上面的节点删除</li>
+<li>Client收到节点被删除的通知,屏障消失,继续下一步任务</li>
+</ol>
+<h3 id="双屏障,Double_Barrier">双屏障,Double Barrier</h3><p>双屏障是这样一种语义: 它可以用来同步一个任务的开始和结束,当有足够多的进程进入屏障后,才开始执行任务,当所有的进程都完成各自的任务后,屏障才撤销.下面是ZK实现双屏障的基本步骤:</p>
+<p>进入屏障:</p>
+<ol>
+<li>Client watch 节点/barrier/ready,通过该节点是否存在来决定是否启动任务</li>
+<li>每个任务进程进入屏障时创建一个临时节点/barrier/process/${process_id},然后检查进入屏障的节点数是否到达指定的值,如果达到了指定的值,就闯将一个/barrier/ready节点,否则继续等待</li>
+<li>Client 收到/barrier/ready创建的通知,就启动任务执行过程</li>
+</ol>
+<p>离开屏障:</p>
+<ol>
+<li>Client watch节点 /barrier/process,如果没有子节点,就可以认为任务执行结束,可以离开屏障</li>
+<li>每个任务进程执行任务结束后,都需要删除自己对应的节点 /barrier/process/${process_id}</li>
+</ol>
+<h2 id="应用场景解析">应用场景解析</h2><h3 id="数据发布与订阅(配置中心)">数据发布与订阅(配置中心)</h3><p>发布与订阅模型,即所谓的配置中心,顾名思义就是发布者将数据发布到ZK节点上,供订阅者动态获取数据,实现配置信息的集中式管理和动态更新.例如全局的配置信息,服务式服务框架的服务地址列表等就非常适合使用.</p>
+<ol>
+<li><p>应用中用到的一些配置信息放到ZK上进行集中管理,这类场景通常是这样:应用在启动的时候会主动来获取一次配置,同时,在节点上注册一个watcher,这样一来,以后每次配置有更新的时候,都会实时通知到订阅的客户端,从而达到获取最新配置信息的目的.</p>
+</li>
+<li><p>分布式搜索服务中,索引的元信息和服务器集群机器的节点状态存放在ZK的一些指定节点,供各个客户端订阅使用</p>
+</li>
+<li><p>分布式日志收集系统.这个系统的核心是收集分布在不同机器的日志.收集器通常是按照应用来分配收集任务单元,因此需要在ZK上创建一个应用名作为path的节点P,并将这个应用的所有机器IP,以子节点的形式注册到节点P上,这样一来就能够实现机器变动的时候,能够实时通知到收集器调整任务分配</p>
+</li>
+<li><p>系统中有些信息需要动态获取,并且还会存在人工修改这个信息的行为.通常是暴露出接口,例如JMX接口,来获取一些运行时信息.引入ZK后,就不用自己实现一套方案了,只要将这些信息放到指定的ZK节点上即可.</p>
+</li>
+</ol>
+<p>注意,上面的场景中应用的前提是,数据很小,但是数据的更新可能很快.</p>
+<h3 id="负载均衡">负载均衡</h3><p>这里所说的是软负载均衡.在分布式环境中,为了保证高可用性,通常同一个应用或同一个服务的提供方都会部署多份,达到对等服务.而消费者就需要在这些对等服务器中选择一个执行相关的业务逻辑,其中比较典型的就是消息中间件中的生产者,消费者负载均衡.</p>
+<p>消息中间件中发布者和订阅者的负载均衡,LinkedIn开源的KakfaMQ和阿里开源的metaq都是通过ZK来做生产者与消费者的负载均衡,这里以metaq来解释:</p>
+<p>生产者负载均衡: metaq发消息的时候,生产者在发送消息的时候必须选择一台broker上的一个分区来发送消息,因此metaq在运行过程中,会把所有broker和对应的分区信息全部注册到指定的ZK节点上,默认的策略是一个依次轮询的过程,生产者在通过ZK获取到分区列表之后,会按照brokerid和partition的顺序排列成一个有序的分区列表,发送的时候按照从头到尾循环往复的方式选择一个分区来发送消息.</p>
+<p>消费者负载均衡: 在消费的过程中,一个消费者会消费一个或多个分区的消息,但是一个分区只会由一个消费者消费.metaq的策略是:</p>
+<ol>
+<li>每个分区针对同一个group只挂载一个消息</li>
+<li>如果同一个group的消费者数目大于分区数目,则多出来的消费者不参与消费</li>
+<li>如果同一个group的消费者数目小于分区数目,则有部分消费者需要额外承担消费任务</li>
+</ol>
+<p>在某个消费者故障或重启等情况下,其他消费者会感知到这一变化(通过ZK的watch消费者列表),然后重新进行负载均衡,保证所有的分区都有消费者在消费.</p>
+<h3 id="命名服务">命名服务</h3><p>命名服务也是分布式系统中常见的场景.在分布式系统中,通过使用命名服务,客户端应用能够根据指定名字来获取资源或服务的地址,提供者等信息.被命名的机器通常是集群中的机器,提供的服务地址,远程对象等等,这些我们都可以统称为名字(name).其中较为常见的就是一些分布式服务框架中的服务地址列表.通过调用ZK提供的创建节点的API,能够容易的创建一个全局唯一的path,这个path就可以作为一个名称.</p>
+<p>阿里开源的分布式服务框架dubbo中使用ZK来作为其命名服务,维护全局的服务地址列表,在dubbo的实现中:</p>
+<p>服务提供者 在启动的时候,向ZK的指定节点 /dubbo/${ServiceName}/providers目录下写入自己的URL地址,这个操作就完成了服务的发布.</p>
+<p>服务消费者 启动的时候,订阅/dubbo/${ServiceName}/providers目录下提供的URL地址,并向 /dubbo/${ServiceName}/consumers目录下写入自己的URL地址.</p>
+<p>注意: 所有在ZK上注册的地址都是临时节点,这样既能够保证服务提供者和服务消费者,能够自动感应资源的变化.</p>
+<p>另外,dubbo还有针对服务粒度的监控,方法是订阅/dubbo/${ServiceName}目录下所有生产者和消费者信息.</p>
+<h3 id="分布式通知/协调">分布式通知/协调</h3><p>ZK中特有Watcher注册和异步通知机制,能够很好的实现分布式环境下不同系统之间的通知与协调,实现对数据变更的实时处理.使用方法通常是不同系统都对ZK上同一个节点进行注册,监听znode变化(包括znode本身与子节点),其中一个系统update了znode,那么另一个系统就能够收到通知,并作出相应处理.</p>
+<ol>
+<li>另一种心跳检测机制: 检测系统和被检测系统之间并不直接关联起来,而是通过ZK上某个节点关联,大大减少系统耦合</li>
+<li>另一种系统调度模式: 某系统有控制台和推送系统两部分组成,控制台的职责是控制推送系统进行相应的推送工作.管理人员在在控制台做的一些操作,实际上是修改了ZK上一些节点的状态,而ZK就把这些变化通知给他们注册watcher的客户端,即推送系统,于是做出相应的推送任务</li>
+<li>另一种工作汇报模式: 一些类似于任务分发系统,子任务启动后,到ZK注册一个临时节点,并且定时把自己的进度进行汇报(将进度写回这个临时节点),这样任务管理者就能实时知道任务进度.</li>
+</ol>
+<p>总之,使用ZK来进行通知和协调能大大降低系统之间的耦合.</p>
+<h3 id="集群管理与Master选举">集群管理与Master选举</h3><h4 id="集群机器监控">集群机器监控</h4><p>通常用于那些对集群中机器状态,机器在线率有较高要求的场景,能够快速对集群中机器变化做出响应.这样的场景中,往往有一个监控系统,实时监测集群机器是否存活.过去的做法通常是: 监控系统通过各种手段(例如ping)定时监测每个机器,或者每个机器定时向系统汇报”我还活着”,这种方法虽可行,但是也存在两个问题,集群中机器有变动的时候,牵连修改的东西比较多,然后是延时较大.</p>
+<p>利用ZK有两个特性,就可以实现另一种集群机器存活性监控系统:</p>
+<ol>
+<li>客户端在节点x上注册一个watcher,那么若果z的子节点变化了,会通知客户端</li>
+<li>创建EPHEMERAL类型的节点,一旦客户端和服务器的会话结束或过期那么该节点就会消失</li>
+</ol>
+<p>例如: 监控系统在 /clusterServers节点上注册一个watcher,以后每动态加机器,那么久往该节点下添加一个EPHEMERAL类型的节点: /clusterServers/{hostname}.这样监控系统就能实时知道机器的增减情况,至于后续处理就是监控系统的业务了.</p>
+<h4 id="Master选举">Master选举</h4><p>是ZK中最为经典的应用场景.在分布式环境中,相同的业务应用分布在不同的机器上,有些业务逻辑(如耗时计算,IO处理),往往只需要让集群中的一台机器进行处理,其余机器可以共享这个结果,这样可以大大减少重复劳动,提高性能,于是这个master选举便是这种场景下碰到的主要问题.</p>
+<p>利用ZK的强一致性,能够保证分布式高并发情况下节点创建的全局唯一性,即: 同时有多个客户端请求创建/currentMaster节点,最终一定只有一个客户端请求能够创建成功.利用这个特性,就能很轻易的在分布式环境中进行集群选举了.</p>
+<p>另外,这种场景演化一下,就是动态master选举,这就要用到EPHEMERAL_SEQUENTIAL类型节点的特性.</p>
+<p>上文中提到,所有客户端创建请求,最终只有一个能够创建成功,在这里稍微变化下,就是允许所有请求都能创建成功,但是得有个创建顺序,于是把所有的请求最终在ZK上创建结果的一种可能情况是这样: /currentMaster/{sessionId}-1, /currentMaster/{sessionId}-2, /currentMaster/{sessionId}-3 …., 每次选取序号最小的那个机器作为master,如果这个机器挂了,由于他创建的节点会消失,那么之后最小的就是Master了.</p>
+<ol>
+<li><p>在搜索系统中,如果每个机器都生成一份全量索引,不仅耗时,而且不能保证彼此间数据一致.因此集群中master来进行全量索引的生成,然后同步到集群中其他机器.另外,master选举的容灾措施是,可以随时进行手动指定master,就是说,应用在zk无法获取master信息时,可以通过比如http方式,向一个地方获取master</p>
+</li>
+<li><p>在HBase中,也是使用ZK来实现动态HMaster的选举.在HBase实现中,会在ZK上存储一些ROOT表的地址和HMaster地址,HRegionServer也会把自己以临时节点的方式注册到ZK,使得HMaster可是随时感知到HRegionServer的存活状态,同时,一旦HMaster出现问题,会重新选出一个HMaster来运行,从而避免单点问题.</p>
+</li>
+</ol>
+<h3 id="分布式锁">分布式锁</h3><p>分布式锁,这个主要得益于ZK为我们保证了数据的强一致性.锁服务可以分为两类,一种是 保持独有, 一种是 控制时序.</p>
+<ol>
+<li><p>所谓保持独有,就是所有试图来获取这个锁的客户端,最终只有一个可以成功获得这把锁.通常的做法是在ZK上的一个znode看做是一把锁,通过create()方式来实现,所有客户端都去创建/distrbute_lock节点,最终成功创建的客户端即拥有了这把锁.</p>
+</li>
+<li><p>控制时序,就是所有试图来获取这个锁的客户端,最终都是会被安排执行,只是有个全局时序了.做法和上面基本类似,这里是 /distrbute_lock预先存在,客户端在他下面创建临时有序节点(可以通过节点的属性控制:CreateMode.EPHEMERAL_SEQUENTIAL来指定),ZK的父节点维持一份sequence,保证子节点创建的时序性,从而形成了每个客户端的全局时序.</p>
+</li>
+</ol>
+<h3 id="分布式队列">分布式队列</h3><p>队列方面简单的讲有两种,一种是常规的FIFO,另一种是要等待队列成员聚齐之后才能统一按序执行.对于第一种,和分布式锁中的控制时序原理一致不再赘述.</p>
+<p>第二种队列其实就是在FIFO队列上做了一个增强,通常可以在/queue这个znode上预先建立一个/queue/num节点,并赋值为n(或者直接给/queue赋值),表示队列大小,以后每次有队列成员加入后,对队列大小进行判断,根据数量判断是否决定执行.</p>
+<p>这种用法的典型场景是,分布式环境中,一个大任务Task A,需要在许多子任务(或条件就绪)完成的情况下才能进行,这个时候,凡是其中的一个子任务就绪,那么就去/taskList下面创建自己的临时时序节点(CreateMode.EPHEMERAL_SEQUENTIAL),当/taskList发现自己下面的子节点满足指定个数,就可以进行下一步按序进行处理了.</p>
+<h2 id="参考列表">参考列表</h2><p><a href="http://www.cnblogs.com/luxiaoxun/p/4887452.html" title="阿凡卢: ZooKeeper基本原理" target="_blank" rel="external">阿凡卢: ZooKeeper基本原理</a><br><a href="http://www.wuzesheng.com/?p=2609" title="小武哥: ZooKeeper原理及使用" target="_blank" rel="external">小武哥: ZooKeeper原理及使用</a><br><a href="http://cailin.iteye.com/blog/2014486/" title="javafan_303" target="_blank" rel="external">javafan_303</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Zookeeper/" rel="tag">#Zookeeper</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/12/Simple-Akka-Supervision-and-Monitoring/" rel="prev">Simple Akka: Supervision and Monitoring</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/11/How-to-Collect-the-APP-Log/" rel="next">How to Collect the APP Log</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">89</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">36</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本概念"><span class="nav-number">1.</span> <span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#角色"><span class="nav-number">1.1.</span> <span class="nav-text">角色</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设计目的"><span class="nav-number">1.2.</span> <span class="nav-text">设计目的</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据模型"><span class="nav-number">2.</span> <span class="nav-text">数据模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Zookeeper_Session"><span class="nav-number">3.</span> <span class="nav-text">Zookeeper Session</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Zookeeper_Watch"><span class="nav-number">4.</span> <span class="nav-text">Zookeeper Watch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作原理"><span class="nav-number">5.</span> <span class="nav-text">工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#选主流程"><span class="nav-number">5.1.</span> <span class="nav-text">选主流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#同步流程"><span class="nav-number">5.2.</span> <span class="nav-text">同步流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader工作流程"><span class="nav-number">5.3.</span> <span class="nav-text">Leader工作流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Follower的工作流程"><span class="nav-number">5.4.</span> <span class="nav-text">Follower的工作流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Client_API"><span class="nav-number">6.</span> <span class="nav-text">Client API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#典型应用场景"><span class="nav-number">7.</span> <span class="nav-text">典型应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#名字服务,NameService"><span class="nav-number">7.1.</span> <span class="nav-text">名字服务,NameService</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置管理,Configuration_Management"><span class="nav-number">7.2.</span> <span class="nav-text">配置管理,Configuration Management</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组员管理,Group_Membership"><span class="nav-number">7.3.</span> <span class="nav-text">组员管理,Group Membership</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#简单互斥锁,Simple_Lock"><span class="nav-number">7.4.</span> <span class="nav-text">简单互斥锁,Simple Lock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#互斥锁,Simple_Lock_without_Herd_Effect"><span class="nav-number">7.5.</span> <span class="nav-text">互斥锁,Simple Lock without Herd Effect</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#读写锁,Read/Write_Lock"><span class="nav-number">7.6.</span> <span class="nav-text">读写锁,Read/Write Lock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#屏障,Barrier"><span class="nav-number">7.7.</span> <span class="nav-text">屏障,Barrier</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#双屏障,Double_Barrier"><span class="nav-number">7.8.</span> <span class="nav-text">双屏障,Double Barrier</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#应用场景解析"><span class="nav-number">8.</span> <span class="nav-text">应用场景解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据发布与订阅(配置中心)"><span class="nav-number">8.1.</span> <span class="nav-text">数据发布与订阅(配置中心)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡"><span class="nav-number">8.2.</span> <span class="nav-text">负载均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命名服务"><span class="nav-number">8.3.</span> <span class="nav-text">命名服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分布式通知/协调"><span class="nav-number">8.4.</span> <span class="nav-text">分布式通知/协调</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#集群管理与Master选举"><span class="nav-number">8.5.</span> <span class="nav-text">集群管理与Master选举</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#集群机器监控"><span class="nav-number">8.5.1.</span> <span class="nav-text">集群机器监控</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Master选举"><span class="nav-number">8.5.2.</span> <span class="nav-text">Master选举</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分布式锁"><span class="nav-number">8.6.</span> <span class="nav-text">分布式锁</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分布式队列"><span class="nav-number">8.7.</span> <span class="nav-text">分布式队列</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考列表"><span class="nav-number">9.</span> <span class="nav-text">参考列表</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

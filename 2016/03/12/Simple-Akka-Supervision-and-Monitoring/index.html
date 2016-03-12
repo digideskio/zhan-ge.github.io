@@ -1,0 +1,669 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Akka,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Akka的管理和监控">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Akka: Supervision and Monitoring">
+<meta property="og:url" content="http://yoursite.com/2016/03/12/Simple-Akka-Supervision-and-Monitoring/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Akka的管理和监控">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/actor-supervisor-1.png">
+<meta property="og:updated_time" content="2016-03-12T13:22:42.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Akka: Supervision and Monitoring">
+<meta name="twitter:description" content="Akka的管理和监控">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Akka: Supervision and Monitoring | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Akka: Supervision and Monitoring
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-12T19:33:05+08:00" content="2016-03-12">
+            2016-03-12
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="What_Supervision_Means">What Supervision Means</h2><p>和在Akka Systems中描述的一样,supervision表示的是actor之间的依赖关系: 监督者委派任务给下级并对下属的错误事件进行相应.当下属发生错误(比如抛出异常),它会终止自己同时它的所有下属会给他们的监管者发送一个错误信号(message).根据监管性质和错误性质,监管者有四种操作可以选择:</p>
+<ol>
+<li>恢复下属,同时保持它的内部状态</li>
+<li>重启下属,同时清空它的内部状态</li>
+<li>拥挤关闭下属</li>
+<li>将该错误升级自自身</li>
+</ol>
+<p>始终将actor作为监督层次的一部分是非常重要的,这解释了第四条的含义,即,一个监管者同时也是另一个actor的下属.同时也暗示了前三条,恢复一个actor的同时会恢复它的所有下属,重启一个actor的同时也会重启它的所有下属,同样的道理,关闭一个actor的同时也会关闭它的所有下属.</p>
+<p>需要注意的是Actor类中preRestart的默认行为是在重启actor自身之前首先关闭它的所有子actor,当然这个hook可以被重写,这个hook被执行后会递归重启它的所有子actor.</p>
+<p>所有的监管者都会被一个函数配置为尽可能的将所有的错误转换为上面的四中情况之一,并且,该函数并不会将错误actor的实体作为传入参数.</p>
+<p>Akka实现了一个特殊的方式,叫做”父类监管”(parental supervision).一个Actor只能被另一个actor创建,最顶层的actor由类库提供,每个被创建的actor都被其父actor监控.</p>
+<h2 id="The_Top-Level_Supervisors">The Top-Level Supervisors</h2><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/actor-supervisor-1.png" alt="actor-supervisor-1" title="actor-supervisor-1"></p>
+<p>如上图所示,一个ActorSystem在创建时最少会另外启动三个actor.</p>
+<h3 id="/user:_The_Guardian_Actor">/user: The Guardian Actor</h3><p>该actor应该是与所有用户创家的actor相互影响最大的,监管者为”/user”.所有使用 system.actorOf() 创建的actor都是它的子actor,这表示,如果这个监管者关闭了,所有系统中的普通actor都会被关闭,同时表示了所有普通顶层acttor被这个监管者监管时的策略.从Akka 2.1开始,可以通过 akka.actor.guardian-supervisor-strategy 对这个监管策略进行设置,它接收一个SupervisorStrategyConfigurator作为入参.当这个监管者升级错误时,root监管者会以关闭这个监管者的方式作为响应,这将会关闭整个System.</p>
+<h3 id="/system:_The_System_Guardian">/system: The System Guardian</h3><p>这个特殊的actor用于实现一个有序的actor关闭日志,同时日志本身也是用actor实现的.</p>
+<h3 id="/:_The_Root_Guardian">/: The Root Guardian</h3><p>Root监管者使用 SupervisorStrategy.stoppingStrategy(策略) 监管所有被称为 “top-level”的actor,目的是用于关闭上报任何类型异常的子actor.由于所有的actor都有一个父actor,但是root的监管这不能是一个真的actor.</p>
+<h2 id="What_Restarting_Means">What Restarting Means</h2><p>当一个actor在处理消息时引起一下三种类型的错误:</p>
+<ol>
+<li>一些特殊消息引起的系统错误</li>
+<li>处理消息时引用的外部资源错误</li>
+<li>破坏了actor的内部状态</li>
+</ol>
+<p>重启过程的准确步骤:</p>
+<ol>
+<li>终止actor(在恢复之前不会处理普通消息),递归终止子actor</li>
+<li>调用老实例的preRestart方法(默认是向所有的子actor发送终止请求并条用postStop)</li>
+<li>等待所有被发送终止请求(context.stop())的子actor真正关闭,所有的actor操作都是无阻塞的,最后被关闭的actor会发出终止提醒以进行下一步</li>
+<li>使用原始工厂创建一个新的实例</li>
+<li>在新的实例中调用postRestart(preStart)</li>
+<li>向在第3步中没有关闭的actor发送重启请求,重启后的子actor会跟随同样的进程</li>
+<li>恢复actor</li>
+</ol>
+<h2 id="What_Lifecycle_Monitoring_Means">What Lifecycle Monitoring Means</h2><p>声明循环监控在akka中又被引用为DeathWatch.</p>
+<h3 id="Delayed_restarts_with_the_BackoffSupervisor_pattern">Delayed restarts with the BackoffSupervisor pattern</h3><p>使用BackoffSupervisor进行延时重启,当一个actor失败时尝试再次重启,每次的时间间隔都会递增.</p>
+<p>这个模式的用处是,当一个启动一个actor因为外部资源引用而失败,然后过一段时间后进行重试.一个主要的例子就是当一个 PersistentActor 因为一些持续性的错误(数据库关闭或超载)失败,这种场景下在重启PersistentActor之前可以适当的提供一些缓冲时间.</p>
+<p>下面的例子展示了如何创建一个依次递增重启时间的监管,每次错误后重启的间隔为3, 6, 12, 24,最终为30:</p>
+<pre><code>val childProps = <span class="function"><span class="title">Props</span><span class="params">(classOf[EchoActor])</span></span>
+
+val supervisor = BackoffSupervisor.props(
+  Backoff.onStop(
+    childProps,
+    childName = <span class="string">"myEcho"</span>,
+    minBackoff = <span class="number">3</span><span class="class">.seconds</span>,
+    maxBackoff = <span class="number">30</span><span class="class">.seconds</span>,
+    randomFactor = <span class="number">0.2</span> <span class="comment">// adds 20% "noise" to vary the intervals slightly</span>
+    ))
+
+system.<span class="function"><span class="title">actorOf</span><span class="params">(supervisor, name = <span class="string">"echoSupervisor"</span>)</span></span>
+</code></pre><p>比较推荐的是使用randomFactor来添加频率,以避免多个actor在同一个时间点进行同样的操作而引起负载过大,比如多个actor同时使用一个数据库时,同时过多的actor进行重新连接有可能会再次失败.</p>
+<p>akka.pattern.BackoffSupervisor 同样可以用于当一个actor发生异常或崩溃时进行重启,下面的代码展示了使用递增的间隔对actor进行重启,依次为 3, 6, 12, 24,30:</p>
+<pre><code>val childProps = <span class="function"><span class="title">Props</span><span class="params">(classOf[EchoActor])</span></span>
+
+val supervisor = BackoffSupervisor.props(
+  Backoff.onFailure(
+    childProps,
+    childName = <span class="string">"myEcho"</span>,
+    minBackoff = <span class="number">3</span><span class="class">.seconds</span>,
+    maxBackoff = <span class="number">30</span><span class="class">.seconds</span>,
+    randomFactor = <span class="number">0.2</span> <span class="comment">// adds 20% "noise" to vary the intervals slightly</span>
+    ))
+
+system.<span class="function"><span class="title">actorOf</span><span class="params">(supervisor, name = <span class="string">"echoSupervisor"</span>)</span></span>
+</code></pre><p>akka.pattern.BackoffOptions 可以对监管者的行为进行自定义:</p>
+<pre><code>val supervisor = BackoffSupervisor.props(
+  Backoff.onStop(
+    childProps,
+    childName = <span class="string">"myEcho"</span>,
+    minBackoff = <span class="number">3</span><span class="class">.seconds</span>,
+    maxBackoff = <span class="number">30</span><span class="class">.seconds</span>,
+    randomFactor = <span class="number">0.2</span> <span class="comment">// adds 20% "noise" to vary the intervals slightly</span>
+    )<span class="class">.withManualReset</span> <span class="comment">// the child must send BackoffSupervisor.Reset to its parent</span>
+    <span class="class">.withDefaultStoppingStrategy</span> <span class="comment">// Stop at any Exception thrown</span>
+    )
+</code></pre><p>上面的代码展示了如何设置当一个子actor成功处理一个消息时必须向其父actor发送一个akka.pattern.BackoffSupervisor.Reset类型的消息,同时使用了一个默认停止策略,任何类型的异常都会关闭该子actor.</p>
+<pre><code>val supervisor = BackoffSupervisor.props(
+  Backoff.onFailure(
+    childProps,
+    childName = <span class="string">"myEcho"</span>,
+    minBackoff = <span class="number">3.</span>seconds,
+    maxBackoff = <span class="number">30.</span>seconds,
+    randomFactor = <span class="number">0.2</span> <span class="comment">// adds 20% "noise" to vary the intervals slightly</span>
+    ).withAutoReset(<span class="number">10.</span>seconds) <span class="comment">// the child must send BackoffSupervisor.Reset to its parent</span>
+    .withSupervisorStrategy(
+      OneForOneStrategy() {
+        <span class="keyword">case</span> _: MyException ⇒ SupervisorStrategy.Restart
+        <span class="keyword">case</span> _              ⇒ SupervisorStrategy.Escalate
+      }))
+</code></pre><p>上面的代码展示了,当抛出自定义的 MyException 类型异常时进行重启,而所有其他类型的异常被升级到父类.同时,如果该actor在10秒内没有发生任何错误时会自动重置.</p>
+<h2 id="One-For-One_Strategy_vs-_All-For-One_Strategy">One-For-One Strategy vs. All-For-One Strategy</h2><p>一对一策略 或 多对一策略.</p>
+<p>Akka中有两种类型的监管策略类: OneForOneStrategy 和 AllForOneStrategy.二者都用于配置异常类型与监管指令的映射,以及限制一个子actor在被关闭之前所允许的错误时长.二者的区别是前者只对错误的actor调用指令,后者是对所有的子actor进行指令调用.通常会使用到OneForOneStrategy,这也是在没有提供任何设置时的默认配置.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Akka/" rel="tag">#Akka</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/12/Simple-Akka-Routing/" rel="prev">Simple Akka: Routing</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/11/Simple-Zookeeper/" rel="next">Simple Zookeeper</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">89</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">36</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#What_Supervision_Means"><span class="nav-number">1.</span> <span class="nav-text">What Supervision Means</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The_Top-Level_Supervisors"><span class="nav-number">2.</span> <span class="nav-text">The Top-Level Supervisors</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#/user:_The_Guardian_Actor"><span class="nav-number">2.1.</span> <span class="nav-text">/user: The Guardian Actor</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#/system:_The_System_Guardian"><span class="nav-number">2.2.</span> <span class="nav-text">/system: The System Guardian</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#/:_The_Root_Guardian"><span class="nav-number">2.3.</span> <span class="nav-text">/: The Root Guardian</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What_Restarting_Means"><span class="nav-number">3.</span> <span class="nav-text">What Restarting Means</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What_Lifecycle_Monitoring_Means"><span class="nav-number">4.</span> <span class="nav-text">What Lifecycle Monitoring Means</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Delayed_restarts_with_the_BackoffSupervisor_pattern"><span class="nav-number">4.1.</span> <span class="nav-text">Delayed restarts with the BackoffSupervisor pattern</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#One-For-One_Strategy_vs-_All-For-One_Strategy"><span class="nav-number">5.</span> <span class="nav-text">One-For-One Strategy vs. All-For-One Strategy</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

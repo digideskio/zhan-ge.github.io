@@ -47,7 +47,7 @@
 <meta property="og:description" content="Kafka分布式消息系统">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/kafka1.png">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/kafka2.png">
-<meta property="og:updated_time" content="2016-03-10T15:18:45.000Z">
+<meta property="og:updated_time" content="2016-03-12T10:47:31.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Kafka">
 <meta name="twitter:description" content="Kafka分布式消息系统">
@@ -187,7 +187,23 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Kafka是一个分布式发布-订阅消息系统,是一个分布式的,可划分的,冗余备份的持久性的日志服务.它主要用于处理活跃的流式数据.</p>
+        <span itemprop="articleBody"><h2 id="为什么要用消息系统">为什么要用消息系统</h2><ol>
+<li>解耦</li>
+<li>冗余</li>
+<li>扩展性</li>
+<li>灵活性和峰值处理能力</li>
+<li>可恢复性</li>
+<li>送达保证</li>
+<li>顺序保证</li>
+<li>缓冲</li>
+<li>理解数据流 </li>
+<li>异步通信</li>
+</ol>
+<h2 id="常用消息框架对比">常用消息框架对比</h2><h3 id="RabbitMQ">RabbitMQ</h3><p>使用Erlang编写的开源消息队列,本身支持很多协议,AMQP,XMPP,SMTP,STOMP,也正因如此,它非常重量级,更适合于企业级的开发.同时实现了Broker架构,意味着消息发送给客户端是先在中心队列排队.对路由,负载均衡和持久化有很好的支持.</p>
+<h3 id="Redis">Redis</h3><p>Redis是一个基于KV对的NoSQL数据库,开发维护活跃.虽然他是一个KV数据库存储系统,但它本身支持MQ功能,所以完全可以当做一个轻量级的队列服务来使用.对于RabbitMQ和Redis的入队和出队操作,个执行100万次,每10万次记录一次执行时间.测试数据分别为128b,512b,1k和10k四种不同大小的数据.实验表明,入队时,数据小是Redis性能高于RabbitMQ,而数据超过了10K则Redis无法忍受,出队时,无论数据大小,Redis都表现出非常好的性能,RabbitMQ出队性能则远低于Redis.</p>
+<h3 id="ZeroMQ">ZeroMQ</h3><p>号称最快的消息队列,尤其针对大吞吐量的需求场景.ZMQ能够实现RabbitMQ不擅长的高级/复杂队列,但是开发人员需要自己组合各种技术框架,技术上的复杂度是对ZMQ更高应用成功的挑战.ZMQ有一个独特的非中间件的模式,只需要简单的引用ZMQ程序库,可以使用NuGet安装,然后就可以在应用程序之间发送消息了.但是ZMQ仅支持非持久性队列,如果宕机数据则会丢失.</p>
+<h3 id="ActiveMQ">ActiveMQ</h3><p>是Apache下的一个子项目,类似于ZMQ,它能够以代理人和点对点的技术实现队列,同时类似于RabbitMQ,它少量的代码就能高效的实现高级应用场景.</p>
+<h3 id="Kafka/Jafka">Kafka/Jafka</h3><h2 id="Kafka简介">Kafka简介</h2><p>Kafka是一个分布式发布-订阅消息系统,是一个分布式的,可划分的,冗余备份的持久性的日志服务.它主要用于处理活跃的流式数据.</p>
 <p>主要起到两个作用:</p>
 <ol>
 <li>降低系统组网复杂度</li>
@@ -231,7 +247,7 @@
 <li>多个partition需要选取出lead partition,lead复制读写,并由zookeeper负责failover</li>
 <li>通过zookeeper管理broker与consumer的动态加入与离开</li>
 </ol>
-<h3 id="拉去系统">拉去系统</h3><p>由于Kafka Broker会持久化数据,broker没有内存压力,因此,consumer非常适合采取pull的方式消费数据,具有以下几点好处:</p>
+<h3 id="拉取系统">拉取系统</h3><p>由于Kafka Broker会持久化数据,broker没有内存压力,因此,consumer非常适合采取pull的方式消费数据,具有以下几点好处:</p>
 <ol>
 <li>简化Kafka设计</li>
 <li>Consumer根据消费能力自助控制拉取速速</li>
@@ -261,7 +277,7 @@
 <li><p>Flume和Kakfa可以配合使用.</p>
 </li>
 </ol>
-<p><a href="http://www.biaodianfu.com/kafka.html" title="标点符: 分布式消息系统：Kafka" target="_blank" rel="external">标点符: 分布式消息系统：Kafka</a><br><a href="http://tech.meituan.com/kafka-fs-design-theory.html" title="悠悠香草: Kafka 文件存储机制那些事" target="_blank" rel="external">悠悠香草: Kafka 文件存储机制那些事</a><br><a href="http://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.html" title="周明耀: Apache kafka 工作原理介绍" target="_blank" rel="external">周明耀: Apache kafka 工作原理介绍</a><br><a href="http://www.aboutyun.com/thread-9341-1-1.html" title="sstutu: kafka入门：简介、使用场景、设计原理、主要配置及集群搭建" target="_blank" rel="external">sstutu: kafka入门：简介、使用场景、设计原理、主要配置及集群搭建</a></p>
+<p><a href="http://www.biaodianfu.com/kafka.html" title="标点符: 分布式消息系统：Kafka" target="_blank" rel="external">标点符: 分布式消息系统：Kafka</a><br><a href="http://tech.meituan.com/kafka-fs-design-theory.html" title="悠悠香草: Kafka 文件存储机制那些事" target="_blank" rel="external">悠悠香草: Kafka 文件存储机制那些事</a><br><a href="http://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.html" title="周明耀: Apache kafka 工作原理介绍" target="_blank" rel="external">周明耀: Apache kafka 工作原理介绍</a><br><a href="http://www.aboutyun.com/thread-9341-1-1.html" title="sstutu: kafka入门：简介、使用场景、设计原理、主要配置及集群搭建" target="_blank" rel="external">sstutu: kafka入门：简介、使用场景、设计原理、主要配置及集群搭建</a><br><a href="http://www.jasongj.com/2015/01/02/Kafka深度解析/" title="Jason’s Blog: Kafka深度解析" target="_blank" rel="external">Jason’s Blog: Kafka深度解析</a></p>
 </span>
       
     </div>
@@ -278,6 +294,8 @@
       
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/11/Simple-Systemd/" rel="prev">Simple Systemd</a>
             
           </div>
 
@@ -345,7 +363,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">84</span>
+              <span class="site-state-item-count">89</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -359,7 +377,7 @@
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-count">36</span>
               <span class="site-state-item-name">标签</span>
               </a>
           </div>
@@ -387,7 +405,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主要特点"><span class="nav-number">2.</span> <span class="nav-text">主要特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构"><span class="nav-number">3.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息发送的流程"><span class="nav-number">4.</span> <span class="nav-text">消息发送的流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的设计"><span class="nav-number">5.</span> <span class="nav-text">Kafka的设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#吞吐量"><span class="nav-number">5.1.</span> <span class="nav-text">吞吐量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡"><span class="nav-number">5.2.</span> <span class="nav-text">负载均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拉去系统"><span class="nav-number">5.3.</span> <span class="nav-text">拉去系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可扩展性"><span class="nav-number">5.4.</span> <span class="nav-text">可扩展性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的应用场景"><span class="nav-number">6.</span> <span class="nav-text">Kafka的应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息队列"><span class="nav-number">6.1.</span> <span class="nav-text">消息队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#行为跟踪"><span class="nav-number">6.2.</span> <span class="nav-text">行为跟踪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#元信息监控"><span class="nav-number">6.3.</span> <span class="nav-text">元信息监控</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日志收集"><span class="nav-number">6.4.</span> <span class="nav-text">日志收集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流处理"><span class="nav-number">6.5.</span> <span class="nav-text">流处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件源"><span class="nav-number">6.6.</span> <span class="nav-text">事件源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#持久性日志"><span class="nav-number">6.7.</span> <span class="nav-text">持久性日志</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的设计要点"><span class="nav-number">7.</span> <span class="nav-text">Kafka的设计要点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与Flume的区别"><span class="nav-number">8.</span> <span class="nav-text">与Flume的区别</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么要用消息系统"><span class="nav-number">1.</span> <span class="nav-text">为什么要用消息系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用消息框架对比"><span class="nav-number">2.</span> <span class="nav-text">常用消息框架对比</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RabbitMQ"><span class="nav-number">2.1.</span> <span class="nav-text">RabbitMQ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis"><span class="nav-number">2.2.</span> <span class="nav-text">Redis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ZeroMQ"><span class="nav-number">2.3.</span> <span class="nav-text">ZeroMQ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActiveMQ"><span class="nav-number">2.4.</span> <span class="nav-text">ActiveMQ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Kafka/Jafka"><span class="nav-number">2.5.</span> <span class="nav-text">Kafka/Jafka</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka简介"><span class="nav-number">3.</span> <span class="nav-text">Kafka简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主要特点"><span class="nav-number">4.</span> <span class="nav-text">主要特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构"><span class="nav-number">5.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息发送的流程"><span class="nav-number">6.</span> <span class="nav-text">消息发送的流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的设计"><span class="nav-number">7.</span> <span class="nav-text">Kafka的设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#吞吐量"><span class="nav-number">7.1.</span> <span class="nav-text">吞吐量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡"><span class="nav-number">7.2.</span> <span class="nav-text">负载均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拉取系统"><span class="nav-number">7.3.</span> <span class="nav-text">拉取系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可扩展性"><span class="nav-number">7.4.</span> <span class="nav-text">可扩展性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的应用场景"><span class="nav-number">8.</span> <span class="nav-text">Kafka的应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息队列"><span class="nav-number">8.1.</span> <span class="nav-text">消息队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#行为跟踪"><span class="nav-number">8.2.</span> <span class="nav-text">行为跟踪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#元信息监控"><span class="nav-number">8.3.</span> <span class="nav-text">元信息监控</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日志收集"><span class="nav-number">8.4.</span> <span class="nav-text">日志收集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流处理"><span class="nav-number">8.5.</span> <span class="nav-text">流处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件源"><span class="nav-number">8.6.</span> <span class="nav-text">事件源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#持久性日志"><span class="nav-number">8.7.</span> <span class="nav-text">持久性日志</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的设计要点"><span class="nav-number">9.</span> <span class="nav-text">Kafka的设计要点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与Flume的区别"><span class="nav-number">10.</span> <span class="nav-text">与Flume的区别</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

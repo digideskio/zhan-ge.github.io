@@ -1,0 +1,753 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Akka,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Akka中的路由">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Akka: Routing">
+<meta property="og:url" content="http://yoursite.com/2016/03/12/Simple-Akka-Routing/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Akka中的路由">
+<meta property="og:updated_time" content="2016-03-12T15:52:28.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Akka: Routing">
+<meta name="twitter:description" content="Akka中的路由">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Akka: Routing | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Akka: Routing
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-12T22:03:26+08:00" content="2016-03-12">
+            2016-03-12
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><p>消息可以通过路由发送到指定的actor,称为routees.一个Router可以在actor内部或外部使用,可以自己管理路由,或者使用一个可配置的路由actor.</p>
+<p>可以根据应用的需求使用不同的路由策略,Akka提供了多种不同的路由策略,或者可以创建自己的路由策略.</p>
+<h2 id="A_Simple_Router">A Simple Router</h2><p>下面的例子说明了如何在一个actor中使用Router管理路由:</p>
+<pre><code><span class="keyword">import</span> akka.routing.{ <span class="type">ActorRefRoutee</span>, <span class="type">RoundRobinRoutingLogic</span>, <span class="type">Router</span> }
+
+<span class="class"><span class="keyword">class</span> <span class="title">Master</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+  <span class="keyword">var</span> router = {
+    <span class="function"><span class="keyword">val</span> <span class="title">routees</span> =</span> <span class="type">Vector</span>.fill(<span class="number">5</span>) {
+      <span class="function"><span class="keyword">val</span> <span class="title">r</span> =</span> context.actorOf(<span class="type">Props</span>[<span class="type">Worker</span>])
+      context watch r
+      <span class="type">ActorRefRoutee</span>(r)
+    }
+    <span class="type">Router</span>(<span class="type">RoundRobinRoutingLogic</span>(), routees)
+  }
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> w: <span class="type">Work</span> =&gt;
+      router.route(w, sender())
+    <span class="keyword">case</span> <span class="type">Terminated</span>(a) =&gt;
+      router = router.removeRoutee(a)
+      <span class="function"><span class="keyword">val</span> <span class="title">r</span> =</span> context.actorOf(<span class="type">Props</span>[<span class="type">Worker</span>])
+      context watch r
+      router = router.addRoutee(r)
+  }
+}
+</code></pre><p>创建一个Router并制定使用RoundRobinRoutingLogic来对接收到的消息进行路由.</p>
+<p>Akka中的路由规则:</p>
+<ul>
+<li>akka.routing.RoundRobinRoutingLogic</li>
+<li>akka.routing.RandomRoutingLogic</li>
+<li>akka.routing.SmallestMailboxRoutingLogic</li>
+<li>akka.routing.BroadcastRoutingLogic</li>
+<li>akka.routing.ScatterGatherFirstCompletedRoutingLogic</li>
+<li>akka.routing.TailChoppingRoutingLogic</li>
+<li>akka.routing.ConsistentHashingRoutingLogic</li>
+</ul>
+<p>使用ActorRefRoutee封装的普通actor创建路由路径,同时watch这些actor以便他们终止的时候进行替换.</p>
+<p>通过路由的route方法发送消息,在上面的例子中,当Mater接收到Work消息是,通过已创建的router调用route方法对该消息进行转发.</p>
+<p>Router是不可变的,RoutingLogic是线程安全的,这意味着他们可以在actor之外使用.</p>
+<p>注意,通常情况下,任何发送给router的消息都会发送到指定路径(routee),但是有一个例外,特殊的 Broadcast Messages 会被发送到Router的所有路径.</p>
+<h2 id="A_Router_Actor">A Router Actor</h2><p>路由同样可以作为一个自容器的actor创建,自身对路径进行管理,同时通过设置类加载路由逻辑.</p>
+<p>这种类型的路由actor有两种不同的风格:</p>
+<ol>
+<li>Pool: 路由以子actor的形式创建路径,当子actor终止时从路由中移除</li>
+<li>Group: 路径actor在路由外部创建,同过selection将消息发送到指定的actor,不会去监控actor的终止信号</li>
+</ol>
+<p>路由actor的设置可以在配置中或编码中进行设置.尽管路由actor可以在配置文件中进行定义,但仍然需要以编码的形式创建,而不能仅适用外部配置文件创建路由.同时,如果在配置文件中定义了路由,这些设置会替代所有以编码形式提供的参数.</p>
+<p>给路径发送消息的方式在路由actor和外部actor的方式是一样的,由于他们都是ActorRef.路由actor在向路径发送消息时不会改变原始的sender.当路径返回消息时,回复同样会发送给原始sender,而不是路由的sender.</p>
+<h2 id="Pool">Pool</h2><p>下面的代码片段展示了如何创建一个 round-robin 策略的路由并向5个Worker路径分发消息,这些路径会以路由子actor的形式创建:</p>
+<pre><code>akka.actor.deployment {
+  /parent/router1 {
+    router = <span class="command">round</span>-robin-pool
+    nr-<span class="keyword">of</span>-instances = <span class="number">5</span>
+  }
+}
+</code></pre><p>然后在代码中使用:</p>
+<pre><code>val router1: ActorRef =
+  context.<span class="function"><span class="title">actorOf</span><span class="params">(FromConfig.props(Props[Worker])</span></span>, <span class="string">"router1"</span>)
+</code></pre><p>下面是以编程的方式代替配置文件创建路由:</p>
+<pre><code>val router2: ActorRef =
+  context.<span class="function"><span class="title">actorOf</span><span class="params">(RoundRobinPool(<span class="number">5</span>)</span></span>.<span class="function"><span class="title">props</span><span class="params">(Props[Worker])</span></span>, <span class="string">"router2"</span>)
+</code></pre><h3 id="Remote_Deployed_Routees">Remote Deployed Routees</h3><p>除了能够在本地创建actor作为路径,还可以自定路由将已创建的子actor部署在远程服务器上.路径会以round-robin的形式部署.为了能将路径部署在远程服务器,需要将路由配置使用RemoteRouterConfig进行包装,附加上需要部署的节点地址.远程部署需要在依赖中添加akka-remote模块:</p>
+<pre><code><span class="keyword">import</span> akka.actor.{ Address, AddressFromURIString }
+<span class="keyword">import</span> akka.remote.routing.RemoteRouterConfig
+<span class="variable"><span class="keyword">val</span> addresses</span> = Seq(
+  Address(<span class="string">"akka.tcp"</span>, <span class="string">"remotesys"</span>, <span class="string">"otherhost"</span>, <span class="number">1234</span>),
+  AddressFromURIString(<span class="string">"akka.tcp://othersys@anotherhost:1234"</span>))
+<span class="variable"><span class="keyword">val</span> routerRemote</span> = system.actorOf(
+  RemoteRouterConfig(RoundRobinPool(<span class="number">5</span>), addresses).props(Props[Echo]))
+</code></pre><h3 id="Senders">Senders</h3><p>默认情况下,当路径发送消息时,它会隐式的将自身设置为一个sender:</p>
+<pre><code><span class="function"><span class="title">sender</span><span class="params">()</span></span> ! x <span class="comment">// replies will go to this actor</span>
+</code></pre><p>通常情况下是讲router设置为一个sender,比如,当你想隐藏路由的详细路径时就需要把router设置为一个sender.下面的代码片段展示了如何建一个父router当做一个sender:</p>
+<pre><code><span class="function"><span class="title">sender</span><span class="params">()</span></span>.<span class="function"><span class="title">tell</span><span class="params">(<span class="string">"reply"</span>, context.parent)</span></span> <span class="comment">// replies will go back to parent</span>
+<span class="function"><span class="title">sender</span><span class="params">()</span></span>.!(<span class="string">"reply"</span>)(context.parent) <span class="comment">// alternative syntax (beware of the parens!)</span>
+</code></pre><h3 id="Supervision">Supervision</h3><p>pool路由创建的路径会作为路由的子actor进行创建,因此路由同时是这些子actor的监管者.</p>
+<p>router的监管策略可以通过Pool的supervisorStrategy属性进行设置,如果没有提供设置,路由的默认策略是”向上升级”,意思是讲错误传递给路由的监管者来处理,这是路由的监管者来决定如何处理错误.</p>
+<p>注意,路由的监管者会把这些错误当成是router本省的错误,因此,停止或重启的指令会引起router自身停止或重启.然后router进一步引起子actor的停止或重启.</p>
+<p>需要提醒的是,router的重启行为已经被重写了,这会重新创建所有的子actor,同时会在Pool中保持同样数量的子actor.</p>
+<p>这意味着,如果你没有指定router的supervisorStrategy属性,或者路径的错误会升级到router的监管者,默认会对router进行重启,同时从其所有的路径,但是重启过程中并不会关闭原有的路径.</p>
+<p>设置策略的方式很简单:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">escalator</span> =</span> <span class="type">OneForOneStrategy</span>() {
+  <span class="keyword">case</span> e ⇒ testActor ! e; <span class="type">SupervisorStrategy</span>.<span class="type">Escalate</span>
+}
+<span class="function"><span class="keyword">val</span> <span class="title">router</span> =</span> system.actorOf(<span class="type">RoundRobinPool</span>(<span class="number">1</span>, supervisorStrategy = escalator).props(
+  routeeProps = <span class="type">Props</span>[<span class="type">TestActor</span>]))
+</code></pre><p>注意,如果pool router的子路径终止了,它并不会自动创建添加一个新的子actor,当所有的路径都终止的话router自身也会终止,除非这是一个动态router.</p>
+<h3 id="Group">Group</h3><p>有些情况下,比起让router自己创建路径,更合适的方式是分别创建路径然后提供给router使用,可以将路径的的path传递给router的配置.消息会以ActorSelection的方式发送给这些路径.</p>
+<p>下面的例子展示了如果通过传递路径actor地址的方式创建一个router:</p>
+<pre><code>akka.actor.deployment {
+  <span class="regexp">/parent/</span>router3 {
+    router = <span class="keyword">round</span>-robin-<span class="keyword">group</span>
+    routees.paths = [<span class="string">"/user/workers/w1"</span>, <span class="string">"/user/workers/w2"</span>, <span class="string">"/user/workers/w3"</span>]
+  }
+}
+
+val router3: ActorRef =
+  context.actorOf(FromConfig.props(), <span class="string">"router3"</span>)
+</code></pre><p>然后以编码方式替换配置文件的方式:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">router4</span>:</span> <span class="type">ActorRef</span> =
+  context.actorOf(<span class="type">RoundRobinGroup</span>(paths).props(), <span class="string">"router4"</span>)
+
+system.actorOf(<span class="type">Props</span>[<span class="type">Workers</span>], <span class="string">"workers"</span>)
+
+<span class="class"><span class="keyword">class</span> <span class="title">Workers</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+  context.actorOf(<span class="type">Props</span>[<span class="type">Worker</span>], name = <span class="string">"w1"</span>)
+  context.actorOf(<span class="type">Props</span>[<span class="type">Worker</span>], name = <span class="string">"w2"</span>)
+  context.actorOf(<span class="type">Props</span>[<span class="type">Worker</span>], name = <span class="string">"w3"</span>)
+  <span class="comment">// ...</span>
+</code></pre><p>运行在远程服务上的actor需要提供响应的协议和地址.同样需要akka-remote模块:</p>
+<pre><code>akka.actor.deployment {
+  <span class="regexp">/parent/</span>remoteGroup {
+    router = <span class="keyword">round</span>-robin-<span class="keyword">group</span>
+    routees.paths = [
+      <span class="string">"akka.tcp://app@10.0.0.1:2552/user/workers/w1"</span>, 
+      <span class="string">"akka.tcp://app@10.0.0.2:2552/user/workers/w1"</span>,
+      <span class="string">"akka.tcp://app@10.0.0.3:2552/user/workers/w1"</span>]
+  }
+}
+</code></pre><h2 id="Router_usage">Router usage</h2><p>这一节中的router actor在一个root actor中创建,名字为parent,配置文件中的部署地址为 /parent/后跟router actor的名字:</p>
+<pre><code>system.<span class="function"><span class="title">actorOf</span><span class="params">(Props[Parent], <span class="string">"parent"</span>)</span></span>
+</code></pre><h3 id="RoundRobinPool_and_RoundRobinGroup">RoundRobinPool and RoundRobinGroup</h3><p>配置文件中定义RoundRobinPool:</p>
+<pre><code>akka.actor.deployment {
+  /parent/router1 {
+    router = <span class="command">round</span>-robin-pool
+    nr-<span class="keyword">of</span>-instances = <span class="number">5</span>
+  }
+}
+val router1: ActorRef =
+  context.actorOf(FromConfig.props(Props[Worker]), <span class="string">"router1"</span>)
+</code></pre><p>代码形式:</p>
+<pre><code>val router2: ActorRef =
+  context.<span class="function"><span class="title">actorOf</span><span class="params">(RoundRobinPool(<span class="number">5</span>)</span></span>.<span class="function"><span class="title">props</span><span class="params">(Props[Worker])</span></span>, <span class="string">"router2"</span>)
+</code></pre><p>配置文件中定义RoundRobinGroup:</p>
+<pre><code>akka.actor.deployment {
+  <span class="regexp">/parent/</span>router3 {
+    router = <span class="keyword">round</span>-robin-<span class="keyword">group</span>
+    routees.paths = [<span class="string">"/user/workers/w1"</span>, <span class="string">"/user/workers/w2"</span>, <span class="string">"/user/workers/w3"</span>]
+  }
+}
+val router3: ActorRef =
+  context.actorOf(FromConfig.props(), <span class="string">"router3"</span>)
+</code></pre><p>代码形式:</p>
+<pre><code>val paths = <span class="function"><span class="title">List</span><span class="params">(<span class="string">"/user/workers/w1"</span>, <span class="string">"/user/workers/w2"</span>, <span class="string">"/user/workers/w3"</span>)</span></span>
+val router4: ActorRef =
+  context.<span class="function"><span class="title">actorOf</span><span class="params">(RoundRobinGroup(paths)</span></span>.<span class="function"><span class="title">props</span><span class="params">()</span></span>, <span class="string">"router4"</span>)
+</code></pre><h3 id="RandomPool_and_RandomGroup">RandomPool and RandomGroup</h3><h3 id="BalancingPool">BalancingPool</h3><h3 id="SmallestMailboxPool">SmallestMailboxPool</h3><h3 id="BroadcastPool_and_BroadcastGroup">BroadcastPool and BroadcastGroup</h3><h3 id="ScatterGatherFirstCompletedPool_and_ScatterGatherFirstCompletedGroup">ScatterGatherFirstCompletedPool and ScatterGatherFirstCompletedGroup</h3><h3 id="TailChoppingPool_and_TailChoppingGroup">TailChoppingPool and TailChoppingGroup</h3><h3 id="ConsistentHashingPool_and_ConsistentHashingGroup">ConsistentHashingPool and ConsistentHashingGroup</h3><h2 id="Specially_Handled_Messages">Specially Handled Messages</h2><p>大多数消息会根据路由规则发送到指定的路径,但是有个别类型的消息用于特殊的行为.</p>
+<h3 id="Broadcast_Messages">Broadcast Messages</h3><p>Broadcast消息用于向router的所有路径发送消息,当router收到Broadcast消息时会忽略一般消息的路由逻辑而将消息广播给所有的路径.</p>
+<p>下面展示如何使用Broadcast发送一个重要的消息:</p>
+<pre><code>import akka<span class="class">.routing</span><span class="class">.Broadcast</span>
+router ! <span class="function"><span class="title">Broadcast</span><span class="params">(<span class="string">"Watch out for Davy Jones' locker"</span>)</span></span>
+</code></pre><h3 id="PoisonPill_Messages">PoisonPill Messages</h3><p>PoisonPill消息对于所有的actor都有一个特殊的处理方式,包括router.当actor收到一个PoisonPill消息,该actor将会关闭:</p>
+<pre><code>import akka<span class="class">.actor</span><span class="class">.PoisonPill</span>
+router ! PoisonPill
+</code></pre><p>当PoisonPill消息发送给router时,router不会将其发给routees,router会在关闭自己的同时关闭所有子actor.</p>
+<p>如果想要在所有的路径处理完消息之后再关闭router,这时就不能在使用PoisonPill了,这时需要使用Broadcast对PoisonPill进行包装,这样所有的子actor就都能收到PoisonPill消息了.这会关闭所有的路径,包括哪些不属于router子actor的路径在内.</p>
+<pre><code>import akka<span class="class">.actor</span><span class="class">.PoisonPill</span>
+import akka<span class="class">.routing</span><span class="class">.Broadcast</span>
+router ! <span class="function"><span class="title">Broadcast</span><span class="params">(PoisonPill)</span></span>
+</code></pre><h3 id="Kill_Messages">Kill Messages</h3><p>收到该消息后router会抛出ActorKilledException异常然后失败,随后由监管者决定是重启还是关闭.</p>
+<p>router的子Actor会收到router的影响,行为有router的监管策略决定,哪些不属于router子actor的路径将不会收到影响.</p>
+<pre><code>import akka<span class="class">.actor</span><span class="class">.Kill</span>
+router ! Kill
+</code></pre><p>而下面的方式将关闭所有路径,包括非router的子actor路径:</p>
+<pre><code>import akka<span class="class">.actor</span><span class="class">.Kill</span>
+import akka<span class="class">.routing</span><span class="class">.Broadcast</span>
+router ! <span class="function"><span class="title">Broadcast</span><span class="params">(Kill)</span></span>
+</code></pre><h3 id="Management_Messages">Management Messages</h3><p>Sending akka.routing.GetRoutees to a router actor will make it send back its currently used routees in a akka.routing.Routees message.<br>Sending akka.routing.AddRoutee to a router actor will add that routee to its collection of routees.<br>Sending akka.routing.RemoveRoutee to a router actor will remove that routee to its collection of routees.<br>Sending akka.routing.AdjustPoolSize to a pool router actor will add or remove that number of routees to its collection of routees.</p>
+<h2 id="Dynamically_Resizable_Pool">Dynamically Resizable Pool</h2><h2 id="How_Routing_is_Designed_within_Akka">How Routing is Designed within Akka</h2><h2 id="Configuring_Dispatchers">Configuring Dispatchers</h2><pre><code>akka.actor.deployment {
+  /poolWithDispatcher {
+    router = <span class="built_in">random</span>-pool
+    nr-of-instances = <span class="number">5</span>
+    pool-dispatcher {
+      fork-<span class="built_in">join</span>-executor.parallelism-<span class="built_in">min</span> = <span class="number">5</span>
+      fork-<span class="built_in">join</span>-executor.parallelism-<span class="built_in">max</span> = <span class="number">5</span>
+    }
+  }
+}
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Akka/" rel="tag">#Akka</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/12/Simple-Akka-Supervision-and-Monitoring/" rel="next">Simple Akka: Supervision and Monitoring</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">89</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">36</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#A_Simple_Router"><span class="nav-number">1.</span> <span class="nav-text">A Simple Router</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A_Router_Actor"><span class="nav-number">2.</span> <span class="nav-text">A Router Actor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pool"><span class="nav-number">3.</span> <span class="nav-text">Pool</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Remote_Deployed_Routees"><span class="nav-number">3.1.</span> <span class="nav-text">Remote Deployed Routees</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Senders"><span class="nav-number">3.2.</span> <span class="nav-text">Senders</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Supervision"><span class="nav-number">3.3.</span> <span class="nav-text">Supervision</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Group"><span class="nav-number">3.4.</span> <span class="nav-text">Group</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Router_usage"><span class="nav-number">4.</span> <span class="nav-text">Router usage</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RoundRobinPool_and_RoundRobinGroup"><span class="nav-number">4.1.</span> <span class="nav-text">RoundRobinPool and RoundRobinGroup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RandomPool_and_RandomGroup"><span class="nav-number">4.2.</span> <span class="nav-text">RandomPool and RandomGroup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BalancingPool"><span class="nav-number">4.3.</span> <span class="nav-text">BalancingPool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SmallestMailboxPool"><span class="nav-number">4.4.</span> <span class="nav-text">SmallestMailboxPool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#BroadcastPool_and_BroadcastGroup"><span class="nav-number">4.5.</span> <span class="nav-text">BroadcastPool and BroadcastGroup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ScatterGatherFirstCompletedPool_and_ScatterGatherFirstCompletedGroup"><span class="nav-number">4.6.</span> <span class="nav-text">ScatterGatherFirstCompletedPool and ScatterGatherFirstCompletedGroup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TailChoppingPool_and_TailChoppingGroup"><span class="nav-number">4.7.</span> <span class="nav-text">TailChoppingPool and TailChoppingGroup</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ConsistentHashingPool_and_ConsistentHashingGroup"><span class="nav-number">4.8.</span> <span class="nav-text">ConsistentHashingPool and ConsistentHashingGroup</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Specially_Handled_Messages"><span class="nav-number">5.</span> <span class="nav-text">Specially Handled Messages</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Broadcast_Messages"><span class="nav-number">5.1.</span> <span class="nav-text">Broadcast Messages</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PoisonPill_Messages"><span class="nav-number">5.2.</span> <span class="nav-text">PoisonPill Messages</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Kill_Messages"><span class="nav-number">5.3.</span> <span class="nav-text">Kill Messages</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Management_Messages"><span class="nav-number">5.4.</span> <span class="nav-text">Management Messages</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dynamically_Resizable_Pool"><span class="nav-number">6.</span> <span class="nav-text">Dynamically Resizable Pool</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_Routing_is_Designed_within_Akka"><span class="nav-number">7.</span> <span class="nav-text">How Routing is Designed within Akka</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Configuring_Dispatchers"><span class="nav-number">8.</span> <span class="nav-text">Configuring Dispatchers</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
