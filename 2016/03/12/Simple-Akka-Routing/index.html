@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/12/Simple-Akka-Routing/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Akka中的路由">
-<meta property="og:updated_time" content="2016-03-12T15:52:28.000Z">
+<meta property="og:updated_time" content="2016-03-12T16:04:34.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Akka: Routing">
 <meta name="twitter:description" content="Akka中的路由">
@@ -351,7 +351,13 @@ router ! Kill
 <pre><code>import akka<span class="class">.actor</span><span class="class">.Kill</span>
 import akka<span class="class">.routing</span><span class="class">.Broadcast</span>
 router ! <span class="function"><span class="title">Broadcast</span><span class="params">(Kill)</span></span>
-</code></pre><h3 id="Management_Messages">Management Messages</h3><p>Sending akka.routing.GetRoutees to a router actor will make it send back its currently used routees in a akka.routing.Routees message.<br>Sending akka.routing.AddRoutee to a router actor will add that routee to its collection of routees.<br>Sending akka.routing.RemoveRoutee to a router actor will remove that routee to its collection of routees.<br>Sending akka.routing.AdjustPoolSize to a pool router actor will add or remove that number of routees to its collection of routees.</p>
+</code></pre><h3 id="Management_Messages">Management Messages</h3><p>以下消息对router的路径进行管理:</p>
+<ol>
+<li>akka.routing.GetRoutees: 返回一个akka.routing.Routees,router当前使用的所有路径</li>
+<li>akka.routing.RemoveRoutee: 向当前的路径集合添加该路径</li>
+<li>akka.routing.RemoveRoutee: 从router当前的路径集合中删除该路径</li>
+<li>akka.routing.AdjustPoolSize: 向router的路径集合中添加或删除对应数量的路径</li>
+</ol>
 <h2 id="Dynamically_Resizable_Pool">Dynamically Resizable Pool</h2><h2 id="How_Routing_is_Designed_within_Akka">How Routing is Designed within Akka</h2><h2 id="Configuring_Dispatchers">Configuring Dispatchers</h2><pre><code>akka.actor.deployment {
   /poolWithDispatcher {
     router = <span class="built_in">random</span>-pool
