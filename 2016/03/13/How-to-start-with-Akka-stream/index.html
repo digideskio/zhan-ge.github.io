@@ -1,0 +1,733 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Akka,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Akka-stream简介">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to start with Akka-stream">
+<meta property="og:url" content="http://yoursite.com/2016/03/13/How-to-start-with-Akka-stream/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Akka-stream简介">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/stream-source.png">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/stream-sink.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/stream-run.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/stream-flow.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/stream-flow-as-connector.jpg">
+<meta property="og:updated_time" content="2016-03-13T06:32:07.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="How to start with Akka-stream">
+<meta name="twitter:description" content="Akka-stream简介">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> How to start with Akka-stream | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              How to start with Akka-stream
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-13T12:33:17+08:00" content="2016-03-13">
+            2016-03-13
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>这个介绍基于2.4.2版本,这个版本的API与其他版本有轻微的不同,可以通过sbt添加相关的依赖:</p>
+<pre><code>libraryDependencies += <span class="string">"com.typesafe.akka"</span> <span class="variable">%%</span> <span class="string">"akka-stream"</span> % <span class="string">"2.4.2"</span>
+</code></pre><p>Stream的API主要包含三种类型,对比基于Java编写的 reactive-streams-jvm,这些API强大的多,同时也更加复杂.</p>
+<p>下面是一些在所有的例子中需要用到的依赖,现在进行一次性导入,以便后边使用:</p>
+<pre><code><span class="keyword">import</span> scala.concurrent._
+<span class="keyword">import</span> akka._
+<span class="keyword">import</span> akka.actor._
+<span class="keyword">import</span> akka.stream._
+<span class="keyword">import</span> akka.stream.scaladsl._
+<span class="keyword">import</span> akka.util._
+
+<span class="type">implicit</span> val system = ActorSystem(<span class="string">"TestSystem"</span>)
+<span class="type">implicit</span> val materializer = ActorMaterializer()
+<span class="keyword">import</span> system.dispatcher
+</code></pre><p>import导入语句部分大多用于类型的声明,变量system表示一个actor system,变量materializer表示stream的计算上下文(evaluation context).在我们的例子中我们使用了ActorMaterializer,表示基于actor的stream求值.这两个变量都被标记为implicit,以告诉编译器在需要的时候进行自动的注入.system.dispatcher的导入用于Future的执行上下文.</p>
+<h2 id="A_New_API">A New API</h2><p>Akka Stream有如下关键性质:</p>
+<ol>
+<li>详细实现了 Reactive Streams,包含三个主要的规则,背压(backpressure),异步(async),无阻塞边界(non-blocking boundaries).</li>
+<li>为stream的计算引擎提供了一个抽象,称为Materializer.</li>
+<li>程序均作为可重用的构件块,分别表示三种主要的类型:Source,Sink,Flow.这些构件块的求值均基于Materializer并且需要被显式触发.</li>
+</ol>
+<p>下面详细介绍这三种主要类型的用法.</p>
+<h3 id="Source">Source</h3><p>Source是一个数据生成器,对于stream来说作为一个输入源.每个Source拥有一个单独的输出channel,但没有输入channel.所有的数据流通过已连接到Source的输出channel进行输出.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/stream-source.png" alt="stream-source" title="stream-source"></p>
+<p>可以通过多种方式创建一个Source:</p>
+<pre><code>scala&gt; val s = Source<span class="class">.empty</span>
+s: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Source</span>[Nothing,akka.NotUsed] = ...
+
+scala&gt; val s = Source.<span class="function"><span class="title">single</span><span class="params">(<span class="string">"single element"</span>)</span></span>
+s: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Source</span>[String,akka.NotUsed] = ...
+
+scala&gt; val s = <span class="function"><span class="title">Source</span><span class="params">(<span class="number">1</span> to <span class="number">3</span>)</span></span>
+s: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Source</span>[Int,akka.NotUsed] = ...
+
+scala&gt; val s = <span class="function"><span class="title">Source</span><span class="params">(Future(<span class="string">"single value from a Future"</span>)</span></span>)
+s: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Source</span>[String,akka.NotUsed] = ...
+
+scala&gt; s runForeach println
+res0: scala<span class="class">.concurrent</span><span class="class">.Future</span>[akka.Done] = ...
+single value from <span class="tag">a</span> Future
+</code></pre><p>上面的代码中我们用有限的数据填充source,这表示他们最终将被关闭.同时需要注意的是,Reactive Streams默认的lazy和异步,这表示需要明确的对stream的求值进行请求.在Akka Streams中这些可以通过 <code>run*</code> 方法完成. runForeach 和普通的 foreach作用一样,加上一个前缀run表示我们请求stream进行求值.</p>
+<p>介绍完有限数据,下面是一个无限数据的介绍:</p>
+<pre><code>scala&gt; val s = Source.<span class="function"><span class="title">repeat</span><span class="params">(<span class="number">5</span>)</span></span>
+s: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Source</span>[Int,akka.NotUsed] = ...
+
+scala&gt; s take <span class="number">3</span> runForeach println
+res1: scala<span class="class">.concurrent</span><span class="class">.Future</span>[akka.Done] = ...
+<span class="number">5</span>
+<span class="number">5</span>
+<span class="number">5</span>
+</code></pre><p>使用 take 方法可以创建一个假定的停止点以免进行无限的计算.同时actor以内建的方式提供支持,我们可以通过向actor发送消息来对stream进行填充:</p>
+<pre><code><span class="function">def <span class="title">run</span><span class="params">(actor: ActorRef)</span> </span>= {
+  Future { Thread.sleep(<span class="number">300</span>); actor ! <span class="number">1</span> }
+  Future { Thread.sleep(<span class="number">200</span>); actor ! <span class="number">2</span> }
+  Future { Thread.sleep(<span class="number">100</span>); actor ! <span class="number">3</span> }
+}
+val s = Source
+  .actorRef[Int](bufferSize = <span class="number">0</span>, OverflowStrategy.fail)
+  .mapMaterializedValue(run)
+
+scala&gt; s runForeach println
+res1: scala.concurrent.Future[akka.Done] = ...
+<span class="number">3</span>
+<span class="number">2</span>
+<span class="number">1</span>
+</code></pre><p>可以发现 Futures在不同的线程以异步的方式进行计算,以求得最后的结果.上面例子中的进入元素缓冲buffer并不是必须的,同时可以使用 OverflowStrategy.fail 来配置stream,当buffer溢出时stream 执行fail.</p>
+<p>通过这个actor接口,我们可以使用任何数据源来填充stream,无论是被当前线程创建的数据还是其他线程,或是其他进程,甚至是通过远程系统.</p>
+<h3 id="Sink">Sink</h3><p>Sink基本上与Source是一个对立事物,它是stream的终点,因此用于消费数据.一个Sink拥有一个单独的输入channel而没有输出channel.</p>
+<p>当我们希望在不对stream进行求值而又对数据集合的指定处理行为进行重用时,通常需要Sink,上面的介绍中已经了解到 <code>run*</code> 方法并不能达到这些目的,因此我们可以使用sink来进行处理.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/stream-sink.jpg" alt="stream-sink" title="stream-sink"></p>
+<p>下面是一个sink的实例:</p>
+<pre><code>scala&gt; val source = <span class="function"><span class="title">Source</span><span class="params">(<span class="number">1</span> to <span class="number">3</span>)</span></span>
+source: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Source</span>[Int,akka.NotUsed] = ...
+
+scala&gt; val sink = Sink<span class="class">.foreach</span>[Int](elem =&gt; <span class="function"><span class="title">println</span><span class="params">(s<span class="string">"sink received: $elem"</span>)</span></span>)
+sink: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Sink</span>[Int,scala<span class="class">.concurrent</span><span class="class">.Future</span>[akka.Done]] = ...
+
+scala&gt; val flow = source to sink
+flow: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.RunnableGraph</span>[akka.NotUsed] = ...
+
+scala&gt; flow.<span class="function"><span class="title">run</span><span class="params">()</span></span>
+res3: akka<span class="class">.NotUsed</span> = NotUsed
+sink received: <span class="number">1</span>
+sink received: <span class="number">2</span>
+sink received: <span class="number">3</span>
+</code></pre><p>使用 to 方法可以将一个source连接到一个sink,返回一个叫做RunnableFlow的实例,我们稍后会看到详细的Flow介绍,表示一个stream可以通过 run() 方法进行执行.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/stream-run.jpg" alt="stream-run" title="stream-run"></p>
+<p>同样可以将到达sink的值发送给actor,即,将actor作为一个sink使用:</p>
+<pre><code><span class="function"><span class="keyword">val</span> <span class="title">actor</span> =</span> system.actorOf(<span class="type">Props</span>(<span class="keyword">new</span> <span class="type">Actor</span> {
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> msg =&gt; println(s<span class="string">"actor received: $msg"</span>)
+  }
+}))
+
+scala&gt; <span class="function"><span class="keyword">val</span> <span class="title">sink</span> =</span> <span class="type">Sink</span>.actorRef[<span class="type">Int</span>](actor, onCompleteMessage = <span class="string">"stream completed"</span>)
+sink: akka.stream.scaladsl.<span class="type">Sink</span>[<span class="type">Int</span>,akka.<span class="type">NotUsed</span>] = ...
+
+scala&gt; <span class="function"><span class="keyword">val</span> <span class="title">runnable</span> =</span> <span class="type">Source</span>(<span class="number">1</span> to <span class="number">3</span>) to sink
+runnable: akka.stream.scaladsl.<span class="type">RunnableGraph</span>[akka.<span class="type">NotUsed</span>] = ...
+
+scala&gt; runnable.run()
+res3: akka.<span class="type">NotUsed</span> = <span class="type">NotUsed</span>
+actor received: <span class="number">1</span>
+actor received: <span class="number">2</span>
+actor received: <span class="number">3</span>
+actor received: stream completed
+</code></pre><h3 id="Flow">Flow</h3><p>如果想要连接Akka stream和现有的系统,使用数据源和sink进行组合是很有效的方式,但是并不能做什么实际的操作.Flow是Akka stream中另一个抽象,它可以作为不同stream之间的连接器同时又能对stream中的元素进行转换.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/stream-flow.jpg" alt="stream-flow" title="stream-flow"></p>
+<p>如果一个Flow连接到一个Source上,结果会得到一个新的Source,同样,一个Flow连接到一个Sink后会成为一个新的Sink,而如果以个Flow同时连接一个Source和Sink时则会生成一个RunnableFlow.因此,一个Flow处于Source和Sink之间,但是再它连接到一个Source或Sink之前它不属于任何其中一种.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/stream-flow-as-connector.jpg" alt="stream-flow-as-connector" title="stream-flow-as-connector"></p>
+<p>为了更好的理解Flow,我们可以看一些实例:</p>
+<pre><code>scala&gt; val source = <span class="function"><span class="title">Source</span><span class="params">(<span class="number">1</span> to <span class="number">3</span>)</span></span>
+source: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Source</span>[Int,akka.NotUsed] = ...
+
+scala&gt; val sink = Sink<span class="class">.foreach</span>[Int](println)
+sink: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Sink</span>[Int,scala<span class="class">.concurrent</span><span class="class">.Future</span>[akka.Done]] = ...
+
+scala&gt; val invert = Flow[Int].<span class="function"><span class="title">map</span><span class="params">(elem =&gt; elem * -<span class="number">1</span>)</span></span>
+invert: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Flow</span>[Int,Int,akka.NotUsed] = ...
+
+scala&gt; val doubler = Flow[Int].<span class="function"><span class="title">map</span><span class="params">(elem =&gt; elem * <span class="number">2</span>)</span></span>
+doubler: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Flow</span>[Int,Int,akka.NotUsed] = ...
+
+scala&gt; val runnable = source via invert via doubler to sink
+runnable: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.RunnableGraph</span>[akka.NotUsed] = ...
+
+scala&gt; runnable.<span class="function"><span class="title">run</span><span class="params">()</span></span>
+res10: akka<span class="class">.NotUsed</span> = NotUsed
+-<span class="number">2</span>
+-<span class="number">4</span>
+-<span class="number">6</span>
+</code></pre><p>通过 via 方法可以对Source和Flow进行连接.需要制定输入的类型,因为编译器不能帮我们自动推断.并且这些叫做invert,doubler的Flow完全独立于任何数据生产者和消费者.他们只是对数据进行转换让后发送到输出channel,这表示我们可以在多个stream中对这些Flow进行重用:</p>
+<pre><code>scala&gt; val s1 = <span class="function"><span class="title">Source</span><span class="params">(<span class="number">1</span> to <span class="number">3</span>)</span></span> via invert to sink
+s1: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.RunnableGraph</span>[akka.NotUsed] = ...
+
+scala&gt; val s2 = <span class="function"><span class="title">Source</span><span class="params">(-<span class="number">3</span> to -<span class="number">1</span>)</span></span> via invert to sink
+s2: akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.RunnableGraph</span>[akka.NotUsed] = ...
+
+scala&gt; s1.<span class="function"><span class="title">run</span><span class="params">()</span></span>
+res10: akka<span class="class">.NotUsed</span> = NotUsed
+-<span class="number">1</span>
+-<span class="number">2</span>
+-<span class="number">3</span>
+
+scala&gt; s2.<span class="function"><span class="title">run</span><span class="params">()</span></span>
+res11: akka<span class="class">.NotUsed</span> = NotUsed
+<span class="number">3</span>
+<span class="number">2</span>
+<span class="number">1</span>
+</code></pre><p><a href="http://stackoverflow.com/questions/35120082/how-to-get-started-with-akka-streams" title="内容来自StackOverFlow" target="_blank" rel="external">内容来自StackOverFlow</a><br><a href="https://medium.com/@kvnwbbr/diving-into-akka-streams-2770b3aeabb0#.orzjsgs24" title="Diving into Akka Streams" target="_blank" rel="external">Diving into Akka Streams</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Akka/" rel="tag">#Akka</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/13/Do-s-and-Dont-s-When-Deploying-Akka-in-Production/" rel="prev">Do's and Dont's When Deploying Akka in Production</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/12/Simple-Akka-Routing/" rel="next">Simple Akka: Routing</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">91</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">36</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A_New_API"><span class="nav-number">2.</span> <span class="nav-text">A New API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Source"><span class="nav-number">2.1.</span> <span class="nav-text">Source</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sink"><span class="nav-number">2.2.</span> <span class="nav-text">Sink</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flow"><span class="nav-number">2.3.</span> <span class="nav-text">Flow</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
