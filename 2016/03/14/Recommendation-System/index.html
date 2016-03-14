@@ -1,0 +1,780 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Architecture," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="推荐系统介绍">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Recommendation System">
+<meta property="og:url" content="http://yoursite.com/2016/03/14/Recommendation-System/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="推荐系统介绍">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E5%9F%BA%E4%BA%8E%E7%94%A8%E6%88%B7%E5%92%8C%E7%89%A9%E5%93%81%E7%9A%84%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4%E5%AF%B9%E6%AF%94.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E6%8E%A8%E8%8D%90%E5%BC%95%E6%93%8E%E6%9E%B6%E6%9E%84%E5%9B%BE.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Storm%E5%AE%9E%E6%97%B6%E6%8E%A8%E8%8D%90.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4%E8%AE%A1%E7%AE%97%E6%B5%81%E7%A8%8B.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Hulu%E6%9E%B6%E6%9E%84.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Ali%E6%8E%A8%E8%8D%90%E6%9E%B6%E6%9E%84.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Google%E6%8E%A8%E8%8D%90%E6%9E%B6%E6%9E%84.jpg">
+<meta property="og:updated_time" content="2016-03-14T15:32:37.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Recommendation System">
+<meta name="twitter:description" content="推荐系统介绍">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Recommendation System | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Recommendation System
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-14T16:25:39+08:00" content="2016-03-14">
+            2016-03-14
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="基于用户的推荐算法">基于用户的推荐算法</h2><p>仅仅基于用户行为数据设计的推荐算法一般称为协同过滤算法.学术界对协同过滤算法进行了深入研究,提出了很多方法,包括基于邻域的方法(neighborhood-based),隐语义模型(latent factor model),基于图的随机游走算法(random walk on graph)等等.在这些方法中,最著名,在业界得到最广泛应用的算法是基于邻域的方法,而基于邻域的方法主要包含下面两种算法:</p>
+<ol>
+<li>基于用户的协同过滤算法.这种算法给用户推荐和他们兴趣相似的其他用户喜欢的物品.</li>
+<li>基于物品的协同过滤算法.这种算法给用户推荐和他们之前喜欢的物品相似的物品.</li>
+</ol>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/%E5%9F%BA%E4%BA%8E%E7%94%A8%E6%88%B7%E5%92%8C%E7%89%A9%E5%93%81%E7%9A%84%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4%E5%AF%B9%E6%AF%94.jpg" alt="基于用户和物品的协同过滤对比" title="基于用户和物品的协同过滤对比"></p>
+<h3 id="基于用户的协同过滤方法">基于用户的协同过滤方法</h3><ol>
+<li>找到和目标用户兴趣相似的用户集合,关键在于计算两个用户的兴趣相似度</li>
+<li>找到这个集合中用户喜欢的,且目标用户没有听说过的物品推荐给目标用户</li>
+</ol>
+<p>这种方法更加社会化,反映了用户所在的小型用户群体中物品的热门度.</p>
+<h3 id="基于物品的协同过滤方法">基于物品的协同过滤方法</h3><ol>
+<li>计算物品间的相似度</li>
+<li>根据物品的相似度和用户的历史行为给用户生成推荐列表</li>
+</ol>
+<p>这种方法更加个性化,反映了用户自己的兴趣传承,而与其他用户无关.</p>
+<h3 id="新闻应用中的协同过滤">新闻应用中的协同过滤</h3><p>在新闻的应用中,用户的兴趣不是特别细化,绝大多数都是喜欢看热门的新闻.</p>
+<p>即使是个性化,也是比较粗粒度的,不如有些用户喜欢体育新闻,有些喜欢社会新闻,而特别细粒度的个性化一般是不存在的.比方说,很少有用户只看某个话题的新闻,主要是因为这个话题不可能保证每天都有新的消息,而这个用户确实天天需要看新闻的.因此,个性化新闻推荐更加强调抓住新闻热点,热门程度和时效性是个性化新闻推荐的重点,而个性化对于这两点略显次要.因此,UserCF可以给用户推荐和他有相似爱好的一群其他用户今天都在看的新闻,这样在抓住热点和时效性的同事,保证了一定程度的个性化.这是Digg在新闻推荐中使用UserCF的最重要原因.</p>
+<p>UserCF适合用于新闻推荐的另一个原因是从技术角度考量的。因为作为一种物品,新闻的更 新非常快,每时每刻都有新内容出现,而ItemCF需要维护一张物品相关度的表,如果物品更新很 快,那么这张表也需要很快更新,这在技术上很难实现。绝大多数物品相关度表都只能做到一天 一次更新,这在新闻领域是不可以接受的。而UserCF只需要用户相似性表,虽然UserCF对于新 用户也需要更新相似度表,但在新闻网站中,物品的更新速度远远快于新用户的加入速度,而且 对于新用户,完全可以给他推荐最热门的新闻,因此UserCF显然是利大于弊。</p>
+<p>UserCF适合用于新闻推荐的另一个原因是从技术角度考量的.因为作为一种物品,新闻的更新非常快速,每时每刻都有新的内容出现,而ItemCF需要维护一张物品相关度的表,如果物品更新很快,那么这张表也需要很快更新,这在技术上很难实现.绝大多数物品相关度表都只能做到一天更新一次,这在新闻领域是不可以接收的.而UserCF是需要用户相似性表,虽然UserCF对于新用户也需要更新相似度表,但在新闻网站中,物品的更新速度远远快于新用户的加入速度,而且对于新用户,完全可以给他推荐最热门的新闻,因此UserCF显得是利大于弊.</p>
+<p>UserCF需要维护一个用户相似度矩阵,而ItemCF需要维护一个物品相似度矩阵.从存储的角度来说,如果用户很多,那么维护用户兴趣的相似度矩阵需要很大空间,同理,如果物品很多,那么维护物品相似度矩阵代价较大.</p>
+<p>在早期的研究中,大部分研究人员都是让少量的用户对大量的物品进行评价,然后研究用户兴趣的模式.那么,对于他们来说,因为用户很少,计算用户兴趣相似度也是最快最简单的方法.但是实际互联网中,用户数目往往非常庞大,而在图书,电子商务网站中,物品的数目则是比较少的.因此,物品的相似度对于用户的兴趣一般比较稳定,因此使用ItemCF是比较好的选择.当然,新闻网站是个例外,在新闻应用中,物品的相似度变化很快,物品数目庞大,相反兴趣则相对固定(都是喜欢看热门的),所以新闻网站的个性化推荐使用UserCF算法的更多.</p>
+<h2 id="冷启动">冷启动</h2><p>冷启动基本分为三种:</p>
+<ol>
+<li><p>用户冷启动: 主要解决如何给新用户做个性化推荐的问题.当新用户到来时,没有他们的行为数据,所以无法根据他们的历史行为预测其兴趣,从而无法借此做个性化推荐.</p>
+</li>
+<li><p>物品冷启动: 主要解决将新的物品推荐给可能对他感兴趣的用户这一问题.</p>
+</li>
+<li><p>系统冷启动: 主要解决如何在一个新开发的网站上设计推荐系统(无用户,无行为,只有少量物品).</p>
+</li>
+</ol>
+<p>解决方案:</p>
+<ol>
+<li>提供非个性化方案: 比如首先使用热门排行榜,后续再进行切换.</li>
+<li>利用用户注册时提供的基本个人信息</li>
+<li>要求用户在登录时对一些物品进行反馈,收集用户的兴趣信息</li>
+<li>对于新加入的物品,可以利用内容信息,将他们推荐给喜欢过和他们相似的物品的用户</li>
+<li>系统冷启动时,引入专家知识,通过一定的高效方式迅速建立起物品的相关度</li>
+</ol>
+<h2 id="一般架构">一般架构</h2><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/%E6%8E%A8%E8%8D%90%E5%BC%95%E6%93%8E%E6%9E%B6%E6%9E%84%E5%9B%BE.jpg" alt="基本架构" title="基本架构"></p>
+<p>A: 负责从数据库或缓存中拿到用户的行为数据,通过分析不同的行为,生成当前用户的特征向量,进行输出<br>B: 负责将用户的特征向量通过特征-物品相关矩阵,转化为初始推荐列表<br>C: 负责对初始推荐列表进行过滤排名等处理,生成最终推荐列表</p>
+<h2 id="实时推荐系统">实时推荐系统</h2><h3 id="聚类技术和实时协同过滤算法">聚类技术和实时协同过滤算法</h3><p>在算法上，一般采用EM（Expectation-Maximization）、K-means、吉布斯（Gibbs Sampling）、模糊聚类等聚类技术提高推荐速度。因为使用聚类技术可以大大缩小用户或项目的最近邻居搜索范围，从而提高推荐的实时性，如表9-1所示。</p>
+<p>在算法上,一般采用EM(Expectation-Maximizatio),K-means,吉布斯(Gibbs Sampling),模糊聚类等聚类技术提高推荐速度.因为使用聚类技术可以大大缩小用户或项目的最近邻居搜索范围,从而提高推荐的实时性.</p>
+<p>聚类技术比较:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">算法</th>
+<th style="text-align:left">概念</th>
+<th style="text-align:left">缺点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">EM</td>
+<td style="text-align:left">最大期望算法,估计用户或物品属于某一类的概率</td>
+<td style="text-align:left">每个用户或物品属于两个不同的用户分类或物品分类,EM算法就不再适用</td>
+</tr>
+<tr>
+<td style="text-align:left">K-means</td>
+<td style="text-align:left">主要思想是以空间中K个点为中心进行聚类,对最靠近他们的对象进行归类.通过迭代的方法,逐次更新各聚类中心的值,直至得到最好的聚类结果</td>
+<td style="text-align:left">聚类数目K的值需要事先给定,而且不同的应用中K值是不同的,难于选取.另外初始聚类中心是随机选取的,对于同一组数据,可能因为初始聚类的中心不同而产生不同的聚类结果.有些类型的数据,比如全是1和0组成的二进制数组,如果要对这种二进制数组进行聚类,K-means不合适,因为如果采用欧氏距离,很难定义和计算他们的聚类中心点,这时可以采用Jaccard相似度和ROCK等层次聚类算法</td>
+</tr>
+<tr>
+<td style="text-align:left">吉布斯采样</td>
+<td style="text-align:left">与EM算法类似,不同的是吉布斯采样方法基于贝叶斯模型,计算可以离线进行</td>
+<td style="text-align:left">算法复杂度较大,聚类过程比较耗时</td>
+</tr>
+<tr>
+<td style="text-align:left">模糊聚类</td>
+<td style="text-align:left">利用模糊等价关系将给定的对象分为一些等价类,并由此得到与关系对应的模糊相似矩阵,该模糊相似矩阵满足传递性.根据相似矩阵求出其传递关系的闭包,然后在传递关系的闭包上实现分类,计算可以离线进行</td>
+<td style="text-align:left">可能性划分的收敛速度慢,当数据离散程度大,即数据灰度大,预测精度越差,需要对历史数据的平滑处理</td>
+</tr>
+</tbody>
+</table>
+<h3 id="基于Spark的方式">基于Spark的方式</h3><p>在架构上,第一种是使用Spark吧模型计算放在内存中,加快模型计算速度,Hadoop中作业的中间输出结果是放到硬盘的HDFS中,而Spark是直接保存在内存中,因此Spark能更好的适用于数据挖掘与机器学习等需要迭代的模型计算.</p>
+<p>MapReduce和Spark的Shuffle过程对比:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:left">MapReduce</th>
+<th style="text-align:left">Spark</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">collect</td>
+<td style="text-align:left">在内存中构造了一块数据结构y用于Map输出的的缓冲</td>
+<td style="text-align:left">直接把输出写到磁盘文件上</td>
+</tr>
+<tr>
+<td style="text-align:left">sort</td>
+<td style="text-align:left">Map输出的数据有排序</td>
+<td style="text-align:left">Map输出的数据没有排序</td>
+</tr>
+<tr>
+<td style="text-align:left">merge</td>
+<td style="text-align:left">对磁盘上的多个spill文件最后进行合并成一个输出文件</td>
+<td style="text-align:left">在Map端没有merge过程,在输出的时候直接是对应一个Reduce的数据写入到一个文件中,这些文件同时存在并发写,最后不需要合并成一个</td>
+</tr>
+<tr>
+<td style="text-align:left">copy框架</td>
+<td style="text-align:left">Jetty</td>
+<td style="text-align:left">Netty或直接Socket流</td>
+</tr>
+<tr>
+<td style="text-align:left">对于本节点上的文件</td>
+<td style="text-align:left">仍然是通过网络框架拖取数据</td>
+<td style="text-align:left">不通过网络框架,对于在本节点上的Map输出文件采用本地读取的方式</td>
+</tr>
+<tr>
+<td style="text-align:left">copy过来的数据存放的位置</td>
+<td style="text-align:left">先放到内存,内存放不下时写到磁盘</td>
+<td style="text-align:left">一种方式全部放在内存,另一种方式先放在内存</td>
+</tr>
+<tr>
+<td style="text-align:left">merge sort</td>
+<td style="text-align:left">最后会对磁盘文件和内存中的数据进行合并排序</td>
+<td style="text-align:left">对于采用另一种方式时也会有合并排序的过程</td>
+</tr>
+</tbody>
+</table>
+<h3 id="基于Kiji框架的方式">基于Kiji框架的方式</h3><p>第二种是使用Kiji,它是一种用来构建大数据应用和实时推荐系统的开源框架,本质上是对HBase上层的一个封装,用Avro来承载对象初始化的数据,使得用户能更容易的用HBase管理结构化数据,使得用户姓名,地址等基础信息和点击购买等动态信息都能存储到一行,在传统数据库中,往往需要建立多张表,在计算的时候需要关联多张表,影响实时性.</p>
+<p>Kiji和HBase的映射关系:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">项</th>
+<th style="text-align:left">Kiji</th>
+<th style="text-align:left">HBase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Entity相关</td>
+<td style="text-align:left">Entity</td>
+<td style="text-align:left">相同键的值都属于同一行</td>
+</tr>
+<tr>
+<td style="text-align:left">Entity相关</td>
+<td style="text-align:left">EntityID</td>
+<td style="text-align:left">行键(row key)</td>
+</tr>
+<tr>
+<td style="text-align:left">Column相关</td>
+<td style="text-align:left">locality:family:key</td>
+<td style="text-align:left">Family:qualifier</td>
+</tr>
+<tr>
+<td style="text-align:left">Column相关</td>
+<td style="text-align:left">locality</td>
+<td style="text-align:left">Famlily</td>
+</tr>
+<tr>
+<td style="text-align:left">Column相关</td>
+<td style="text-align:left">Family:key</td>
+<td style="text-align:left">Qualifier</td>
+</tr>
+<tr>
+<td style="text-align:left">Schema相关</td>
+<td style="text-align:left">Table Layout</td>
+<td style="text-align:left">Hbase上的KijiMetaTable,如kiji.default.meta</td>
+</tr>
+<tr>
+<td style="text-align:left">Schema相关</td>
+<td style="text-align:left">Cell Sehema</td>
+<td style="text-align:left">Avro Schema</td>
+</tr>
+<tr>
+<td style="text-align:left">Schema相关</td>
+<td style="text-align:left">Cell Schema mapping</td>
+<td style="text-align:left">HBase上的Schema Table,如: kiji.default.schema-hash,kiji.default.id</td>
+</tr>
+</tbody>
+</table>
+<p>Kiji提供了一个KijiScoring模块,它可以定义数据的过期策略,如综合产品的点击次数和上次的点击事件,设置数据的过期策略吧数据刷新到KijiScoring服务器中,并且根据自定义的规则,决定是否需要重新计算得分.如用户有上千万浏览记录,一次的行为不会影响对少总体得分,不需要重新计算,但如果用户仅有几次浏览记录,一次的行为,可能就要重新训练模型.Kiji也提供了一个Kiji模型库,使得改进的模型部署到生产环境时不用停掉应用程序,让开发者可以轻松更新其底层的模型.</p>
+<h3 id="基于Storm的方式">基于Storm的方式</h3><p>最后一种基于Storm的实时推荐系统.在实时推荐上,算法本身不能设计的太复杂,并且很多网站的数据库是TB,PB级别的,实时读写大表比较耗时.可以把算法分成离线部分和实时部分,利用Hadoop离线任务尽量吧查询数据库比较多的,可以预先计算的模型先训练好,或者把计算的中间数据先计算好,比如,线性分类器的参数,聚类算法的集群位置或者协同过滤中条目的相似性矩阵,然后把少量更新的计算留给Storm实时计算,一般是具体的评分阶段.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Storm%E5%AE%9E%E6%97%B6%E6%8E%A8%E8%8D%90.jpg" alt="Storm实时推荐" title="Storm实时推荐"></p>
+<p>计算过程分析:</p>
+<p>使用HBase或HDFS存储历史的浏览和购买行为信息,用Hadoop基于UserCF的协同过滤,先把用户的相似度离线生成好,用户到商品的矩阵往往比较大,预算比价耗时,把耗时的运行先离线计算好,实时调用离线的结果进行轻量级的计算有助于提高产品的实时性.</p>
+<p>回顾一下协同过滤算法:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4%E8%AE%A1%E7%AE%97%E6%B5%81%E7%A8%8B.jpg" alt="协同过滤计算流程" title="协同过滤计算流程"></p>
+<p>首先程序获取用户和产品的历史偏好,得到用户到产品的偏好矩阵,利用Jaccard相似系数(Jaccard coefficient),向量空间余弦相似度(Cosine similarity),皮尔逊相关系数(Pearson correlation coefficient)等相似度计算方法,得到相邻的用户(UserCF)和相似商品(ItemCF).在UserCF中,基于用户历史偏好的相似度得到邻居用户,将邻居用户偏好的产品推荐给该用户;在ItemCF中,基于用户对物品的偏好向量得到相似产品,然后把这款产品推荐给喜欢相似产品的其他用户.</p>
+<p>然后通过Kafka或Redis队列,保存前端等最新浏览等事件,在Storm的Topolog中实时读取里面的信息,同时获取缓存中用户TopN个邻居用户,把邻居用户喜欢的商品存到缓存中,前端从缓存中取出商品,根据一定测策略,组装成推荐商品列表.</p>
+<h2 id="推荐系统商业应用架构">推荐系统商业应用架构</h2><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Hulu%E6%9E%B6%E6%9E%84.jpg" alt="Hulu架构" title="Hulu架构"></p>
+<p>总结: Hulu的推荐系统,至少在他blog中写的比较简单.更多的是对推荐系统在线部分的一种描述,离线部分我猜想也是同步分布式计算或者不同的计算方式将算法产生的数据存储进入一种介质中,共推荐系统在线部分调用.系统的整个流程是这样的,首先获取用户的行为,包括(watch、subscribe、vote),这样行为会在后台获取show-show对应的推荐数据.同时这些行为也会产生对应的topic,系统也会根据topic到后台获取topic-show对应的推荐数据.两种数据进行混合,然后经过filter,explanation,ranking这一系列过程,最后生成用户看到的推荐数据.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Ali%E6%8E%A8%E8%8D%90%E6%9E%B6%E6%9E%84.jpg" alt="Ali推荐架构" title="Ali推荐架构"></p>
+<p>总结: 淘宝的推荐系统,描述了推荐引擎搭建的整体架构,包括离线的分布式计算和存储,监控,数据统计和分析,实验平台等.给我们搭建推荐引擎提供了很好的建议,整体流程大致这样.通过后台的分布式计算,将算法产生的算法结果数据存储进入一种介质,首推HBase.然后,通过一种叫做云梯的机制将算法结果推入中间层介质中,共推荐系统的在线部分调用.在线部分提供引擎和实验分流,用户的行为将存储进入Hadoop中,数据分析平台有Hive来搭建,主要用来分析和统计Hadoop中的用户行为log.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Google%E6%8E%A8%E8%8D%90%E6%9E%B6%E6%9E%84.jpg" alt="Google推荐架构" title="Google推荐架构"></p>
+<p>总结: Google提供了一种分层实验模型的架构.通过不同层次之间的随机分流来保证不同实验层之间的正交,从而保证不同实验层之间不会发生相互影响的情况.Google主要把这套分层实验平台用于广告推荐当中,我们的推荐引擎可以借鉴这种模式.整体流程大致为,把用户的请求分配到不同的domain中,如果是在线的domain则用同样的流程,可以不进行实验,如果用户该次请求进入的是实验的domain,则通过在随机的在不同实验层之间选择实验,为该次请求打上实验tag,然后后面的部分则根据不同的实验tag进行实验.</p>
+<p>整体总结: 我们的推荐系统可以以Taobao的那个推荐引擎为基础,搭建整体一个推荐生态系统,包括推荐引擎,实验平台,分布式计算和存储,日志统计和分析等.在线部分,可以采用Google的分层实验平台来完成我们队不同算法效果的AB-test.而在线的流程可以借鉴Hulu的处理流程.</p>
+<h2 id="参考列表">参考列表</h2><ol>
+<li><a href="http://blog.csdn.net/idonot/article/details/7996733" title="idonot: 推荐系统架构小结" target="_blank" rel="external">idonot: 推荐系统架构小结</a></li>
+<li><a href="http://www.jianshu.com/p/356656ce2901" title="出版圈郭志敏: 实时推荐系统的3种方式" target="_blank" rel="external">出版圈郭志敏: 实时推荐系统的3种方式</a></li>
+<li>&lt;&lt;推荐系统实践&gt;&gt;</li>
+<li><a href="http://www.kuqin.com/shuoit/20150827/347805.html" title="《纽约时报》如何打造新一代推荐系统" target="_blank" rel="external">《纽约时报》如何打造新一代推荐系统</a></li>
+<li><a href="http://blog.jobbole.com/86959/" title="吴文敏(翻译): 选择合适的推荐系统模型" target="_blank" rel="external">吴文敏(翻译): 选择合适的推荐系统模型</a></li>
+</ol>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Architecture/" rel="tag">#Architecture</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/13/Do-s-and-Dont-s-When-Deploying-Akka-in-Production/" rel="next">Do's and Dont's When Deploying Akka in Production</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">92</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">36</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基于用户的推荐算法"><span class="nav-number">1.</span> <span class="nav-text">基于用户的推荐算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于用户的协同过滤方法"><span class="nav-number">1.1.</span> <span class="nav-text">基于用户的协同过滤方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于物品的协同过滤方法"><span class="nav-number">1.2.</span> <span class="nav-text">基于物品的协同过滤方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#新闻应用中的协同过滤"><span class="nav-number">1.3.</span> <span class="nav-text">新闻应用中的协同过滤</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#冷启动"><span class="nav-number">2.</span> <span class="nav-text">冷启动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一般架构"><span class="nav-number">3.</span> <span class="nav-text">一般架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实时推荐系统"><span class="nav-number">4.</span> <span class="nav-text">实时推荐系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#聚类技术和实时协同过滤算法"><span class="nav-number">4.1.</span> <span class="nav-text">聚类技术和实时协同过滤算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于Spark的方式"><span class="nav-number">4.2.</span> <span class="nav-text">基于Spark的方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于Kiji框架的方式"><span class="nav-number">4.3.</span> <span class="nav-text">基于Kiji框架的方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于Storm的方式"><span class="nav-number">4.4.</span> <span class="nav-text">基于Storm的方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#推荐系统商业应用架构"><span class="nav-number">5.</span> <span class="nav-text">推荐系统商业应用架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考列表"><span class="nav-number">6.</span> <span class="nav-text">参考列表</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
