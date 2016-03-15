@@ -1,0 +1,735 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Mahout," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="系统初探与评估方法.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mahout in Action 1">
+<meta property="og:url" content="http://yoursite.com/2016/03/15/Mahout-in-Action-1/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="系统初探与评估方法.">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Mahout-UserCF%E7%BB%84%E4%BB%B6%E5%85%B3%E7%B3%BB.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E5%B9%B3%E5%9D%87%E5%B7%AE%E5%80%BC%E4%B8%8E%E5%9D%87%E6%96%B9%E6%A0%B9%E7%9A%84%E8%AE%A1%E7%AE%97%E8%AF%B4%E6%98%8E.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E6%9F%A5%E5%87%86%E7%8E%87%E4%B8%8E%E6%9F%A5%E5%85%A8%E7%8E%87%E7%9A%84%E8%AF%B4%E6%98%8E.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/GenericDataModel%E5%AE%9A%E4%B9%89.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E6%95%B0%E6%8D%AE%E5%88%B7%E6%96%B0%E9%A1%BA%E5%BA%8F.jpg">
+<meta property="og:updated_time" content="2016-03-15T14:13:02.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mahout in Action 1">
+<meta name="twitter:description" content="系统初探与评估方法.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Mahout in Action 1 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Mahout in Action 1
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-15T21:07:43+08:00" content="2016-03-15">
+            2016-03-15
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="推荐系统简介">推荐系统简介</h2><p>Mahout关注的三个核心问题: 聚类,分类,推荐(协同过滤).</p>
+<p>聚类: 聚类技术试图将大量的事物组合为拥有类似属性的簇(cluster),借以在一些规模较大或难于理解的数据集上发现层次结构和顺序,以揭示一些有用的模式或让数据更易于理解.</p>
+<p>分类: 分类技术决定了一个事物多大程度上从属于某些类型或类别,或者多大程度上具有或不具有某些属性.</p>
+<h2 id="第一个推荐引擎">第一个推荐引擎</h2><pre><code><span class="keyword">public</span> <span class="keyword">class</span> RecommenderIntro {
+    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> throws Exception </span>{
+
+        String basePath = <span class="string">"/Users/zhange/work/projects/TestMahout/src/main/java/"</span>;
+
+        DataModel model = <span class="keyword">new</span> FileDataModel(<span class="keyword">new</span> File(basePath + <span class="string">"Chapter02/intro.csv"</span>));            <span class="comment">// 加载数据文件</span>
+
+        UserSimilarity similarity = <span class="keyword">new</span> PearsonCorrelationSimilarity(model);
+        UserNeighborhood neighborhood = <span class="keyword">new</span> NearestNUserNeighborhood(<span class="number">2</span>, similarity, model);
+
+        Recommender recommender = <span class="keyword">new</span> GenericUserBasedRecommender(model, neighborhood, similarity); <span class="comment">// 生成推荐引擎</span>
+
+        List&lt;RecommendedItem&gt; recommendations = recommender.recommend(<span class="number">1</span>, <span class="number">1</span>);                        <span class="comment">// 为第一个用户推荐一本书</span>
+
+        <span class="keyword">for</span> (RecommendedItem recommendation : recommendations) {
+            System.out.println(recommendation);
+        }
+    }
+}
+</code></pre><p>上面用到了多个Mahout提供的组件:</p>
+<ol>
+<li>DataModel: 实现存储并未计算提供其所需的所有偏好,用户,物品数据</li>
+<li>UserSimilarity: 实现给出连个用户之间的相似度,可以从多种可能度量或计算中选用一种来作为依据</li>
+<li>UserNeighborhood: 实现明确了与给定用户最相似的一组用户</li>
+<li>Recommender: 实现合并这些组件,为用户推荐物品</li>
+</ol>
+<p>各个组件之间的关系:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/Mahout-UserCF%E7%BB%84%E4%BB%B6%E5%85%B3%E7%B3%BB.jpg" alt="Mahout-UserCF组件关系" title="Mahout-UserCF组件关系"></p>
+<p>上面例子中的输出结果为: RecommendedItem[item:104, value:4.257081]<br>表示的意思是,将物品104推荐给用户1,并且给出用户1对104物品的估计评分为4.257081.</p>
+<h2 id="评估一个推荐引擎">评估一个推荐引擎</h2><p>一般的评估方法是,将真实的偏好数据与估计的偏好数据进行对比,当没有真实的偏好数据可用时,从需要评估的数据中取出一小部分作为真实数据,剩余的部分用作推荐引擎的训练计算数据,然后将二者进行对比,得到推荐引擎的效果评估结果.</p>
+<p>简单的评估方式:</p>
+<ol>
+<li>平均差值: 计算出估计和实际偏好的平均差值,差值越低越好</li>
+<li>均方根: 计算出实际偏好值和估计值之间的差值之后,先进性平方再求其平均值的平方根,值越低越好.</li>
+</ol>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/%E5%B9%B3%E5%9D%87%E5%B7%AE%E5%80%BC%E4%B8%8E%E5%9D%87%E6%96%B9%E6%A0%B9%E7%9A%84%E8%AE%A1%E7%AE%97%E8%AF%B4%E6%98%8E.jpg" alt="平均差值与均方根的计算说明" title="平均差值与均方根的计算说明"></p>
+<h2 id="评估过程">评估过程</h2><pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EvaluatorIntro</span> </span>{
+
+    <span class="function"><span class="keyword">private</span> <span class="title">EvaluatorIntro</span><span class="params">()</span> </span>{
+    }
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>{
+        String basePath = <span class="string">"/Users/zhange/work/projects/TestMahout/src/main/java/"</span>;
+
+        <span class="comment">// 生成可重复的结果</span>
+        RandomUtils.useTestSeed();
+        DataModel model = <span class="keyword">new</span> FileDataModel(<span class="keyword">new</span> File(basePath + <span class="string">"Chapter02/intro.csv"</span>));
+
+        <span class="comment">// 使用平均差值进行评估,或者可以使用均方根进行评估: RMSRecommenderEvaluator()</span>
+        RecommenderEvaluator evaluator = <span class="keyword">new</span> AverageAbsoluteDifferenceRecommenderEvaluator();
+
+        <span class="comment">// 跟上个例子一样,根据现有的数据创建一个recommender,返回一个RecommenderBuilder:</span>
+        RecommenderBuilder recommenderBuilder = <span class="keyword">new</span> RecommenderBuilder() {
+            <span class="comment">//@Override</span>
+            <span class="function"><span class="keyword">public</span> Recommender <span class="title">buildRecommender</span><span class="params">(DataModel model)</span> <span class="keyword">throws</span> TasteException </span>{
+                UserSimilarity similarity = <span class="keyword">new</span> PearsonCorrelationSimilarity(model);
+                UserNeighborhood neighborhood =
+                        <span class="keyword">new</span> NearestNUserNeighborhood(<span class="number">2</span>, similarity, model);
+                <span class="keyword">return</span> <span class="keyword">new</span> GenericUserBasedRecommender(model, neighborhood, similarity);
+            }
+        };
+        <span class="comment">// 使用70%的数据进行训练,30%的数据进行测试</span>
+        <span class="keyword">double</span> score = evaluator.evaluate(recommenderBuilder,   <span class="comment">// 上面创建的RecommenderBuilder</span>
+                <span class="keyword">null</span>,                                           <span class="comment">// DataModelBuilder的实例,用于控制如何从训练数据中生成DataModel,通常为null,除非需要控制如何从训练数据中生成DataModel</span>
+                model,                                          <span class="comment">//</span>
+                <span class="number">0.7</span>,
+                <span class="number">1.0</span>);                                           <span class="comment">// 用于控制使用多少输入数据,1.0即当前数据的100%</span>
+        System.out.println(score);
+    }
+}
+</code></pre><p>如上所示,大部分计算行为发生在evaluate()中,EvaluatorIntro会将数据按照参数中提供的比例,将model数据分为训练集合测试集,将训练集与传入的RecommenderBuilder重新构建一个Recommender,然后根据训练结果与测试数据进行比较,得到评估结果.</p>
+<h2 id="评估的查准率(精度)和查全率(召回率)">评估的查准率(精度)和查全率(召回率)</h2><p>使用经典的信息检索度量标准来评估推荐程序:查准率和查全率,其目的是尽量避免在搜索结果中返回无关信息,而应竭力返回相关的信息.</p>
+<p>在推荐系统中的解释:</p>
+<p>查准率: 指top结果中相关结果的比例,”Precision at 10(推荐10个结果时德尔查准率)”,是指这个比例来自对前10个top结果的判定.<br>查全率: 是指所有相关结果包含在top结果中的比例.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/%E6%9F%A5%E5%87%86%E7%8E%87%E4%B8%8E%E6%9F%A5%E5%85%A8%E7%8E%87%E7%9A%84%E8%AF%B4%E6%98%8E.jpg" alt="查准率与查全率" title="查准率与查全率"></p>
+<p>用在推荐中的说法就是: 查准率是top推荐的10个结果中有几个是真正相关的,查全率是所有相关的项出现在top中的比例.</p>
+<p>Mahout中提供的相关评估:</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">IREvaluatorIntro</span> {
+
+    <span class="function"><span class="keyword">private</span> <span class="title">IREvaluatorIntro</span>(<span class="params"></span>) </span>{
+    }
+
+    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span>(<span class="params">String[] args</span>) throws Exception </span>{
+        String basePath = <span class="string">"/Users/zhange/work/projects/TestMahout/src/main/java/"</span>;
+
+        RandomUtils.useTestSeed();
+        DataModel model = <span class="keyword">new</span> FileDataModel(<span class="keyword">new</span> File(basePath + <span class="string">"Chapter02/intro.csv"</span>));
+
+        RecommenderIRStatsEvaluator evaluator = <span class="keyword">new</span> GenericRecommenderIRStatsEvaluator();   <span class="comment">// 新建一个RecommenderEvaluator</span>
+
+        <span class="comment">// 跟上个例子一样,根据现有的数据创建一个recommender,返回一个RecommenderBuilder:</span>
+        RecommenderBuilder recommenderBuilder = <span class="keyword">new</span> RecommenderBuilder() {
+            <span class="comment">//@Override</span>
+            <span class="function"><span class="keyword">public</span> Recommender <span class="title">buildRecommender</span>(<span class="params">DataModel model</span>) throws TasteException </span>{
+                UserSimilarity similarity = <span class="keyword">new</span> PearsonCorrelationSimilarity(model);
+                UserNeighborhood neighborhood = <span class="keyword">new</span> NearestNUserNeighborhood(<span class="number">2</span>, similarity, model);
+                <span class="keyword">return</span> <span class="keyword">new</span> GenericUserBasedRecommender(model, neighborhood, similarity);
+            }
+        };
+
+        <span class="comment">// 推荐两个结果时的评估:</span>
+        IRStatistics stats = evaluator.evaluate(recommenderBuilder,
+                <span class="keyword">null</span>, model, <span class="keyword">null</span>, <span class="number">2</span>,
+                GenericRecommenderIRStatsEvaluator.CHOOSE_THRESHOLD,
+                <span class="number">1.0</span>);
+        System.<span class="keyword">out</span>.println(stats.getPrecision());
+        System.<span class="keyword">out</span>.println(stats.getRecall());
+    }
+}
+</code></pre><p>运行结果解析:</p>
+<pre><code><span class="number">0.75</span>
+<span class="number">1.0</span>
+</code></pre><p>0.75: 表示退浆两个结果时的查准率为0.75,即75%的推荐结果是真正相关的<br>1.0: 表示推荐两个结果时的查全率为1.0, 即所有真正相关的项都包含在推荐结果中</p>
+<h2 id="偏好数据的表示">偏好数据的表示</h2><p>推荐引擎的输入为偏好数据,即: 用户ID,物品ID,偏好值.而时候偏好值会被忽略.</p>
+<h3 id="Preference">Preference</h3><p>Preference是一个最基本的抽象,表示用户ID,物品ID,偏好值.Perference是一个接口,最常用的实现是GeneriPreference.比如:</p>
+<pre><code><span class="keyword">new</span> Preference(<span class="number">123</span>, <span class="number">145</span>, <span class="number">3.0f</span>)
+</code></pre><p>一个Preference中共包含20字节数据,(long,long,float),整个对象占用28字节,因此资源消耗很大.</p>
+<p>而PreferenceArray表示一个聚合的偏好,具有类似数组的API.比如,GeneriUserPreferenceArray,表示与某个用户关联的偏好集合,包含一个单一用户ID,一个物品ID数组,一个偏好值数组,存储因而更加高效.</p>
+<p>设置PreferenceArray中的偏好值:</p>
+<pre><code>PreferenceArrayy user1Prefs = <span class="keyword">new</span> GeneriUserPreferenceArray(<span class="number">2</span>);
+
+user1Prefs.setUserID(<span class="number">0</span>, <span class="number">1L</span>);
+
+user1Prefs.setItemID(<span class="number">0</span>, <span class="number">122L</span>);
+user1Prefs.setValue(<span class="number">0</span>,<span class="number">2.0f</span>);
+
+user1Prefs.setItemID(<span class="number">1</span>, <span class="number">103L</span>);
+user1Prefs.setValue(<span class="number">1</span>, <span class="number">3.0f</span>);
+</code></pre><p>而对应于物品的GenericItemPreferenceArray与其原理实现一致.</p>
+<h3 id="FastByIDMap和FastIDSet">FastByIDMap和FastIDSet</h3><p>Mahout中使用了大量Map和Set数据结构,但并不是JDK中的TreeSet和HashMap,而是FastMap,FastByIDMap,FastIDSet,以降低内存占用.</p>
+<p>数据结构对比:</p>
+<ol>
+<li>与HashMao类似,FastByIDMap是基于散列的.但是它在处理列冲突时使用的是线性探测,而非分离链接,这样便不必为每个条目都增加一个额外的Map.Entry对象.如前所述,Object对内存的消耗是惊人的.</li>
+<li>在Mahout推荐程序中,键(key)和成员(member)通常采用原始类型long,而非object,使用long型的键能够节省内存并提升性能.</li>
+<li>Set实现的内部没有使用Map.</li>
+<li>FastByIDMap可以作为高速缓存,因为他有一个最大空间的概念,超过这个大小时,若要新加入条目则会把不常用的移走.</li>
+</ol>
+<p>这些实现不是单纯为了提升性能,而是为了减少内存占用.</p>
+<h3 id="内存级DataModel">内存级DataModel</h3><p><img src="http://7xiwca.com1.z0.glb.clouddn.com/GenericDataModel%E5%AE%9A%E4%B9%89.jpg" alt="GenericDataModel的定义" title="GenericDataModel的定义"></p>
+<h3 id="基于文件的数据">基于文件的数据</h3><h3 id="可刷新组件">可刷新组件</h3><p>Refresh接口,只公开了一个方法: refresh(Collection<refreshable>).该方法简单的请求组件在最新的输入数据上进行: reload,recompute,refresh,并事先让它的依赖也进行同样的动作.</refreshable></p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/%E6%95%B0%E6%8D%AE%E5%88%B7%E6%96%B0%E9%A1%BA%E5%BA%8F.jpg" alt="数据刷新顺序" title="数据刷新顺序"></p>
+<p>FileDataModel支持刷新文件,在读取主数据文件之后额外生成的数据文件,并可以覆盖任何以前度去过对的数据.需要更新的文件必须目录相同,前缀相同,foo.tx -&gt; foo.1.txt .</p>
+<h3 id="JDBCDataModel">JDBCDataModel</h3><p>JDBCDataModel中数据库的设置:</p>
+<ol>
+<li>用户ID和物品ID列应为非空,而且必须被索引</li>
+<li>主键必须为用户ID和物品ID的组合主键</li>
+<li>列的数据类型根据Java中对应long和float的类型来选择.在MySQ中,应该为BIGING和FLOAT</li>
+<li>注意调节缓冲区和查询告诉缓存,见 MySQLJDBCDataModel的javadoc</li>
+<li>当使用MySQL的Connector/J驱动时,将驱动的参数设为True</li>
+</ol>
+<h3 id="无偏好值的处理">无偏好值的处理</h3><p>Mahout中没有偏好值的关联称为布尔型偏好.在内存中的表示使用GerericBooleanPrefDataModel.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Mahout/" rel="tag">#Mahout</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/15/Mahout-in-Action-2/" rel="prev">Mahout in Action 2</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/14/Recommendation-System/" rel="next">Recommendation System</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#推荐系统简介"><span class="nav-number">1.</span> <span class="nav-text">推荐系统简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第一个推荐引擎"><span class="nav-number">2.</span> <span class="nav-text">第一个推荐引擎</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#评估一个推荐引擎"><span class="nav-number">3.</span> <span class="nav-text">评估一个推荐引擎</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#评估过程"><span class="nav-number">4.</span> <span class="nav-text">评估过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#评估的查准率(精度)和查全率(召回率)"><span class="nav-number">5.</span> <span class="nav-text">评估的查准率(精度)和查全率(召回率)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#偏好数据的表示"><span class="nav-number">6.</span> <span class="nav-text">偏好数据的表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Preference"><span class="nav-number">6.1.</span> <span class="nav-text">Preference</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FastByIDMap和FastIDSet"><span class="nav-number">6.2.</span> <span class="nav-text">FastByIDMap和FastIDSet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存级DataModel"><span class="nav-number">6.3.</span> <span class="nav-text">内存级DataModel</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于文件的数据"><span class="nav-number">6.4.</span> <span class="nav-text">基于文件的数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可刷新组件"><span class="nav-number">6.5.</span> <span class="nav-text">可刷新组件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JDBCDataModel"><span class="nav-number">6.6.</span> <span class="nav-text">JDBCDataModel</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#无偏好值的处理"><span class="nav-number">6.7.</span> <span class="nav-text">无偏好值的处理</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

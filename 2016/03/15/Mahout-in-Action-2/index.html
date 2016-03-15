@@ -1,0 +1,650 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Mahout," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="相似性度量与基于用户和物品的推荐">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mahout in Action 2">
+<meta property="og:url" content="http://yoursite.com/2016/03/15/Mahout-in-Action-2/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="相似性度量与基于用户和物品的推荐">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E8%B0%B7%E6%9C%AC%E7%B3%BB%E6%95%B0%E5%8E%9F%E7%90%86.jpg">
+<meta property="og:updated_time" content="2016-03-15T15:55:51.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mahout in Action 2">
+<meta name="twitter:description" content="相似性度量与基于用户和物品的推荐">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Mahout in Action 2 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Mahout in Action 2
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-15T22:13:16+08:00" content="2016-03-15">
+            2016-03-15
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="基于用户的推荐">基于用户的推荐</h2><h3 id="算法">算法</h3><p>为一个用户(u)进行推荐的过程:</p>
+<pre><code><span class="keyword">for</span> (用户<span class="keyword">u</span>尚未表达偏好的) 每个物品 <span class="literal">i</span>
+    <span class="keyword">for</span> (对i有偏好的) 每个其他用户v 
+        计算<span class="keyword">u</span>和v之间的相似度 <span class="literal">s</span>
+        按权重为s,将v对i的偏好并入平均值
+<span class="keyword">return</span> 值最该的物品(按加权平均排序) 
+</code></pre><p>外层循环把每个已知物品作为候选的推荐项,内层循环中逐个查看对候选物品做过评价的其他用户,并记下他们对物品的偏好值,最终,将这些值的加权平均作为目标用户对该物品偏好值的预测.每个偏好值的权重取决于该用户与目标用户之间的相似度.与目标用户约相似,它的偏好值所占权重越大.</p>
+<p>但是每个物品都检查速度很慢,实际应用中,通常会计算出一个最相似用户的邻域,然后仅考虑这些用户评价过的物品:</p>
+<pre><code><span class="keyword">for</span> 每个其他用户 <span class="literal">w</span>
+    计算用户<span class="keyword">u</span>和用户w的相似度
+    按相似度排序后,将位置靠前的用户作为邻域<span class="keyword">n</span>
+<span class="keyword">for</span> (<span class="keyword">n</span>中的用户有偏好,而<span class="keyword">u</span>中的用户无偏好的) 每个物品 i    <span class="comment">// 即候选物品,排除掉非相似用户的物品,用户看过的物品</span>
+    <span class="keyword">for</span> (<span class="keyword">n</span>中用户对i有偏好的) 每个其他用户 v
+        计算用户<span class="keyword">u</span>和用户v的相似度 <span class="literal">s</span>
+        按权重s,将v对i的偏好并入平均值
+</code></pre><p>这一过程与前面的主要区别是首先确定相似的用户,再考虑这些相似的用户对什么物品感兴趣,这些物品就称为了推荐的候选项,后续的过程是一样的.这就是标准的基于用户的推荐算法,也是在Mahout中的实现方式.</p>
+<h3 id="基于GenericUserBasedRecommender实现算法">基于GenericUserBasedRecommender实现算法</h3><pre><code>DataModel model = new FileDataModel<span class="list">(<span class="keyword">new</span> File<span class="list">(<span class="keyword">basePath</span> + <span class="string">"Chapter02/intro.csv"</span>)</span>)</span><span class="comment">;    </span>
+UserSimilarity similarity = new PearsonCorrelationSimilarity<span class="list">(<span class="keyword">model</span>)</span><span class="comment">;</span>
+UserNeighborhood neighborhood = new NearestNUserNeighborhood<span class="list">(<span class="number">2</span>, similarity, model)</span><span class="comment">;</span>
+Recommender recommender = new GenericUserBasedRecommender<span class="list">(<span class="keyword">model</span>, neighborhood, similarity)</span><span class="comment">;</span>
+</code></pre><p>UserSimilarity封装了用户相似性的概念,UserNeighborhood封装了最相似用户组的概念.他们是标准的基于用户推荐算法的必要组件.</p>
+<h2 id="相似性度量">相似性度量</h2><h3 id="基于皮尔逊相关系数的相似度">基于皮尔逊相关系数的相似度</h3><p>皮尔逊相关系数是一个介于-1和1之间的数,它度量两个一一对应的数列之间的线性相关程度.也就是说,它表示两个数列中对应数字一起增大或减小的可能性.它度量数字一起按比例改变的倾向性,也就是说两个数列中的数字存在一个大致的线性关系.当相关性强时趋于1,弱时趋于0,而负相关的情况下–一个序列的值高而另一个序列的值低,相关值趋于-1.</p>
+<p>在推荐中,它用于度量两个用户针对同一个物品的偏好值变化趋势的一致性,都偏高或偏低.取值 -1 到 1.</p>
+<p>存在的问题:</p>
+<ol>
+<li>它并没有考虑两个用户同时给出偏好值的物品数目,如果连个人看过200部共同的电影,即便偶尔评分不一致,也要比两个只看过两部共同电影的人更为相似.</li>
+<li>如果两个用户的交集仅包含一个物品,则无法进行计算.比如两个用户共同只对一部电影进行了评分.但同时如果两个用户只有一个电影的交集时,也可能不会有太多的相似.</li>
+<li>如果一个序列中出现偏好值相同的情况,相关系数是未定义的.比如用户对所有电影的评分都是3.0.</li>
+</ol>
+<p>可以通过加权来解决上面的问题.即物品数目,考虑的信息越多,所得的相关结果就约可靠.</p>
+<p>在基于较多物品计算相关系数时,使相关值向1偏移,使负相关向-1偏移.或者,基于较少的物品进行计算时,可以让相关值向偏好值的均值偏移.Mahout给出了对应的实现.</p>
+<p>Mahout中的实现为PearsonCorrelationSimilarity.</p>
+<h3 id="根据欧氏距离定义相似度">根据欧氏距离定义相似度</h3><p>这一实现基于用户的距离,可以将用户想象成多维空间中的点(维数等于总的物品数),偏好值是坐标.这中相似性度量计算两个用户之间的欧氏距离d.</p>
+<p>这个值并不能代表用户相似度,因为值越大表示距离越远,也就是说两个用户越不相似.实际用去 1/(1 + d) 作为相似度.取值0到1.</p>
+<p>这种方式可以计算出任何用户之间的相似度,比如连个用户之间的交集物品只有一个,但是根据一件物品计算得到的相似度并不可靠.</p>
+<p>Mahout中的实现为EuclideanDistanceSimiliarity.</p>
+<h3 id="采用余弦相似性度量">采用余弦相似性度量</h3><p>也是将用户偏好值视为空间中的点,并基于此进行相似性度量.</p>
+<p>需要将用户偏好值视为n维空间中的点,假设有两条从原点(0,0,…0)出发,分别到这两个点的射线.如果两个用户相似,则他们的打分也相似,也就是说他们的空间位置是很接近的.这样一来,至少这两条射线的方向不会相差太多,两条射线之间的夹角会比较小.反之夹角会比较大.</p>
+<p>余弦取值范围-1 到 1之间,小的夹角余弦接近1,大的夹角余弦接近-1.</p>
+<p>Mahout中的实现为CosineMeasureSimiliarity.其与皮尔逊相似度的数学推理一致,因此采用同样的实现PearsonCorrelationSimilarity.</p>
+<h3 id="采用斯皮尔曼相关系数基于相对排名定义相似度">采用斯皮尔曼相关系数基于相对排名定义相似度</h3><p>是皮尔逊相关系数的一个变体,并非基于原始的偏好值,而是基于偏好值的相对排名进行计算.</p>
+<p>对于一个用户来说,他们偏好值最低的物品的偏好值被改为1,偏好值次低的物品的偏好值被改为2,以此类推.类似于你对电影进行打分,给最不喜欢的电影一颗星,次不喜欢的电影两颗星.然后在变换后的偏好值上进行皮尔逊相关系数计算.</p>
+<p>它保留了偏好值最基本的东西,他们的次序,但是丢掉了用户对不同物品喜好程度的具体差异.介于保留原始偏好值和将他们完全抛弃之间.</p>
+<p>取值为 -1 到 1.</p>
+<p>Mahout中的实现为SpearmanCorrelationSimiliarity.计算量很大,学术价值大于实用价值.</p>
+<h3 id="忽略偏好值基于股本系数计算相似度(Jaccard)">忽略偏好值基于股本系数计算相似度(Jaccard)</h3><p>不管一个用户对一个物品的偏好值高低,只关心是否表达过偏好.由两个用户共同表达过偏好的物品数目除以至少一个用户表达过偏好的物品数据而得.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/%E8%B0%B7%E6%9C%AC%E7%B3%BB%E6%95%B0%E5%8E%9F%E7%90%86.jpg" alt="谷本系数原理" title="谷本系数原理"></p>
+<p>即上图中交集部分除以并集得到的值.当两个用户的偏好集合完全重合时,结果为1,没有任何共同点时,结果为0.取值 0 到1.</p>
+<p>当且仅当偏好值为布尔值或根本没有偏好值时才需要用到这一度量方法.或者偏好值中有很多噪音.</p>
+<p>Mahout中的实现为TanimotoCofficientSimiliarity.</p>
+<h3 id="基于对数似然比更好的计算相似度">基于对数似然比更好的计算相似度</h3><p>它试图反映两个用户由于机缘巧合发生重叠的不可能性.就是说,两个不相似的用户毫无疑问会共同评价一些电影,但是两个相似用户之间的重叠不太可能是出于巧合.</p>
+<p>Mahout中的实现为LogLikeLihoodSimiliarity.取值为0到1.</p>
+<h2 id="基于物品的推荐">基于物品的推荐</h2><h3 id="算法-1">算法</h3><pre><code><span class="keyword">for</span> (用户<span class="keyword">u</span>尚未表达偏好的) 每个物品 <span class="literal">i</span>
+    <span class="keyword">for</span> (用户<span class="keyword">u</span>表达过偏好的) 没个物品 <span class="literal">j</span>
+        计算i和j之间的相似度 <span class="literal">s</span>
+        按权重为s,将<span class="keyword">u</span>对j的偏好并入平均值
+<span class="keyword">return</span> 值最高的物品 (按加权平均排序)
+</code></pre><p>其实现方式与基于用户的推荐类似.</p>
+<h2 id="Slope-one算法">Slope-one算法</h2><h3 id="算法-2">算法</h3><p>任务两个物品的偏好值之间存在某种线性关系,所以通过某个线性关系函数,例如 Y = mX + b,由物品X的偏好值估计出物品Y的偏好值.Slope-one进一步做了简化,m=1,即斜率为1,只需要确定b = Y - X, 即物品两两之间偏好值的(平均)差异.</p>
+<p>算法需要一个重要的预处理步骤,即完成所有物品对之间偏好值的差异:</p>
+<pre><code><span class="keyword">for</span> 每个物品 <span class="built_in">i</span>
+    <span class="keyword">for</span> 每个其他物品 <span class="built_in">j</span>
+        <span class="keyword">for</span> 对<span class="built_in">i</span>和<span class="built_in">j</span>均由偏好的每个用户u
+            将物品对(<span class="built_in">i</span>和<span class="built_in">j</span>)间的偏好值差异加入u的偏好
+</code></pre><p>在此基础上,实现完整算法:</p>
+<pre><code><span class="keyword">for</span> 用户u未表达偏好的每个物品 <span class="built_in">i</span>
+    <span class="keyword">for</span> 用户u表达过偏好的每个物品 <span class="built_in">j</span>
+        找到<span class="built_in">i</span>和<span class="built_in">j</span>之间平均的偏好值差异
+        添加该差异到u对<span class="built_in">j</span>的偏好值
+        添加至其平均值
+<span class="keyword">return</span> 值最高的物品 (按平均差异排序)
+</code></pre><p>该算法占用大量的内存,可以将物品之间的差异值转化为离线计算,通过分布式计算以提高速度.</p>
+<h2 id="实验性质的算法">实验性质的算法</h2><h3 id="基于奇异值分解的推荐算法(SVD)">基于奇异值分解的推荐算法(SVD)</h3><h3 id="基于线性插值物品的推荐算法(Knn)">基于线性插值物品的推荐算法(Knn)</h3><h3 id="基于聚类的推荐算法">基于聚类的推荐算法</h3><h2 id="基于模型的推荐算法">基于模型的推荐算法</h2><h2 id="缓存封装机制">缓存封装机制</h2><p>CachingUserSimiliarity是UserSimiliarity的一种实现,它封装了另一个UserSimilartity的实现并缓存其结果.它利用另一个实现进行计算,并将计算的结果进行缓存.然后当需要提供一个已经计算过的用户间相似度时,它就可以直接返回,而不需要该实现重新计算.</p>
+<pre><code>UserSimilarity similarity = new CachingUserSimilarity<span class="list">(
+    <span class="keyword">new</span> SpearmanCorrelationSimiliartity<span class="list">(<span class="keyword">model</span>)</span>, model)</span><span class="comment">;</span>
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Mahout/" rel="tag">#Mahout</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/15/Mahout-in-Action-1/" rel="next">Mahout in Action 1</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#基于用户的推荐"><span class="nav-number">1.</span> <span class="nav-text">基于用户的推荐</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#算法"><span class="nav-number">1.1.</span> <span class="nav-text">算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于GenericUserBasedRecommender实现算法"><span class="nav-number">1.2.</span> <span class="nav-text">基于GenericUserBasedRecommender实现算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相似性度量"><span class="nav-number">2.</span> <span class="nav-text">相似性度量</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于皮尔逊相关系数的相似度"><span class="nav-number">2.1.</span> <span class="nav-text">基于皮尔逊相关系数的相似度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#根据欧氏距离定义相似度"><span class="nav-number">2.2.</span> <span class="nav-text">根据欧氏距离定义相似度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#采用余弦相似性度量"><span class="nav-number">2.3.</span> <span class="nav-text">采用余弦相似性度量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#采用斯皮尔曼相关系数基于相对排名定义相似度"><span class="nav-number">2.4.</span> <span class="nav-text">采用斯皮尔曼相关系数基于相对排名定义相似度</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#忽略偏好值基于股本系数计算相似度(Jaccard)"><span class="nav-number">2.5.</span> <span class="nav-text">忽略偏好值基于股本系数计算相似度(Jaccard)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于对数似然比更好的计算相似度"><span class="nav-number">2.6.</span> <span class="nav-text">基于对数似然比更好的计算相似度</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于物品的推荐"><span class="nav-number">3.</span> <span class="nav-text">基于物品的推荐</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#算法-1"><span class="nav-number">3.1.</span> <span class="nav-text">算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Slope-one算法"><span class="nav-number">4.</span> <span class="nav-text">Slope-one算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#算法-2"><span class="nav-number">4.1.</span> <span class="nav-text">算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验性质的算法"><span class="nav-number">5.</span> <span class="nav-text">实验性质的算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于奇异值分解的推荐算法(SVD)"><span class="nav-number">5.1.</span> <span class="nav-text">基于奇异值分解的推荐算法(SVD)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于线性插值物品的推荐算法(Knn)"><span class="nav-number">5.2.</span> <span class="nav-text">基于线性插值物品的推荐算法(Knn)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于聚类的推荐算法"><span class="nav-number">5.3.</span> <span class="nav-text">基于聚类的推荐算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于模型的推荐算法"><span class="nav-number">6.</span> <span class="nav-text">基于模型的推荐算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缓存封装机制"><span class="nav-number">7.</span> <span class="nav-text">缓存封装机制</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
