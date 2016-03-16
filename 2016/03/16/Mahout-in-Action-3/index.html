@@ -1,0 +1,896 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Mahout," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="实践中的Mahout和分布式下的推荐方法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mahout in Action 3">
+<meta property="og:url" content="http://yoursite.com/2016/03/16/Mahout-in-Action-3/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="实践中的Mahout和分布式下的推荐方法">
+<meta property="og:updated_time" content="2016-03-16T08:26:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mahout in Action 3">
+<meta name="twitter:description" content="实践中的Mahout和分布式下的推荐方法">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Mahout in Action 3 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Mahout in Action 3
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-16T14:40:35+08:00" content="2016-03-16">
+            2016-03-16
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="实践">实践</h2><p>通过一个过程间紧密衔接的实例,讲述如果在数据集上使用Mahout开发推荐系统. 首先选取一个方法,然后收集数据,评估结果,再多次重复这个过程.</p>
+<p>生成推荐程序首先要做的就是分析所要用到的数据,并开始琢磨什么样的推荐算法才是适合的.</p>
+<p>经过多重测试,本例中选择的最佳方案是:</p>
+<ol>
+<li>基于用户的推荐程序</li>
+<li>欧氏距离相似性对量</li>
+<li>两个最近邻的邻域</li>
+</ol>
+<h2 id="引入特定域的信息">引入特定域的信息</h2><p>通常情况下,可以通过数据中额外的信息来改善推荐的质量.比如引入 性别(gender),可以基于性别定制一个ItemSimilarity,并力求避免推荐性别不当的用户.</p>
+<h3 id="采用一个定制的物品相似性度量">采用一个定制的物品相似性度量</h3><p>因为已经给定了档案的性别,可以仅仅基于性别建立一个简单的相似性度量.因为档案就是这里的物品,所以它在框架中应该是ItemSimilarity.</p>
+<p>比如,认为两个男性或者两个女性的档案非常相似,并设置他们的相似度为1.假设男性和女性档案之间的相似度为-1.最后一对档案中一个或两个档案的性别为未知,则相似度为0.</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GenderItemSimilarity</span> <span class="keyword">implements</span> <span class="title">ItemSimilarity</span> </span>{
+
+  <span class="keyword">private</span> <span class="keyword">final</span> FastIDSet men;
+  <span class="keyword">private</span> <span class="keyword">final</span> FastIDSet women;
+
+  <span class="function"><span class="keyword">public</span> <span class="title">GenderItemSimilarity</span><span class="params">(FastIDSet men, FastIDSet women)</span> </span>{
+    <span class="keyword">this</span>.men = men;
+    <span class="keyword">this</span>.women = women;
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">itemSimilarity</span><span class="params">(<span class="keyword">long</span> profileID1, <span class="keyword">long</span> profileID2)</span> </span>{
+    Boolean profile1IsMan = isMan(profileID1);
+    <span class="keyword">if</span> (profile1IsMan == <span class="keyword">null</span>) {
+      <span class="keyword">return</span> <span class="number">0.0</span>;
+    }
+    Boolean profile2IsMan = isMan(profileID2);
+    <span class="keyword">if</span> (profile2IsMan == <span class="keyword">null</span>) {
+      <span class="keyword">return</span> <span class="number">0.0</span>;
+    }
+    <span class="keyword">return</span> profile1IsMan == profile2IsMan ? <span class="number">1.0</span> : -<span class="number">1.0</span>;
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="keyword">public</span> <span class="keyword">double</span>[] itemSimilarities(<span class="keyword">long</span> itemID1, <span class="keyword">long</span>[] itemID2s) {
+    <span class="keyword">double</span>[] result = <span class="keyword">new</span> <span class="keyword">double</span>[itemID2s.length];
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; itemID2s.length; i++) {
+      result[i] = itemSimilarity(itemID1, itemID2s[i]);
+    }
+    <span class="keyword">return</span> result;
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="keyword">public</span> <span class="keyword">long</span>[] allSimilarItemIDs(<span class="keyword">long</span> itemID) {
+    <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException();
+  }
+
+  <span class="function"><span class="keyword">private</span> Boolean <span class="title">isMan</span><span class="params">(<span class="keyword">long</span> profileID)</span> </span>{
+    <span class="keyword">if</span> (men.contains(profileID)) {
+      <span class="keyword">return</span> Boolean.TRUE;
+    }
+    <span class="keyword">if</span> (women.contains(profileID)) {
+      <span class="keyword">return</span> Boolean.FALSE;
+    }
+    <span class="keyword">return</span> <span class="keyword">null</span>;
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">refresh</span><span class="params">(Collection&lt;Refreshable&gt; alreadyRefreshed)</span> </span>{
+    <span class="comment">// do nothing</span>
+  }
+}
+</code></pre><p>这个ItemSimilarity度量可以和标准的GenericItemBasedRecommender一起使用,但是本例中测试的效果并不理想,表示在当前场景下,性别并不能作为有效的判断依据,或者有别的相关的信息,比如兴趣,年龄等.本例的意义在于,它提供了一种结合自身物品信息的手段,在实际的推荐系统中非常实用,并且这种计算的运行速度相当快.</p>
+<h3 id="基于内容进行推荐">基于内容进行推荐</h3><p>上例中使用基于内容进行推荐,他对物品相似度的定义不是基于用户的偏好,而是基于物品本身的属性.</p>
+<p>Mahout中并不提供基于内容的推荐的实现,但是却支持扩展并提供API,允许在框架中写代码来部署这种实现.</p>
+<p>对于基于用户偏好的协同过滤来书这是很好的补充,可以根据自身对物品的知识来强化现有的用户偏好数据,进而生成更好的推荐结果.</p>
+<h3 id="利用IDRescorer修改推荐结果">利用IDRescorer修改推荐结果</h3><p>在Recommender.recommend()方法中有一个类型为IDRescorer并用final修饰的可选参数.可以不调用recommend(long userID, int howMany),而是调用recommend(long userID, int howMany, IDRescorer rescorer).</p>
+<p>该参数可以根据某种逻辑将推荐引擎中的某些值修改为其他值,也可以在某个过程中将一个实体排除出去.例如IDRescorer可以任意修改recommender对一个物品的估计偏好值,或者将一个物品从考虑范围内移除掉.</p>
+<p>下面推荐图书的例子中,将悬疑类型的小说的估计偏好值提高一些,同时过滤掉缺货的图书:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GenreRescorer</span> <span class="keyword">implements</span> <span class="title">IDRescorer</span> </span>{
+
+  <span class="keyword">private</span> <span class="keyword">final</span> Genre currentGenre;
+
+  <span class="function"><span class="keyword">public</span> <span class="title">GenreRescorer</span><span class="params">(Genre currentGenre)</span> </span>{
+    <span class="keyword">this</span>.currentGenre = currentGenre;
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="keyword">public</span> <span class="function"><span class="keyword">double</span> <span class="title">rescore</span><span class="params">(<span class="keyword">long</span> itemID, <span class="keyword">double</span> originalScore)</span> </span>{
+    Book book = BookManager.lookupBook(itemID);
+    <span class="keyword">if</span> (book.getGenre().equals(currentGenre)) {     <span class="comment">// 如果图书类型为悬疑</span>
+      <span class="keyword">return</span> originalScore * <span class="number">1.2</span>;                   <span class="comment">// 增加20%的评分值</span>
+    }
+    <span class="keyword">return</span> originalScore;                           <span class="comment">// 否则返回原始评分值</span>
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="keyword">public</span> <span class="function"><span class="keyword">boolean</span> <span class="title">isFiltered</span><span class="params">(<span class="keyword">long</span> itemID)</span> </span>{
+    Book book = BookManager.lookupBook(itemID);
+    <span class="function"><span class="keyword">return</span> book.<span class="title">isOutOfStock</span><span class="params">()</span></span>;                     <span class="comment">// 过滤掉缺货的图书</span>
+  }
+}
+</code></pre><h3 id="在IDRescorer中引入性别">在IDRescorer中引入性别</h3><p>对于在乎性别的用户,使用IDRescorer同样可以实现对物品或用户档案的过滤.可以通过检查已经评价过的档案的性别,来猜测用户偏好的性别.然后就可以过滤掉与偏好相反的性别的档案.</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GenderRescorer</span> <span class="keyword">implements</span> <span class="title">IDRescorer</span> </span>{
+                                                                    <span class="comment">// 定义数据缓存</span>
+  <span class="keyword">private</span> <span class="keyword">final</span> FastIDSet men;                                      <span class="comment">// 定义男性文档缓存</span>
+  <span class="keyword">private</span> <span class="keyword">final</span> FastIDSet women;                                    <span class="comment">// 定义女性文档缓存</span>
+  <span class="keyword">private</span> <span class="keyword">final</span> FastIDSet usersRateMoreMen;                         <span class="comment">// 定义对男性文档评分过多的用户</span>
+  <span class="keyword">private</span> <span class="keyword">final</span> FastIDSet usersRateLessMen;                         <span class="comment">// 定于对女性文档评分过多的用户</span>
+  <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">boolean</span> filterMen;
+
+  <span class="function"><span class="keyword">public</span> <span class="title">GenderRescorer</span><span class="params">(FastIDSet men,
+                        FastIDSet women,
+                        FastIDSet usersRateMoreMen,
+                        FastIDSet usersRateLessMen,
+                        <span class="keyword">long</span> userID, DataModel model)</span>
+      <span class="keyword">throws</span> TasteException </span>{
+    <span class="keyword">this</span>.men = men;
+    <span class="keyword">this</span>.women = women;
+    <span class="keyword">this</span>.usersRateMoreMen = usersRateMoreMen;
+    <span class="keyword">this</span>.usersRateLessMen = usersRateLessMen;
+    <span class="keyword">this</span>.filterMen = ratesMoreMen(userID, model);
+  }
+
+  <span class="keyword">public</span> <span class="keyword">static</span> FastIDSet[] parseMenWomen(File genderFile)          <span class="comment">// 从文档性别文件中解析所有文档的性别属性</span>
+      <span class="keyword">throws</span> IOException {
+    FastIDSet men = <span class="keyword">new</span> FastIDSet(<span class="number">50000</span>);                           <span class="comment">// 初始化缓存</span>
+    FastIDSet women = <span class="keyword">new</span> FastIDSet(<span class="number">50000</span>);
+    <span class="keyword">for</span> (String line : <span class="keyword">new</span> FileLineIterable(genderFile)) {
+      <span class="keyword">int</span> comma = line.indexOf(<span class="string">','</span>);
+      <span class="keyword">char</span> gender = line.charAt(comma + <span class="number">1</span>);
+      <span class="keyword">if</span> (gender == <span class="string">'U'</span>) {
+        <span class="keyword">continue</span>;
+      }
+      <span class="keyword">long</span> profileID = Long.parseLong(line.substring(<span class="number">0</span>, comma));
+      <span class="keyword">if</span> (gender == <span class="string">'M'</span>) {                                          <span class="comment">// 男性文档</span>
+        men.add(profileID);
+      } <span class="keyword">else</span> {                                                      <span class="comment">// 女性文档</span>
+        women.add(profileID);               
+      }
+    }
+    men.rehash();                                                   <span class="comment">// 快速访问的重新优化</span>
+    women.rehash();
+    <span class="keyword">return</span> <span class="keyword">new</span> FastIDSet[] { men, women };
+  }
+
+  <span class="keyword">private</span> <span class="function"><span class="keyword">boolean</span> <span class="title">ratesMoreMen</span><span class="params">(<span class="keyword">long</span> userID, DataModel model)</span>
+      <span class="keyword">throws</span> TasteException </span>{
+    <span class="keyword">if</span> (usersRateMoreMen.contains(userID)) {                        <span class="comment">// 首先从缓存中都去取该用户的性别偏好,如果已经对该用户进行过判断,则直接返回结果</span>
+      <span class="keyword">return</span> <span class="keyword">true</span>;
+    }
+    <span class="keyword">if</span> (usersRateLessMen.contains(userID)) {
+      <span class="keyword">return</span> <span class="keyword">false</span>;
+    }
+    PreferenceArray prefs = model.getPreferencesFromUser(userID);   <span class="comment">// 如果尚未判断该用户性别偏好,根据用户ID取出该用户所有偏好数据</span>
+    <span class="keyword">int</span> menCount = <span class="number">0</span>;                                               <span class="comment">// 初始化男性文档和女性文档的数量</span>
+    <span class="keyword">int</span> womenCount = <span class="number">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; prefs.length(); i++) {                      <span class="comment">// 遍历所有偏好数据</span>
+      <span class="keyword">long</span> profileID = prefs.get(i).getItemID();                    <span class="comment">// 取出文档ID</span>
+      <span class="keyword">if</span> (men.contains(profileID)) {                                <span class="comment">// 根据文档ID在已经进行过性别分类的缓存中取得该文档的性别</span>
+        menCount++;                                                 <span class="comment">// 根据所有文档的性别,分别对该用户的所有文档进行性别计数</span>
+      } <span class="keyword">else</span> <span class="keyword">if</span> (women.contains(profileID)) {
+        womenCount++;
+      }
+    }
+    <span class="keyword">boolean</span> ratesMoreMen = menCount &gt; womenCount;                   <span class="comment">// 如果男性计数多于女性</span>
+    <span class="keyword">if</span> (ratesMoreMen) {
+      usersRateMoreMen.add(userID);                                 <span class="comment">// 对判断结果进行缓存,以便后续直接使用</span>
+    } <span class="keyword">else</span> {
+      usersRateLessMen.add(userID);
+    }
+    <span class="keyword">return</span> ratesMoreMen;                                            <span class="comment">// 返回判断结果</span>
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="keyword">public</span> <span class="function"><span class="keyword">double</span> <span class="title">rescore</span><span class="params">(<span class="keyword">long</span> profileID, <span class="keyword">double</span> originalScore)</span> </span>{     <span class="comment">// 根据性别偏好判断结果和当前文档的性别判断</span>
+    <span class="keyword">return</span> isFiltered(profileID) ? Double.NaN : originalScore;      <span class="comment">// 将排除的文档偏好值记为NaN,否则不变</span>
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="keyword">public</span> <span class="function"><span class="keyword">boolean</span> <span class="title">isFiltered</span><span class="params">(<span class="keyword">long</span> profileID)</span> </span>{
+    <span class="keyword">return</span> filterMen ? men.contains(profileID) : women.contains(profileID);
+  }
+}
+</code></pre><h3 id="封装一个定制的推荐程序">封装一个定制的推荐程序</h3><p>在现有的推荐引擎中封装自定义的IDRescorer实现.</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LibimsetiRecommender</span> <span class="keyword">implements</span> <span class="title">Recommender</span> </span>{
+
+  <span class="keyword">private</span> <span class="keyword">final</span> Recommender delegate;
+  <span class="keyword">private</span> <span class="keyword">final</span> DataModel model;
+  <span class="keyword">private</span> <span class="keyword">final</span> FastIDSet men;
+  <span class="keyword">private</span> <span class="keyword">final</span> FastIDSet women;
+  <span class="keyword">private</span> <span class="keyword">final</span> FastIDSet usersRateMoreMen;
+  <span class="keyword">private</span> <span class="keyword">final</span> FastIDSet usersRateLessMen;
+
+  <span class="function"><span class="keyword">public</span> <span class="title">LibimsetiRecommender</span><span class="params">()</span> <span class="keyword">throws</span> TasteException, IOException </span>{            <span class="comment">// 初始化DataModel</span>
+    <span class="keyword">this</span>(<span class="keyword">new</span> FileDataModel(readResourceToTempFile(<span class="string">"ratings.dat"</span>)));             <span class="comment">// 生产环境不需要定义readResourceToTempFile()</span>
+  }
+
+  <span class="function"><span class="keyword">public</span> <span class="title">LibimsetiRecommender</span><span class="params">(DataModel model)</span>
+      <span class="keyword">throws</span> TasteException, IOException </span>{
+    UserSimilarity similarity = <span class="keyword">new</span> EuclideanDistanceSimilarity(model);         <span class="comment">// 构建基于用户的推荐系统</span>
+    UserNeighborhood neighborhood =
+        <span class="keyword">new</span> NearestNUserNeighborhood(<span class="number">2</span>, similarity, model);
+    delegate =
+        <span class="keyword">new</span> GenericUserBasedRecommender(model, neighborhood, similarity);
+    <span class="keyword">this</span>.model = model;                                                         <span class="comment">// 初始化档案性别数据缓存</span>
+    FastIDSet[] menWomen = GenderRescorer.parseMenWomen(readResourceToTempFile(<span class="string">"gender.dat"</span>));
+    men = menWomen[<span class="number">0</span>];
+    women = menWomen[<span class="number">1</span>];
+    usersRateMoreMen = <span class="keyword">new</span> FastIDSet(<span class="number">50000</span>);
+    usersRateLessMen = <span class="keyword">new</span> FastIDSet(<span class="number">50000</span>);
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="function"><span class="keyword">public</span> List&lt;RecommendedItem&gt; <span class="title">recommend</span><span class="params">(<span class="keyword">long</span> userID, <span class="keyword">int</span> howMany)</span>
+      <span class="keyword">throws</span> TasteException </span>{
+    IDRescorer rescorer = <span class="keyword">new</span> GenderRescorer(                                   <span class="comment">// 初始化GenderRescorer并在所有的推荐上使用</span>
+        men, women, usersRateMoreMen, usersRateLessMen, userID, model);
+    <span class="keyword">return</span> delegate.recommend(userID, howMany, rescorer);
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="function"><span class="keyword">public</span> List&lt;RecommendedItem&gt; <span class="title">recommend</span><span class="params">(<span class="keyword">long</span> userID,
+                                         <span class="keyword">int</span> howMany,
+                                         IDRescorer rescorer)</span>
+      <span class="keyword">throws</span> TasteException </span>{
+    <span class="keyword">return</span> delegate.recommend(userID, howMany, rescorer);
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="function"><span class="keyword">public</span> <span class="keyword">float</span> <span class="title">estimatePreference</span><span class="params">(<span class="keyword">long</span> userID, <span class="keyword">long</span> itemID)</span>             <span class="comment">// 根据性别偏好对文档评分进行修改</span>
+      <span class="keyword">throws</span> TasteException </span>{
+    IDRescorer rescorer = <span class="keyword">new</span> GenderRescorer(
+        men, women, usersRateMoreMen, usersRateLessMen, userID, model);
+    <span class="keyword">return</span> (<span class="keyword">float</span>) rescorer.rescore(
+        itemID, delegate.estimatePreference(userID, itemID));
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPreference</span><span class="params">(<span class="keyword">long</span> userID, <span class="keyword">long</span> itemID, <span class="keyword">float</span> value)</span>
+      <span class="keyword">throws</span> TasteException </span>{
+    delegate.setPreference(userID, itemID, value);                      <span class="comment">// 委托给底层的推荐程序</span>
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">removePreference</span><span class="params">(<span class="keyword">long</span> userID, <span class="keyword">long</span> itemID)</span>
+      <span class="keyword">throws</span> TasteException </span>{
+    delegate.removePreference(userID, itemID);
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="function"><span class="keyword">public</span> DataModel <span class="title">getDataModel</span><span class="params">()</span> </span>{
+    <span class="keyword">return</span> delegate.getDataModel();
+  }
+
+  <span class="annotation">@Override</span>
+  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">refresh</span><span class="params">(Collection&lt;Refreshable&gt; alreadyRefreshed)</span> </span>{
+    delegate.refresh(alreadyRefreshed);
+  }
+
+  <span class="function"><span class="keyword">static</span> File <span class="title">readResourceToTempFile</span><span class="params">(String resourceName)</span> <span class="keyword">throws</span> IOException </span>{
+    String absoluteResource = resourceName.startsWith(<span class="string">"/"</span>) ? resourceName : <span class="string">'/'</span> + resourceName;
+    InputSupplier&lt;? extends InputStream&gt; inSupplier;
+    <span class="keyword">try</span> {
+      URL resourceURL = Resources.getResource(LibimsetiRecommender.class, absoluteResource);
+      inSupplier = Resources.newInputStreamSupplier(resourceURL);
+    } <span class="keyword">catch</span> (IllegalArgumentException iae) {
+      File resourceFile = <span class="keyword">new</span> File(resourceName);
+      inSupplier = Files.newInputStreamSupplier(resourceFile);
+    }
+    File tempFile = File.createTempFile(<span class="string">"taste"</span>, <span class="keyword">null</span>);
+    tempFile.deleteOnExit();
+    Files.copy(inSupplier, tempFile);
+    <span class="keyword">return</span> tempFile;
+  }
+
+}
+</code></pre><h2 id="为匿名用户做推荐">为匿名用户做推荐</h2><p>未登陆的用户则会面临冷启动问题,一种解决方案是不做对应的个性化推荐,比如按照一个预定义的产品列表进行推荐.或者登陆是赋予一个用户ID用于跟踪,但这会带来用户爆发式增长并且这些用户的信息量会比较少.</p>
+<p>合理的方案是生成临时用户并将所有的匿名用户当做一个用户.</p>
+<h3 id="利用PlusAnonymousUserDataModel处理临时用户">利用PlusAnonymousUserDataModel处理临时用户</h3><p>PlusAnonymousUserDataModel类提供了一个增加临时用户到DataModel的方法.真实的底层用户并不会增加这些用户,也不会知道他们的存在.</p>
+<p>但是在临时用户的处理上有一个特殊地方,它每次只处理一个此类用户的偏好值.基于这个类的Recommender同样必须每次只处理一个用户.</p>
+<p>下面的例子是对上面例子的扩展,采用了一个可以向匿名用户推荐的方法,但是取偏好值作为输入,而不是用户ID:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LibimsetiWithAnonymousRecommender</span> <span class="keyword">extends</span> <span class="title">LibimsetiRecommender</span> </span>{
+
+  <span class="keyword">private</span> <span class="keyword">final</span> PlusAnonymousUserDataModel plusAnonymousModel;
+
+  <span class="function"><span class="keyword">public</span> <span class="title">LibimsetiWithAnonymousRecommender</span><span class="params">()</span>
+      <span class="keyword">throws</span> TasteException, IOException </span>{
+    <span class="keyword">this</span>(<span class="keyword">new</span> FileDataModel(readResourceToTempFile(<span class="string">"ratings.dat"</span>)));
+  }
+
+  <span class="function"><span class="keyword">public</span> <span class="title">LibimsetiWithAnonymousRecommender</span><span class="params">(DataModel model)</span>
+      <span class="keyword">throws</span> TasteException, IOException </span>{
+    <span class="keyword">super</span>(<span class="keyword">new</span> PlusAnonymousUserDataModel(model));               <span class="comment">// 封装底层的DataModel</span>
+    plusAnonymousModel =
+        (PlusAnonymousUserDataModel) getDataModel();
+  }
+
+  <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> List&lt;RecommendedItem&gt; <span class="title">recommend</span><span class="params">(          // 使用同步
+      PreferenceArray anonymousUserPrefs, <span class="keyword">int</span> howMany)</span>
+      <span class="keyword">throws</span> TasteException </span>{
+    plusAnonymousModel.setTempPrefs(anonymousUserPrefs);
+    List&lt;RecommendedItem&gt; recommendations =
+        recommend(PlusAnonymousUserDataModel.TEMP_USER_ID, howMany, <span class="keyword">null</span>);  <span class="comment">// 设置匿名用户ID</span>
+    plusAnonymousModel.clearTempPrefs();
+    <span class="keyword">return</span> recommendations;
+  }
+
+  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>{
+    PreferenceArray anonymousPrefs =
+        <span class="keyword">new</span> GenericUserPreferenceArray(<span class="number">3</span>);                      <span class="comment">// 存储匿名用户的偏好值</span>
+    anonymousPrefs.setUserID(<span class="number">0</span>,
+        PlusAnonymousUserDataModel.TEMP_USER_ID);
+    anonymousPrefs.setItemID(<span class="number">0</span>, <span class="number">123L</span>);
+    anonymousPrefs.setValue(<span class="number">0</span>, <span class="number">1.0f</span>);
+    anonymousPrefs.setItemID(<span class="number">1</span>, <span class="number">123L</span>);
+    anonymousPrefs.setValue(<span class="number">1</span>, <span class="number">3.0f</span>);
+    anonymousPrefs.setItemID(<span class="number">2</span>, <span class="number">123L</span>);
+    anonymousPrefs.setValue(<span class="number">2</span>, <span class="number">2.0f</span>);
+    LibimsetiWithAnonymousRecommender recommender =
+        <span class="keyword">new</span> LibimsetiWithAnonymousRecommender();
+    List&lt;RecommendedItem&gt; recommendations =
+        recommender.recommend(anonymousPrefs, <span class="number">10</span>);
+    System.out.println(recommendations);
+  }
+
+}
+</code></pre><h3 id="聚合匿名用户">聚合匿名用户</h3><p>另一种解决方案是,将所有匿名用户视为单一用户,这会简化操作.不再单独跟踪潜在的用户并单独存储他们的浏览历史,将所有这样的用户看做是一个大的临时用户,但这依赖于一种假设,即这些用户的行为是相似的.</p>
+<p>推荐结果可以进行周期性的计算,避免匿名用户总是看到同样的推荐,效果比任何推荐不做要好.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Mahout/" rel="tag">#Mahout</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/16/Mahout-in-Action-4/" rel="prev">Mahout in Action 4</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/15/Mahout-in-Action-2/" rel="next">Mahout in Action 2</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">96</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#实践"><span class="nav-number">1.</span> <span class="nav-text">实践</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引入特定域的信息"><span class="nav-number">2.</span> <span class="nav-text">引入特定域的信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#采用一个定制的物品相似性度量"><span class="nav-number">2.1.</span> <span class="nav-text">采用一个定制的物品相似性度量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于内容进行推荐"><span class="nav-number">2.2.</span> <span class="nav-text">基于内容进行推荐</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#利用IDRescorer修改推荐结果"><span class="nav-number">2.3.</span> <span class="nav-text">利用IDRescorer修改推荐结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在IDRescorer中引入性别"><span class="nav-number">2.4.</span> <span class="nav-text">在IDRescorer中引入性别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#封装一个定制的推荐程序"><span class="nav-number">2.5.</span> <span class="nav-text">封装一个定制的推荐程序</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#为匿名用户做推荐"><span class="nav-number">3.</span> <span class="nav-text">为匿名用户做推荐</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#利用PlusAnonymousUserDataModel处理临时用户"><span class="nav-number">3.1.</span> <span class="nav-text">利用PlusAnonymousUserDataModel处理临时用户</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#聚合匿名用户"><span class="nav-number">3.2.</span> <span class="nav-text">聚合匿名用户</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

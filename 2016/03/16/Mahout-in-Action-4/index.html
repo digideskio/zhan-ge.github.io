@@ -1,0 +1,964 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Mahout," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="数学基础与分布式实现">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mahout in Action 4">
+<meta property="og:url" content="http://yoursite.com/2016/03/16/Mahout-in-Action-4/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="数学基础与分布式实现">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E7%9F%A9%E9%98%B5%E7%9B%B8%E4%B9%98.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E5%85%B1%E7%8E%B0%E5%90%91%E9%87%8F%E7%94%9F%E6%88%90%E6%8E%A8%E8%8D%90%E7%BB%93%E6%9E%9C.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/RecommenderJob%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB.jpg">
+<meta property="og:updated_time" content="2016-03-16T16:32:41.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mahout in Action 4">
+<meta name="twitter:description" content="数学基础与分布式实现">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Mahout in Action 4 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Mahout in Action 4
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-16T16:39:32+08:00" content="2016-03-16">
+            2016-03-16
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="Math模块简介">Math模块简介</h2><p>Mahout中的math模块自身包含了向量和矩阵数学工具库,可以脱离Mahout单独使用,实际上是CERN的Colt库的一个改编版本.</p>
+<p>本部分介绍math模块的关键部分,Vector和Matrix,以及相关的运算.</p>
+<h3 id="向量">向量</h3><p>在Mahout中,向量是在一个更抽象的意义上进行使用,这时的向量并不一定对应某个几何上的解释.可以是一个元组或者有序值列表.向量有长度(或者说是维度).向量中从0到长度减一的每个索引(或位置)上有,某个数值.通常写成(2.0,1.55,0.0)之类的数值列表,表示长度为3,索引1的位置为1.55.</p>
+<h3 id="向量实现">向量实现</h3><p>math中的Vector是一个应用时才实现的接口,有多种实现.向量的实现方式中,最重要的考虑因素为向量数据的 稀疏度(sparseness) 或 密集度(denseness).</p>
+<p>对于长度来说,有较多位置上的值不为0,向量称为密集向量,实现为DenseVector.稀疏向量只存储非零值的索引位置和对应的值,实现为RandomAccessSpareseVector.为了快速访问的实现为SequentialAccessSpareseVector.</p>
+<h3 id="向量操作">向量操作</h3><p>返回向量长度: size()<br>访问和修改索引位置对应的值: get(int), set(int, duoble)<br>无边界检查以优化性能的方式: getQuick(int), setQuick(int, double)<br>对所有元素的遍历: iterator()<br>对所有非零元素的遍历: iteratorNonZero()<br>Vector复制: clone()<br>返回一个同类的空Vector: like()</p>
+<p>标准向量的加减: plus(Vector),minus(Vector)<br>标准向量对一标量的乘除: times(double),divide(double)<br>向量的内积(点积): dot(Vector)<br>两个向量元素相乘得到矩阵: cross(Vector)</p>
+<h3 id="高级向量方法">高级向量方法</h3><p>assign(Vector,DoubleDoubleFunction),对Vector进行修改,将其值设置为该Vector和另一个Vector的值上的某个函数的结果.DoubleDoubleFunction封装了一个函数,接收两个输入值,返回一个结果值.</p>
+<p>aggregate(DoubleDoubleFunction, DoubleFunction),能够简化基于向量的所有元素值的函数的计算过程.特别是当与Functions中现成的函数结合使用时.比如计算所有向量值的平方和:</p>
+<pre><code><span class="function"><span class="keyword">double</span> <span class="title">myOtherSumOfSquares</span><span class="params">(Vector A)</span></span>{
+    <span class="keyword">return</span> A.aggregate(Funtions.PLUS, Functions.SQUARE)    
+}
+</code></pre><h3 id="矩阵">矩阵</h3><p>Mahout中矩阵的表示为接口Matrix的实现.将矩阵的行或列看成是向量.SparseMatrix和DenseMatrix分别代表非零元素很少和很多的向量.</p>
+<p>SparseRowMatrix和SparseColumnMatrix是两个SparseMatrix的变种,分别应用于矩阵行或列常常当做一个访问单位的情况.</p>
+<h3 id="矩阵操作">矩阵操作</h3><p>返回特定行列号的矩阵元素值: get(int, int)<br>同时返回矩阵的行数和列数: size()</p>
+<p>like(),clone(),plus(Matrix),times(Matrix),矩阵转置transpose(),行列计算determiant().</p>
+<h3 id="矩阵相乘">矩阵相乘</h3><p>只有在第一个矩阵的列数(column)和第二个矩阵的行数(row)相同时才有意义.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/%E7%9F%A9%E9%98%B5%E7%9B%B8%E4%B9%98.jpg" alt="矩阵相乘" title="矩阵相乘"></p>
+<p>结果矩阵的行数等于第一个矩阵的行数,结果矩阵的列数等于第二个矩阵的列数.</p>
+<p>乘积的结果第m行第n列的元素,等于第一个矩阵中第m行的元素与第二个矩阵中第n列的元素的乘积之和.</p>
+<p>即上面的例子中,A的第一行1,2,3分别与B的第一列1,2,3,第二列4,5,6计算,得到结果C的第一行,然后,A的第二行4,5,6分别与B的第一列1,3,4,第二列4,5,6计算得到C的第二行.</p>
+<h2 id="分布式计算">分布式计算</h2><h3 id="构建共现矩阵">构建共现矩阵</h3><p>在基于物品的推荐引擎中,他们均依赖于一个ItemSimilarity的实现,它给出了计算任意一对物品间相似度的方法.假设我们要计算出每个物品对之间的相似度,并将其结果导入一个巨大的矩阵.这应该是一个巨大的方阵,行和列的数目等于模型中的物品数.每行以及每列,表示在一个特定物品与其他所有物品之间的相似度.可以把这些行和列看做向量.该矩阵还是沿对角线对称的,因为物品X和Y之间的相似性和物品Y与X之间的相似性是一样的.即行X和列Y上的条目等于行Y和列X上的条目.</p>
+<p>这个矩阵描述了物品之间的关联,而不涉及用户.这并非是一个用户-物品的矩阵.</p>
+<p>有这样一中矩阵是算法所需要的: 共现矩阵.他不是计算每个物品对之间的相似性,而是计算,在某些用户偏好值列表中每个物品对共同出现的次数,以此来填充矩阵.</p>
+<p>比如,有9个用户都为物品X和Y给出了一些偏好,那么X和Y同时出现了9次,两个在任何用户偏好中均未同时出现的物品,其共现次数为0次.而且在概念上,每当用户给出了某一个物品的偏好,就代表该物品与自身共生了一次,不过这个计数并没有什么用.</p>
+<p>共现关系与相似性很像:两个物品同时出现得越多,他们越有可能相关或相似.共现矩阵的作用类似于基于物品的非分布式算法中的ItemSimiliarity.</p>
+<p>做简单的计数就可以生成这个矩阵,只是注意矩阵中的条目不受偏好值的影响,而偏好值会稍后进行计算.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">项</th>
+<th style="text-align:center">101</th>
+<th style="text-align:center">102</th>
+<th style="text-align:center">103</th>
+<th style="text-align:center">104</th>
+<th style="text-align:center">105</th>
+<th style="text-align:center">106</th>
+<th style="text-align:center">107</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">101</td>
+<td style="text-align:center">5</td>
+<td style="text-align:center">3</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">1</td>
+</tr>
+<tr>
+<td style="text-align:left">102</td>
+<td style="text-align:center">3</td>
+<td style="text-align:center">3</td>
+<td style="text-align:center">3</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+</tr>
+<tr>
+<td style="text-align:left">103</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">3</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">3</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">0</td>
+</tr>
+<tr>
+<td style="text-align:left">104</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">3</td>
+<td style="text-align:center">4</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">1</td>
+</tr>
+<tr>
+<td style="text-align:left">105</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">1</td>
+</tr>
+<tr>
+<td style="text-align:left">106</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">0</td>
+</tr>
+<tr>
+<td style="text-align:left">107</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">1</td>
+<td style="text-align:center">0</td>
+<td style="text-align:center">1</td>
+</tr>
+</tbody>
+</table>
+<p>除了行列名,这是一个7X7的方阵,对角线上的值,即一个物品对自身的共现值,对算法没有意义.为了完整作为保留.</p>
+<h3 id="计算用户向量">计算用户向量</h3><p>在推荐程序向一个基于矩阵的分布式实现的下一步,我们将一个用户的偏好视为一个向量.</p>
+<p>在一个有n个物品的数据模型中,用户偏好就像一个n维向量,每个维度代表一个物品.用户对物品的偏好值为这个向量中值.用户没有表达偏好的物品映射我向量中的0值.这是一个典型的稀疏矩阵,大多数值为0,因为用户通常只对一小部分物品表达偏好.</p>
+<p>例如,本例中的用户3,对应的偏好向量为: [2.0, 0.0, 0.0, 4.0, 4.5, 0.0, 5.0],这是对7中物品的偏好值序列.要生成推荐结果,每个用户都需要有这样一个向量.</p>
+<h3 id="生成推荐结果">生成推荐结果</h3><p>要为用户3生成推荐结果,只需将用户对所有物品的偏好向量,即上一步求得的向量,作为一个列向量,用它乘以共现矩阵.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/%E5%85%B1%E7%8E%B0%E5%90%91%E9%87%8F%E7%94%9F%E6%88%90%E6%8E%A8%E8%8D%90%E7%BB%93%E6%9E%9C.jpg" alt="生成推荐结果" title="生成推荐结果"></p>
+<p>共现矩阵与一个用户向量的乘积结果是一个向量,维度等于项目的个数.可以从结果向量R中的值直接得到推荐结果,在R中最大的值对应于最佳推荐.</p>
+<p>在R中排除掉用户已经表达过用户偏好的结果值,然后就是推荐结果.</p>
+<p>计算过程中,R中的第三个条目为矩阵中第三行的向量与列向量U3的点积,即两个向量中每组对应条目对之间的乘积之和:</p>
+<pre><code><span class="number">4</span>(<span class="number">2.0</span>) + <span class="number">3</span>(<span class="number">0.0</span>) + <span class="number">4</span>(<span class="number">0.0</span>) + <span class="number">3</span>(<span class="number">4.0</span>) + <span class="number">1</span>(<span class="number">4.5</span>) + <span class="number">2</span>(<span class="number">0.0</span>) + <span class="number">0</span>(<span class="number">5.0</span>) = <span class="number">24.5</span>
+</code></pre><p>第三行包含了物品103和所有其他物品之间的共现关系,即,如果物品103和那些用户表达过偏好关的物品存在共现关系,那么它就有可能是用户3喜欢的物品,</p>
+<p>即,2.0其实是用户对101物品的评分,但是103与101物品的共现关系为4,即共同出现的次数,共同出现了很多次,则用户对103感兴趣的可能性更大,体现在结果值(各项乘积的和)中的比重也越大.</p>
+<p>当物品103总是与用户很喜欢(评分值高低)的物品同时出现(共现次数),这个相加结果就包含了大的共现值和大的偏好值之间的乘积,这会使得总和(R中的对应条目)更大,因此,R中最大的值成为了推荐结果(排除掉已评分的项目).</p>
+<p>注意,R中的值并不代表一个估计偏好值,因为他们远远大于1,理想情况下,应该利用一些额外信息将他们归一化为估计偏好值.但是从我们要达成的目标来看,归一化没有必要,因为重要的是推荐的顺序,而不是排序所需要的确切值.</p>
+<p>这个算法的各个组件每次仅处理全部数据的一个子集,生成用户向量只是为一个用户搜集全部的偏好值并构建出一个向量,统计共现关系只需要每次检查一个向量,计算作为推荐结果的向量仅需每次加载矩阵的一行或一列.</p>
+<h2 id="基于MapReduce实现分布式算法">基于MapReduce实现分布式算法</h2><h3 id="MapReduce简介">MapReduce简介</h3><p>MapReduce是一种思考和计算的方法:</p>
+<ol>
+<li>输入形式为许多键值对(K1,V1),通常是一个HDFS实例的输入文件</li>
+<li>Map函数作用于每个(K1,V1)对,得到0个或多个与之不同的(K2,V2)</li>
+<li>为每个K2合并所有的V2</li>
+<li>为每个K2及其对应的V2调用Reduce函数,得到另一中不同的键值对(K3,V3)</li>
+</ol>
+<h3 id="向MapReduce转换:生成用户向量">向MapReduce转换:生成用户向量</h3><p>本例中中的数据并不是采用userID,itemID,preference的形式,而是采用itemID: itemID1 itemID2 itemID3 …的形式(即维基百科中,与一个文章相关的其他链接.把文章看做用户,将相关的链接视为该用户喜欢的物品).</p>
+<p>第一个MapReduce会形成用户向量:</p>
+<ol>
+<li>输入文件被框架视为(Long,String)对,Long指文件中的位置,String的值为文件中的文本行,如: 239 / 98955: 590 22 9059</li>
+<li>每一行被map函数解析为一个用户ID和集合物品ID,输出新的键值对: 用户ID及其对应的物品ID,这样每个物品ID都有一个用户ID,如: 98955 / 590</li>
+<li>框架为每个用户ID将所有对应的物品ID收集在一起</li>
+<li>Reduce函数利用全部的物品ID为该用户构建一个向量,并输出这个用户ID,与该用户的偏好向量相对应.向量中的值均为0或1,如: 98955 / [590:1.0, 22:1.0, 9059:1.0]</li>
+</ol>
+<p>解析Wikipedia连接文件的Mapper:</p>
+<pre><code>public <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">WikipediaToItemPrefsMapper</span> <span class="keyword"><span class="keyword">extends</span></span>
+</span>        <span class="type">Mapper</span>&lt;<span class="type">LongWritable</span>, <span class="type">Text</span>, <span class="type">VarLongWritable</span>, <span class="type">VarLongWritable</span>&gt; {
+
+    <span class="keyword">private</span> static <span class="keyword">final</span> <span class="type">Pattern</span> <span class="type">NUMBERS</span> = <span class="type">Pattern</span>.compile(<span class="string">"(\\d+)"</span>);
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">protected</span> void map(<span class="type">LongWritable</span> key, <span class="type">Text</span> value, <span class="type">Context</span> context)
+            <span class="keyword">throws</span> <span class="type">IOException</span>, <span class="type">InterruptedException</span> {
+        <span class="type">String</span> line = value.toString();
+        <span class="type">Matcher</span> m = <span class="type">NUMBERS</span>.matcher(line);
+        m.find();
+        <span class="type">VarLongWritable</span> userID = <span class="keyword">new</span> <span class="type">VarLongWritable</span>(<span class="type">Long</span>.parseLong(m.group()));
+        <span class="type">VarLongWritable</span> itemID = <span class="keyword">new</span> <span class="type">VarLongWritable</span>();
+        <span class="keyword">while</span> (m.find()) {
+            itemID.set(<span class="type">Long</span>.parseLong(m.group()));
+            context.write(userID, itemID);
+        }
+    }    
+}
+</code></pre><p>从用户的物品偏好中生成向量的Reducer:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WikipediaToUserVectorReducer</span>
+        <span class="keyword">extends</span>
+        <span class="title">Reducer</span>&lt;<span class="title">VarLongWritable</span>, <span class="title">VarLongWritable</span>, <span class="title">VarLongWritable</span>, <span class="title">VectorWritable</span>&gt; {</span>
+
+    <span class="keyword">public</span> <span class="typename">void</span> reduce(VarLongWritable userID,
+            Iterable&lt;VarLongWritable&gt; itemPrefs, Context context)
+            <span class="keyword">throws</span> IOException, InterruptedException {
+        Vector userVector = <span class="keyword">new</span> RandomAccessSparseVector(Integer.MAX_VALUE, <span class="number">100</span>);
+        <span class="keyword">for</span> (VarLongWritable <span class="string">itemPref :</span> itemPrefs) {
+            userVector.set((<span class="typename">int</span>) itemPref.get(), <span class="number">1.0</span>f);
+        }
+        context.write(userID, <span class="keyword">new</span> VectorWritable(userVector));
+    }
+}
+</code></pre><h3 id="向MapReduce转换:实现共现关系">向MapReduce转换:实现共现关系</h3><p>使用第一个MapReduce的输出来计算共现关系:</p>
+<ol>
+<li>输入时用户ID和对应的用户偏好Vector,例如: 98955 / [590:1.0, 22:1.0, 9059:1.0]</li>
+<li>Map函数根据用户的偏好来决定所有的共现关系,并为每一个共现关系生成一个物品ID对–物品ID对应到物品ID,无论是从一个物品ID1到2,还是从2到1,都会被记录,如: 590/22</li>
+<li>框架为每个物品搜集与之对应的所有共现关系</li>
+<li>Reducer为每个物品ID统计它收到的全部共现关系,他们可以当做共现矩阵的行货列使用.如: 590/[22:3.0, 95:1.0, 9059:1.0, …]</li>
+</ol>
+<p>这个阶段的实际输出为共现矩阵.</p>
+<p>计算共现关系的Mapper:</p>
+<pre><code>public <span class="class"><span class="keyword">class</span> <span class="title">UserVectorToCooccurrenceMapper</span> <span class="keyword"><span class="keyword">extends</span></span>
+</span>        <span class="type">Mapper</span>&lt;<span class="type">VarLongWritable</span>, <span class="type">VectorWritable</span>, <span class="type">IntWritable</span>, <span class="type">IntWritable</span>&gt; {
+
+    public void map(<span class="type">VarLongWritable</span> userID, <span class="type">VectorWritable</span> userVector,
+            <span class="type">Context</span> context) <span class="keyword">throws</span> <span class="type">IOException</span>, <span class="type">InterruptedException</span> {
+        <span class="type">Iterator</span>&lt;<span class="type">Vector</span>.<span class="type">Element</span>&gt; it = userVector.get().iterateNonZero();
+        <span class="keyword">while</span> (it.hasNext()) {
+            int index1 = it.next().index();
+            <span class="type">Iterator</span>&lt;<span class="type">Vector</span>.<span class="type">Element</span>&gt; it2 = userVector.get().iterateNonZero();
+            <span class="keyword">while</span> (it2.hasNext()) {
+                int index2 = it2.next().index();
+                context.write(<span class="keyword">new</span> <span class="type">IntWritable</span>(index1), <span class="keyword">new</span> <span class="type">IntWritable</span>(index2));
+            }
+        }
+    }
+}
+</code></pre><p>计算共生关系的Reducer:</p>
+<pre><code>public <span class="class"><span class="keyword">class</span> <span class="title">UserVectorToCooccurrenceReducer</span> <span class="keyword"><span class="keyword">extends</span></span>
+</span>        <span class="type">Reducer</span>&lt;<span class="type">IntWritable</span>, <span class="type">IntWritable</span>, <span class="type">IntWritable</span>, <span class="type">VectorWritable</span>&gt; {
+
+    public void reduce(<span class="type">IntWritable</span> itemIndex1,
+            <span class="type">Iterable</span>&lt;<span class="type">IntWritable</span>&gt; itemIndex2s, <span class="type">Context</span> context)
+            <span class="keyword">throws</span> <span class="type">IOException</span>, <span class="type">InterruptedException</span> {
+        <span class="type">Vector</span> cooccurrenceRow = <span class="keyword">new</span> <span class="type">RandomAccessSparseVector</span>(
+                <span class="type">Integer</span>.<span class="type">MAX_VALUE</span>, <span class="number">100</span>);
+        <span class="keyword">for</span> (<span class="type">IntWritable</span> intWritable : itemIndex2s) {
+            int itemIndex2 = intWritable.get();
+            cooccurrenceRow.set(itemIndex2,
+                    cooccurrenceRow.get(itemIndex2) + <span class="number">1.0</span>);
+        }
+        context.write(itemIndex1, <span class="keyword">new</span> <span class="type">VectorWritable</span>(cooccurrenceRow));
+    }
+}
+</code></pre><h3 id="向MapReduce转换:重新思考矩阵乘">向MapReduce转换:重新思考矩阵乘</h3><p>现在可以使用用户向量与共现矩阵相乘得到推荐向量,推测推荐结果.但是这个乘法可以使用一种更加高效的方式来做.</p>
+<p>传统的矩阵乘是让每一行都去乘用户向量(作为一个列向量),已生成结果R中的元素:</p>
+<pre><code><span class="keyword">for</span> 共现矩阵中的每一行 <span class="built_in">i</span>
+    计算行向量<span class="built_in">i</span>和用户向量的点积
+    将点积结果存入R中第<span class="built_in">i</span>个元素
+</code></pre><p>需要对每一行做一次向量的点积.任何对全部输入进行处理的算法都不是最优的,因为输入可能会超级庞大,甚至无法本地化.相反,矩阵乘可以转化成一种对共现矩阵中列的函数:</p>
+<pre><code>将R置为空向量
+<span class="keyword">for</span> 共现矩阵中的每一个列 <span class="built_in">i</span>
+    将列向量<span class="built_in">i</span>和用户向量中的第<span class="built_in">i</span>个元素相乘
+    将这个向量加到R上
+</code></pre><p>此时,只要用户向量中的元素i为0,循环就完全被跳过去,因为乘积是零向量并且不会影响结果.于是只要对用户向量的非0元素执行循环即可.得到结果向量的列数等于用户给出偏好的个数,当用户向量稀疏时,它远小于列数总和.</p>
+<p>按此方法,算法可以有效的对计算进行分布,可将列向量i输出到所有与之相乘的元素上,乘积可以彼此独立的进行计算可存储.</p>
+<p>上面的例子中,共现矩阵作为一个7X7的矩阵(A),用户偏好向量可以可以视作一个特殊的单行矩阵(B):</p>
+<p>第一种算法是拿A的每一行与B的每一行向量乘,即点积,进行横向求和求得结果.</p>
+<p>第二种算法是拿A的每一列与B的每一列做向量乘,纵向求和得到结果.这个计算过程中,B的每一列是一个单元素,向量与0相乘得到一个零向量直接跳过,省去了一部分计算,而用户向量往往都是比较稀疏的(用户一般只对一小部分物品有偏好),所以更加高效.</p>
+<h3 id="向MapReduce转换:通过部分乘积计算矩阵乘">向MapReduce转换:通过部分乘积计算矩阵乘</h3><p>从前面的计算结果中,可以获得共现矩阵的列.因为这个矩阵是对称的,行与列相同,所以输出在理论上被看做做是 行,也可以是 列.这些列将物品ID作为键,算法必须将所有用户向量中的每一列和该物品中的每一个非领的偏好值相乘.也就是说,它必须将物品ID和偏好ID及偏好值对应起来,并在Reducer中汇聚在一起.在将每个值都与这个共现向量的列相乘之后,就会生成一个向量,形成面向用户的推荐向量的一部分.</p>
+<p>难点在于要合并两种不同的数据: 共现向量和用户偏好值.但是Reducer中的值只能为Writable这一种类型,因此巧妙的实现了VectorOrPrefWritable,它含有一种或另一种类型.</p>
+<p>这个Map阶段实际包含了两个Mapper,每个产生不同的Reducer输入:</p>
+<ol>
+<li>第一个Mapper的输入为共现矩阵: 以物品ID为键,对应于Vector形式的列.如: 590 / [22:3.0, 95:1.0, 9059:1.0, …], Map函数简单的转发其输入,但形式上采用以VectorOrPrefWritable封装的Vector</li>
+<li>第二个Mapper的输入为用户向量: 以用户ID为键,对应于Vector形式的偏好值,如: 98955/[590:1.0, 22:1.0, 9059:1.0],对于用户向量中的每个非零值,Map函数输出一个物品ID,对应的用户ID,偏好值.以VectorOrPrefWritable的形式封装,如: 590 / [98955:1.0]. 框架按照物品ID将共生关系列和所有的 用户ID-偏好值对 汇聚在一起.reducer将这些信息归并为一条输出记录并存储下来.</li>
+</ol>
+<p>以VectorOrPrefWritable封装的共现关系列:</p>
+<pre><code>public <span class="class"><span class="keyword">class</span> <span class="title">CooccurrenceColumnWrapperMapper</span> <span class="keyword"><span class="keyword">extends</span></span>
+</span>        <span class="type">Mapper</span>&lt;<span class="type">IntWritable</span>, <span class="type">VectorWritable</span>, <span class="type">IntWritable</span>, <span class="type">VectorOrPrefWritable</span>&gt; {
+
+    public void map(<span class="type">IntWritable</span> key, <span class="type">VectorWritable</span> value, <span class="type">Context</span> context)
+            <span class="keyword">throws</span> <span class="type">IOException</span>, <span class="type">InterruptedException</span> {
+        context.write(key, <span class="keyword">new</span> <span class="type">VectorOrPrefWritable</span>(value.get()));
+    }
+}
+</code></pre><p>用户向量被分割为其独立的偏好值和输出(根据物品ID,而非用户ID):</p>
+<pre><code><span class="keyword">public</span> class UserVectorSplitterMapper
+        extends
+        Mapper&lt;VarLongWritable, VectorWritable, IntWritable, VectorOrPrefWritable&gt; {
+
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="built_in">map</span>(VarLongWritable <span class="variable">key</span>, VectorWritable value, Context context)
+            <span class="keyword">throws</span> IOException, InterruptedException {
+        <span class="keyword">long</span> userID = <span class="variable">key</span>.<span class="built_in">get</span>();
+        Vector userVector = value.<span class="built_in">get</span>();
+        Iterator&lt;Vector.Element&gt; it = userVector.iterateNonZero();
+        IntWritable itemIndexWritable = <span class="keyword">new</span> IntWritable();
+        <span class="keyword">while</span> (it.hasNext()) {
+            Vector.Element e = it.next();
+            <span class="built_in">int</span> itemIndex = e.index();
+            <span class="built_in">float</span> preferenceValue = (<span class="built_in">float</span>) e.<span class="built_in">get</span>();
+            itemIndexWritable.<span class="built_in">set</span>(itemIndex);
+            context.write(itemIndexWritable, 
+                    <span class="keyword">new</span> VectorOrPrefWritable(userID, preferenceValue));
+        }
+    }
+}
+</code></pre><p>在两个Mapper之后并没有真正的Reducer,因为不能把两个Mapper的输出导入到一个Reducer中.相反,他们独立运行,并将结果传递到一个空的Reducer中,最终保存在两个位置.这两个位置可以作为另一个MapReduce的输入,它的Mapper什么也不做,而Reducer将物品的一个共现关系向量,并和该物品对应的所有用户偏好及偏好值汇聚在一起形成一个实体,称为VectorAndPrefsWritable.该过程在ToVectorAndPrefReducer中实现.</p>
+<p>有了共现矩阵的列和用户偏好,且他们均以物品ID为键,算法就可以将他们导入到一个mapper中,并输出该列和用户偏好的乘积:</p>
+<ol>
+<li>mapper的输入是按物品组织的所有共现矩阵和用户偏好,如: 590 / [22:3.0, 95:1.0, 9059:1.0,..]和 590 / [98955:1.0]</li>
+<li>mapper的输出是共现关系列乘以每个用户的偏好值,如: 590 / [22:3.0, 95:1.0, 9059:1.0, ..]</li>
+<li>框架按用户将这一乘积汇聚在一起</li>
+<li>reducer将输入的所有向量拆开后求和,形成对该用户的最终推荐向量R,如: 590 / [22:4.0, 45:3.0, 95:11.0, 9059:10, ..]</li>
+</ol>
+<p>计算部分推荐向量:</p>
+<pre><code><span class="keyword">public</span> <span class="keyword">class</span> PartialMultiplyMapper
+        <span class="keyword">extends</span>
+        Mapper&lt;IntWritable, VectorAndPrefsWritable, VarLongWritable, VectorWritable&gt; {
+    <span class="keyword">public</span> <span class="keyword">void</span> map(IntWritable key,
+            VectorAndPrefsWritable vectorAndPrefsWritable, Context context)
+            <span class="keyword">throws</span> IOException, InterruptedException {
+        Vector cooccurrenceColumn = vectorAndPrefsWritable.getVector();
+        List&lt;<span class="keyword">Long</span>&gt; userIDs = vectorAndPrefsWritable.getUserIDs();
+        List&lt;<span class="keyword">Float</span>&gt; prefValues = vectorAndPrefsWritable.getValues();
+
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; userIDs.<span class="keyword">size</span>(); i++) {
+            <span class="keyword">long</span> userID = userIDs.get(i);
+            <span class="keyword">float</span> prefValue = prefValues.get(i);
+            Vector partialProduct = cooccurrenceColumn.<span class="keyword">times</span>(prefValue);
+            context.<span class="keyword">write</span>(<span class="keyword">new</span> VarLongWritable(userID), 
+                    <span class="keyword">new</span> VectorWritable(partialProduct));
+        }
+    }
+}
+</code></pre><p>这个mapper会写很多数据,对于每个 用户-物品 关联,它都会输出共现矩阵中一个完整列的副本.这些副本要在reducer中与其他的副本组合相加,以生成一个推荐向量.</p>
+<p>combiner,像一个小型的reducer,当map的输出仍在内存中时执行,在输出记录未被执行写操作之前将几个记录合并为一个,以节省IO.这时,对一个用户输出两个向量A和B,就和对这个用户输出一个A+B一样,他们最后都会被合并在一起.</p>
+<p>下面的combiner处理PartialMultiplyMapper的输出:</p>
+<pre><code><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AggregateCombiner</span>
+        <span class="keyword">extends</span>
+        <span class="title">Reducer</span>&lt;<span class="title">VarLongWritable</span>, <span class="title">VectorWritable</span>, <span class="title">VarLongWritable</span>, <span class="title">VectorWritable</span>&gt; </span>{
+
+    <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">reduce</span><span class="params">(VarLongWritable key, Iterable&lt;VectorWritable&gt; values,
+            Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>{
+        Vector partial = <span class="keyword">null</span>;
+        <span class="keyword">for</span> (VectorWritable vectorWritable : values) {
+            partial = partial == <span class="keyword">null</span> ? vectorWritable.get() : partial
+                    .plus(vectorWritable.<span class="keyword">get</span>());
+        }
+        context.write(key, <span class="keyword">new</span> VectorWritable(partial));
+    }
+}
+</code></pre><h3 id="向MapReduce转换:形成推荐">向MapReduce转换:形成推荐</h3><p>算法为每个用户合并推荐向量,生成推荐结果:</p>
+<pre><code><span class="keyword">public</span> class AggregateAndRecommendReducer
+        extends
+        Reducer&lt;VarLongWritable, VectorWritable, VarLongWritable, RecommendedItemsWritable&gt; {
+
+    <span class="keyword">private</span> <span class="built_in">int</span> recommendationsPerUser = <span class="number">10</span>;
+    <span class="keyword">private</span> OpenIntLongHashMap indexItemIDMap;
+    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">String</span> ITEMID_INDEX_PATH = <span class="string">"itemIDIndexPath"</span>;
+    <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">String</span> NUM_RECOMMENDATIONS = <span class="string">"numRecommendations"</span>;
+    <span class="keyword">static</span> <span class="keyword">final</span> <span class="built_in">int</span> DEFAULT_NUM_RECOMMENDATIONS = <span class="number">10</span>;
+
+    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">setup</span>(Context context) <span class="keyword">throws</span> IOException {
+        Configuration jobConf = context.getConfiguration();
+        recommendationsPerUser = jobConf.getInt(NUM_RECOMMENDATIONS,
+                DEFAULT_NUM_RECOMMENDATIONS);
+        indexItemIDMap = TasteHadoopUtils.readItemIDIndexMap(
+                jobConf.<span class="built_in">get</span>(ITEMID_INDEX_PATH), jobConf);
+    }
+
+    <span class="keyword">public</span> <span class="keyword">void</span> reduce(VarLongWritable <span class="variable">key</span>, Iterable&lt;VectorWritable&gt; values,
+            Context context) <span class="keyword">throws</span> IOException, InterruptedException {
+
+        Vector recommendationVector = <span class="keyword">null</span>;
+        <span class="keyword">for</span> (VectorWritable vectorWritable : values) {
+            recommendationVector = recommendationVector == <span class="keyword">null</span> ? vectorWritable
+                    .<span class="built_in">get</span>() : recommendationVector.plus(vectorWritable.<span class="built_in">get</span>());
+        }
+
+        Queue&lt;RecommendedItem&gt; topItems = <span class="keyword">new</span> PriorityQueue&lt;RecommendedItem&gt;(
+                recommendationsPerUser + <span class="number">1</span>,
+                Collections.reverseOrder(ByValueRecommendedItemComparator
+                        .getInstance()));
+
+        Iterator&lt;Vector.Element&gt; recommendationVectorIterator = recommendationVector
+                .iterateNonZero();
+        <span class="keyword">while</span> (recommendationVectorIterator.hasNext()) {
+            Vector.Element element = recommendationVectorIterator.next();
+            <span class="built_in">int</span> index = element.index();
+            <span class="built_in">float</span> value = (<span class="built_in">float</span>) element.<span class="built_in">get</span>();
+            <span class="keyword">if</span> (topItems.<span class="built_in">size</span>() &lt; recommendationsPerUser) {
+                topItems.<span class="built_in">add</span>(<span class="keyword">new</span> GenericRecommendedItem(indexItemIDMap
+                        .<span class="built_in">get</span>(index), value));
+            } <span class="keyword">else</span> <span class="keyword">if</span> (value &gt; topItems.peek().getValue()) {
+                topItems.<span class="built_in">add</span>(<span class="keyword">new</span> GenericRecommendedItem(indexItemIDMap
+                        .<span class="built_in">get</span>(index), value));
+                topItems.poll();
+            }
+        }
+
+        List&lt;RecommendedItem&gt; recommendations = <span class="keyword">new</span> ArrayList&lt;RecommendedItem&gt;(
+                topItems.<span class="built_in">size</span>());
+        recommendations.addAll(topItems);
+        Collections.<span class="built_in">sort</span>(recommendations,
+                ByValueRecommendedItemComparator.getInstance());
+        context.write(<span class="variable">key</span>, <span class="keyword">new</span> RecommendedItemsWritable(recommendations));
+    }
+}
+</code></pre><p>输出最后以一个或多个压缩文本的形式存放在HDFS上,格式为:</p>
+<pre><code><span class="number">3</span> [<span class="number">103</span>:<span class="number">24.5</span>, <span class="number">102</span>:<span class="number">18.5</span>, <span class="number">106</span>:<span class="number">16.5</span>]
+</code></pre><p>每个用户ID之后跟随一个以逗号分隔的物品ID列表,冒号后为推荐向量中的条目(不管其是否有用).</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/RecommenderJob%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB.jpg" alt="RecommenderJob之间的关系" title="RecommenderJob之间的关系"></p>
+<h2 id="考虑推荐的非传统用法">考虑推荐的非传统用法</h2><p>虽然Mahout推荐引擎中的API都是以用户或物品进行描述,但这个框架并不假设用户就是人,或者物品就是电影或书籍.</p>
+<ol>
+<li>无物品推荐用户: 通过物品ID与用户ID进行交换,推荐引擎的输出变为: 哪些用户会对指定的物品更感兴趣</li>
+<li>扩展物品的范畴: 给定与用户关联的地方,时间,使用模式或者其他人,就可以为之推荐相同类型的物品(地方,时间,使用模式或者其他人)</li>
+<li>找到最相似的物品: Mahout中基于物品的推荐程序实现使得发现一组最相似的物品变的更容易</li>
+<li>扩展偏好值的范畴: 通常无法从用户那里获得准确的偏好值,只能根据了解到的用户对事物的关系来推测</li>
+<li>考虑不止一个用户或物品: 可以为一对用户进行推荐,即把一对用户视为一个用户,还可以把物品及其位置统一视为一个物品来进行推荐</li>
+</ol>
+<p>重要的是基于用户的行为或其他数据来推测用户的评分,但并非Mahout关注的内容.Orz.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Mahout/" rel="tag">#Mahout</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/16/Mahout-in-Action-3/" rel="next">Mahout in Action 3</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">96</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Math模块简介"><span class="nav-number">1.</span> <span class="nav-text">Math模块简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#向量"><span class="nav-number">1.1.</span> <span class="nav-text">向量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#向量实现"><span class="nav-number">1.2.</span> <span class="nav-text">向量实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#向量操作"><span class="nav-number">1.3.</span> <span class="nav-text">向量操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#高级向量方法"><span class="nav-number">1.4.</span> <span class="nav-text">高级向量方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#矩阵"><span class="nav-number">1.5.</span> <span class="nav-text">矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#矩阵操作"><span class="nav-number">1.6.</span> <span class="nav-text">矩阵操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#矩阵相乘"><span class="nav-number">1.7.</span> <span class="nav-text">矩阵相乘</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式计算"><span class="nav-number">2.</span> <span class="nav-text">分布式计算</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#构建共现矩阵"><span class="nav-number">2.1.</span> <span class="nav-text">构建共现矩阵</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#计算用户向量"><span class="nav-number">2.2.</span> <span class="nav-text">计算用户向量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#生成推荐结果"><span class="nav-number">2.3.</span> <span class="nav-text">生成推荐结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于MapReduce实现分布式算法"><span class="nav-number">3.</span> <span class="nav-text">基于MapReduce实现分布式算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MapReduce简介"><span class="nav-number">3.1.</span> <span class="nav-text">MapReduce简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#向MapReduce转换:生成用户向量"><span class="nav-number">3.2.</span> <span class="nav-text">向MapReduce转换:生成用户向量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#向MapReduce转换:实现共现关系"><span class="nav-number">3.3.</span> <span class="nav-text">向MapReduce转换:实现共现关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#向MapReduce转换:重新思考矩阵乘"><span class="nav-number">3.4.</span> <span class="nav-text">向MapReduce转换:重新思考矩阵乘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#向MapReduce转换:通过部分乘积计算矩阵乘"><span class="nav-number">3.5.</span> <span class="nav-text">向MapReduce转换:通过部分乘积计算矩阵乘</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#向MapReduce转换:形成推荐"><span class="nav-number">3.6.</span> <span class="nav-text">向MapReduce转换:形成推荐</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#考虑推荐的非传统用法"><span class="nav-number">4.</span> <span class="nav-text">考虑推荐的非传统用法</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
