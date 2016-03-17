@@ -48,7 +48,7 @@
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E7%9F%A9%E9%98%B5%E7%9B%B8%E4%B9%98.jpg">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E5%85%B1%E7%8E%B0%E5%90%91%E9%87%8F%E7%94%9F%E6%88%90%E6%8E%A8%E8%8D%90%E7%BB%93%E6%9E%9C.jpg">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/RecommenderJob%E4%B9%8B%E9%97%B4%E7%9A%84%E5%85%B3%E7%B3%BB.jpg">
-<meta property="og:updated_time" content="2016-03-16T16:40:35.000Z">
+<meta property="og:updated_time" content="2016-03-17T10:46:12.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Mahout in Action 4">
 <meta name="twitter:description" content="数学基础与分布式实现">
@@ -360,8 +360,8 @@
             Iterable&lt;VarLongWritable&gt; itemPrefs, Context context)
             <span class="keyword">throws</span> IOException, InterruptedException {
         Vector userVector = <span class="keyword">new</span> RandomAccessSparseVector(Integer.MAX_VALUE, <span class="number">100</span>);
-        <span class="keyword">for</span> (VarLongWritable <span class="string">itemPref :</span> itemPrefs) {
-            userVector.set((<span class="typename">int</span>) itemPref.get(), <span class="number">1.0</span>f);
+        <span class="keyword">for</span> (VarLongWritable <span class="string">itemPref :</span> itemPrefs) {        <span class="comment">// 遍历用户偏好过的所有物品,将每个出现过的物品偏好设置为1.0(因为此类数据没有精确偏好值,出现过即为1,没有则为0)</span>
+            userVector.set((<span class="typename">int</span>) itemPref.get(), <span class="number">1.0</span>f);     <span class="comment">// 填充为用户偏好向量 用户ID / [物品1:1.0, 物品2:1.0, 物品3:1.0, ..]</span>
         }
         context.write(userID, <span class="keyword">new</span> VectorWritable(userVector));
     }
@@ -381,13 +381,14 @@
     public void map(<span class="type">VarLongWritable</span> userID, <span class="type">VectorWritable</span> userVector,
             <span class="type">Context</span> context) <span class="keyword">throws</span> <span class="type">IOException</span>, <span class="type">InterruptedException</span> {
         <span class="type">Iterator</span>&lt;<span class="type">Vector</span>.<span class="type">Element</span>&gt; it = userVector.get().iterateNonZero();
-        <span class="keyword">while</span> (it.hasNext()) {
+        <span class="keyword">while</span> (it.hasNext()) {                              <span class="comment">// 遍历用户的偏好向量,取出每一个物品ID</span>
             int index1 = it.next().index();
             <span class="type">Iterator</span>&lt;<span class="type">Vector</span>.<span class="type">Element</span>&gt; it2 = userVector.get().iterateNonZero();
-            <span class="keyword">while</span> (it2.hasNext()) {
+            <span class="keyword">while</span> (it2.hasNext()) {                         <span class="comment">// 再次取出每一个物品ID</span>
                 int index2 = it2.next().index();
                 context.write(<span class="keyword">new</span> <span class="type">IntWritable</span>(index1), <span class="keyword">new</span> <span class="type">IntWritable</span>(index2));
-            }
+            }                                               <span class="comment">// 将每连个物品组合成一个物品对:</span>
+            <span class="comment">// [物品1/物品2, 物品1/物品3, 物品2/物品1, 物品2/物品3, 物品3/物品1, 物品3/物品2]</span>
         }
     }
 }
@@ -395,16 +396,16 @@
 <pre><code>public <span class="class"><span class="keyword">class</span> <span class="title">UserVectorToCooccurrenceReducer</span> <span class="keyword"><span class="keyword">extends</span></span>
 </span>        <span class="type">Reducer</span>&lt;<span class="type">IntWritable</span>, <span class="type">IntWritable</span>, <span class="type">IntWritable</span>, <span class="type">VectorWritable</span>&gt; {
 
-    public void reduce(<span class="type">IntWritable</span> itemIndex1,
+    public void reduce(<span class="type">IntWritable</span> itemIndex1,                  <span class="comment">// 根据上一步的结果,收集与物品1共现的物品和次数</span>
             <span class="type">Iterable</span>&lt;<span class="type">IntWritable</span>&gt; itemIndex2s, <span class="type">Context</span> context)
             <span class="keyword">throws</span> <span class="type">IOException</span>, <span class="type">InterruptedException</span> {
-        <span class="type">Vector</span> cooccurrenceRow = <span class="keyword">new</span> <span class="type">RandomAccessSparseVector</span>(
+        <span class="type">Vector</span> cooccurrenceRow = <span class="keyword">new</span> <span class="type">RandomAccessSparseVector</span>(  <span class="comment">// 初始化共现向量</span>
                 <span class="type">Integer</span>.<span class="type">MAX_VALUE</span>, <span class="number">100</span>);
-        <span class="keyword">for</span> (<span class="type">IntWritable</span> intWritable : itemIndex2s) {
-            int itemIndex2 = intWritable.get();
-            cooccurrenceRow.set(itemIndex2,
+        <span class="keyword">for</span> (<span class="type">IntWritable</span> intWritable : itemIndex2s) {           <span class="comment">// 遍历物品对序列</span>
+            int itemIndex2 = intWritable.get();                 <span class="comment">// 取出每一个元素的值,即: 物品1/物品2</span>
+            cooccurrenceRow.set(itemIndex2,                     <span class="comment">// 在共现向量中累加 物品1/物品2 的共现次数</span>
                     cooccurrenceRow.get(itemIndex2) + <span class="number">1.0</span>);
-        }
+        }                                                       <span class="comment">// 获得完整的物品1的共现向量</span>
         context.write(itemIndex1, <span class="keyword">new</span> <span class="type">VectorWritable</span>(cooccurrenceRow));
     }
 }
@@ -446,16 +447,16 @@
 
     <span class="keyword">public</span> <span class="keyword">void</span> <span class="built_in">map</span>(VarLongWritable <span class="variable">key</span>, VectorWritable value, Context context)
             <span class="keyword">throws</span> IOException, InterruptedException {
-        <span class="keyword">long</span> userID = <span class="variable">key</span>.<span class="built_in">get</span>();
-        Vector userVector = value.<span class="built_in">get</span>();
-        Iterator&lt;Vector.Element&gt; it = userVector.iterateNonZero();
+        <span class="keyword">long</span> userID = <span class="variable">key</span>.<span class="built_in">get</span>();                    <span class="comment">// 获取用户ID</span>
+        Vector userVector = value.<span class="built_in">get</span>();            <span class="comment">// 获取用户向量</span>
+        Iterator&lt;Vector.Element&gt; it = userVector.iterateNonZero();  <span class="comment">// 用户向量中的非0向量</span>
         IntWritable itemIndexWritable = <span class="keyword">new</span> IntWritable();
-        <span class="keyword">while</span> (it.hasNext()) {
+        <span class="keyword">while</span> (it.hasNext()) {                      <span class="comment">// 遍历用户向量中的所有元素</span>
             Vector.Element e = it.next();
-            <span class="built_in">int</span> itemIndex = e.index();
-            <span class="built_in">float</span> preferenceValue = (<span class="built_in">float</span>) e.<span class="built_in">get</span>();
-            itemIndexWritable.<span class="built_in">set</span>(itemIndex);
-            context.write(itemIndexWritable, 
+            <span class="built_in">int</span> itemIndex = e.index();                  <span class="comment">// 获取物品ID</span>
+            <span class="built_in">float</span> preferenceValue = (<span class="built_in">float</span>) e.<span class="built_in">get</span>();    <span class="comment">// 获取物品偏好值</span>
+            itemIndexWritable.<span class="built_in">set</span>(itemIndex);           <span class="comment">// 将物品ID作为键</span>
+            context.write(itemIndexWritable,            <span class="comment">// 将用户ID和偏好值的对作为向量元素</span>
                     <span class="keyword">new</span> VectorOrPrefWritable(userID, preferenceValue));
         }
     }
@@ -475,15 +476,15 @@
     <span class="keyword">public</span> <span class="keyword">void</span> map(IntWritable key,
             VectorAndPrefsWritable vectorAndPrefsWritable, Context context)
             <span class="keyword">throws</span> IOException, InterruptedException {
-        Vector cooccurrenceColumn = vectorAndPrefsWritable.getVector();
-        List&lt;<span class="keyword">Long</span>&gt; userIDs = vectorAndPrefsWritable.getUserIDs();
-        List&lt;<span class="keyword">Float</span>&gt; prefValues = vectorAndPrefsWritable.getValues();
+        Vector cooccurrenceColumn = vectorAndPrefsWritable.getVector(); <span class="comment">// 获取共线向量的每一列</span>
+        List&lt;<span class="keyword">Long</span>&gt; userIDs = vectorAndPrefsWritable.getUserIDs();       <span class="comment">// 获取用户ID</span>
+        List&lt;<span class="keyword">Float</span>&gt; prefValues = vectorAndPrefsWritable.getValues();    <span class="comment">// 获取该用户 物品与偏好值的对</span>
 
         <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; userIDs.<span class="keyword">size</span>(); i++) {
             <span class="keyword">long</span> userID = userIDs.get(i);
             <span class="keyword">float</span> prefValue = prefValues.get(i);
-            Vector partialProduct = cooccurrenceColumn.<span class="keyword">times</span>(prefValue);
-            context.<span class="keyword">write</span>(<span class="keyword">new</span> VarLongWritable(userID), 
+            Vector partialProduct = cooccurrenceColumn.<span class="keyword">times</span>(prefValue);    <span class="comment">// 共现向量的列与偏好值相乘</span>
+            context.<span class="keyword">write</span>(<span class="keyword">new</span> VarLongWritable(userID),                      <span class="comment">// 生成该用户结果的一行R</span>
                     <span class="keyword">new</span> VectorWritable(partialProduct));
         }
     }
@@ -498,7 +499,7 @@
     <span class="keyword">public</span> <span class="function"><span class="keyword">void</span> <span class="title">reduce</span><span class="params">(VarLongWritable key, Iterable&lt;VectorWritable&gt; values,
             Context context)</span> <span class="keyword">throws</span> IOException, InterruptedException </span>{
         Vector partial = <span class="keyword">null</span>;
-        <span class="keyword">for</span> (VectorWritable vectorWritable : values) {
+        <span class="keyword">for</span> (VectorWritable vectorWritable : values) {                  <span class="comment">// 对上面的每一行进行向量加(+)操作,获得推荐结果R</span>
             partial = partial == <span class="keyword">null</span> ? vectorWritable.get() : partial
                     .plus(vectorWritable.<span class="keyword">get</span>());
         }
@@ -592,6 +593,8 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
+              <a href="/2016/03/17/Mahout-in-Action-5/" rel="prev">Mahout in Action 5</a>
+            
           </div>
 
           <div class="post-nav-next post-nav-item">
@@ -658,7 +661,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">96</span>
+              <span class="site-state-item-count">98</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -672,7 +675,7 @@
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-count">38</span>
               <span class="site-state-item-name">标签</span>
               </a>
           </div>

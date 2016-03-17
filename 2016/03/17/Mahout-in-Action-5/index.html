@@ -1,0 +1,718 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Mahout," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Mahout总结">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mahout in Action 5">
+<meta property="og:url" content="http://yoursite.com/2016/03/17/Mahout-in-Action-5/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Mahout总结">
+<meta property="og:updated_time" content="2016-03-17T03:17:51.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mahout in Action 5">
+<meta name="twitter:description" content="Mahout总结">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Mahout in Action 5 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Mahout in Action 5
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-17T00:48:14+08:00" content="2016-03-17">
+            2016-03-17
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="介绍">介绍</h2><p>Mahout使用了Taste来提供协同过滤算法的实现,他是一个基于Java实现的可扩展的,高效的推荐引擎.Taste既实现了最基本的基于用户的和基于内容的推荐算法,同时也提供了扩展接口,使用户可以方便的定义和实现自己的推荐算法.同时,Taste不仅仅只适用于Java应用程序,它可以作为内部服务器的一个组件以HTTP和Web Service的形式向外界提供推荐逻辑.Taste的设计使它能满足企业对推荐引擎在性能,灵活性和可扩展性等方面的要求.</p>
+<p>Taste主要包括以下几个接口:</p>
+<ol>
+<li>DataModel: 用户偏好数据的抽象接口,它的具体实现支持从任意类型的数据源抽取用户偏好信息.Taste默认提供JDBCDataModel和FileDataModel,分别支持从数据库文件中读取用户的偏好信息.</li>
+<li>UserSimilarity与ItemSimilarity: UserSimilarity用于定义两个用户之间的相似度,它是基于协同过滤的推荐引擎的核心部分.ItemSimilarity与之类似,用于计算物品之间的相似度.</li>
+<li>UserNeighborhood: 用于基于用户相似度的推荐方法中,推荐的内容是基于找到与当前用户喜好相似的邻域用户的方式产生的.定义了确定邻域的方法.</li>
+<li>Recommender: 是推荐引擎的抽象接口,Taste中的核心组件,程序中,它提供一个DataModel,可以计算出对不同用户的推荐内容.实际应用中,主要使用它的实现类 GenericUserBasedRecommender或GenericItemBasedRecommender,分别实现基于用户相似度的推荐引擎或基于物品相似度的推荐引擎.</li>
+<li>RecommenderEvaluator: 评分器.</li>
+<li>RecommenderIRStatsEvaluator: 搜集推荐性能相关的指标,准确率,召回率等.</li>
+</ol>
+<p>目前,Mahout为DataModel提供了一下几种实现:</p>
+<ul>
+<li>org.apache.mahout.cf.taste.impl.model.GenericDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.GenericBooleanPrefDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.PlusAnonymousUserDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.file.FileDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.hbase.HBaseDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.cassandra.CassandraDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.mongodb.MongoDBDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.jdbc.SQL92JDBCDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.jdbc.PostgreSQLJDBCDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.jdbc.GenericJDBCDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.jdbc.SQL92BooleanPrefJDBCDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.jdbc.MySQLBooleanPrefJDBCDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.jdbc.PostgreBooleanPrefSQLJDBCDataModel</li>
+<li>org.apache.mahout.cf.taste.impl.model.jdbc.ReloadFromJDBCDataModel</li>
+</ul>
+<p>从类名上就可以大概猜出来每个DataModel的用途.</p>
+<p>UserSimilarity 与 ItemSimilarity 相似度实现由以下几种:</p>
+<ol>
+<li>CityBlockSimilarity: 基于Manhattan距离相似度</li>
+<li>EuclideanDistanceSimilarity: 基于欧氏距离相似度</li>
+<li>LogLikelihoodSimilarity: 基于对数似然比的相似度</li>
+<li>PearsonCorrelationSimilarity: 基于皮尔逊相关系数计算相似度</li>
+<li>SpearmanCorrelationSimilarity: 基于皮尔斯曼相关系数相似度</li>
+<li>TanimotoCoefficientSimilarity: 基于股本系数计算相似度</li>
+<li>UncenteredCosineSimilarity: 基于余弦值的相似度</li>
+</ol>
+<p>UserNeighborhood的主要实现由两种:</p>
+<ol>
+<li>NearestNUserNeighborhood: 基于固定数量的用户邻域计算</li>
+<li>ThresholdUserNeighborhood: 基于阈值的用户邻域计算</li>
+</ol>
+<p>Recommender分为以下几种实现:</p>
+<ol>
+<li>GenericUserBasedRecommender: 基于用户的推荐引擎</li>
+<li>GenericBooleanPrefUserBasedRecommender: 基于用户的无偏好值的推荐引擎</li>
+<li>GenericItemBasedRecommender: 基于物品的推荐引擎</li>
+<li>GenericBooleanPrefItemBasedRecommender: 基于物品的无偏好值的推荐引擎</li>
+</ol>
+<p>RecommenderEvaluator有以下几种实现:</p>
+<ol>
+<li>AverageAbsoluteDifferenceRecommenderEvaluator: 计算平均差值</li>
+<li>RMSRecommenderEvaluator: 计算均方根差,实现类为: GenericRecommenderIRStatsEvaluator</li>
+</ol>
+<h2 id="使用依赖">使用依赖</h2><pre><code><span class="tag">&lt;<span class="title">dependencies</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">dependency</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">groupId</span>&gt;</span>org.apache.mahout<span class="tag">&lt;/<span class="title">groupId</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">artifactId</span>&gt;</span>mahout-core<span class="tag">&lt;/<span class="title">artifactId</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">version</span>&gt;</span>0.9<span class="tag">&lt;/<span class="title">version</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">dependency</span>&gt;</span>
+    <span class="tag">&lt;<span class="title">dependency</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">groupId</span>&gt;</span>org.apache.mahout<span class="tag">&lt;/<span class="title">groupId</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">artifactId</span>&gt;</span>mahout-integration<span class="tag">&lt;/<span class="title">artifactId</span>&gt;</span>
+        <span class="tag">&lt;<span class="title">version</span>&gt;</span>0.11.2<span class="tag">&lt;/<span class="title">version</span>&gt;</span>
+    <span class="tag">&lt;/<span class="title">dependency</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">dependencies</span>&gt;</span>
+</code></pre><h2 id="在Spark中使用">在Spark中使用</h2><p>在Spark中运行推荐程序时需要将Mahout相关的jar添加到Sparl的classpath中,修改/etc/spark/conf/spark-env.sh,添加下面代码:</p>
+<pre><code>SPARK<span class="command">\_</span>DIST<span class="command">\_</span>CLASSPATH="<span class="formula">$SPARK<span class="command">\_</span>DIST<span class="command">\_</span>CLASSPATH:/usr/lib/mahout/lib/<span class="command">\*</span>"
+SPARK<span class="command">\_</span>DIST<span class="command">\_</span>CLASSPATH="$</span>SPARK<span class="command">\_</span>DIST<span class="command">\_</span>CLASSPATH:/usr/lib/mahout/<span class="command">\*</span>"
+</code></pre><p>然后,以本地模式在spark-shell中运行下面代码进行交互测试:</p>
+<pre><code><span class="comment">//注意：这里是本地目录</span>
+<span class="function"><span class="keyword">val</span> <span class="title">model</span> =</span> <span class="keyword">new</span> <span class="type">FileDataModel</span>(<span class="keyword">new</span> <span class="type">File</span>(<span class="string">"intro.csv"</span>))
+
+<span class="function"><span class="keyword">val</span> <span class="title">evaluator</span> =</span> <span class="keyword">new</span> <span class="type">RMSRecommenderEvaluator</span>()
+<span class="function"><span class="keyword">val</span> <span class="title">recommenderBuilder</span> =</span> <span class="keyword">new</span> <span class="type">RecommenderBuilder</span> {
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">buildRecommender</span>(</span>dataModel: <span class="type">DataModel</span>): <span class="type">Recommender</span> = {
+    <span class="function"><span class="keyword">val</span> <span class="title">similarity</span> =</span> <span class="keyword">new</span> <span class="type">LogLikelihoodSimilarity</span>(dataModel)
+    <span class="keyword">new</span> <span class="type">GenericItemBasedRecommender</span>(dataModel, similarity)
+  }
+}
+
+<span class="function"><span class="keyword">val</span> <span class="title">score</span> =</span> evaluator.evaluate(recommenderBuilder, <span class="literal">null</span>, model, <span class="number">0.95</span>, <span class="number">0.05</span>)
+println(s<span class="string">"Score=$score"</span>)
+
+<span class="function"><span class="keyword">val</span> <span class="title">recommender=recommenderBuilder</span>.<span class="title">buildRecommender</span>(</span>model)
+<span class="function"><span class="keyword">val</span> <span class="title">users=trainingRatings</span>.<span class="title">map</span>(</span>\_.user).distinct().take(<span class="number">20</span>)
+
+<span class="keyword">import</span> scala.collection.<span class="type">JavaConversions</span>.\_
+
+<span class="function"><span class="keyword">val</span> <span class="title">result=users</span>.<span class="title">par</span>.<span class="title">map</span>{</span>user=\&gt;
+  user+<span class="string">","</span>+recommender.recommend(user,<span class="number">40</span>).map(\_.getItemID).mkString(<span class="string">","</span>)
+}
+</code></pre><p><a href="https://github.com/sujitpal/mia-scala-examples" target="_blank" rel="external">https://github.com/sujitpal/mia-scala-examples</a>上面有一个评估基于物品或是用户的各种相似度下的评分的类,叫做 RecommenderEvaluator,供学习参考.</p>
+<h2 id="分布式运行">分布式运行</h2><p>Mahout提供了 <code>org.apache.mahout.cf.taste.hadoop.item.RecommenderJob</code> 类以MapReduce的方式来实现基于物品的协同过滤，查看该类的使用说明： </p>
+<figure class="highlight tex"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="formula">$ hadoop jar /usr/lib/mahout/mahout-examples-0.9-cdh5.4.0-job.jar org.apache.mahout.cf.taste.hadoop.item.RecommenderJob</span><br><span class="line">15/06/10 16:19:34 ERROR common.AbstractJob: Missing required option --similarityClassname</span><br><span class="line">Missing required option --similarityClassname</span><br><span class="line">Usage:</span><br><span class="line"> <span class="special">[</span>--input <span class="command">\&lt;</span>input<span class="command">\&gt;</span> --output <span class="command">\&lt;</span>output<span class="command">\&gt;</span> --numRecommendations <span class="command">\&lt;</span>numRecommendations<span class="command">\&gt;</span></span><br><span class="line">--usersFile <span class="command">\&lt;</span>usersFile<span class="command">\&gt;</span> --itemsFile <span class="command">\&lt;</span>itemsFile<span class="command">\&gt;</span> --filterFile <span class="command">\&lt;</span>filterFile<span class="command">\&gt;</span></span><br><span class="line">--booleanData <span class="command">\&lt;</span>booleanData<span class="command">\&gt;</span> --maxPrefsPerUser <span class="command">\&lt;</span>maxPrefsPerUser<span class="command">\&gt;</span></span><br><span class="line">--minPrefsPerUser <span class="command">\&lt;</span>minPrefsPerUser<span class="command">\&gt;</span> --maxSimilaritiesPerItem</span><br><span class="line"><span class="command">\&lt;</span>maxSimilaritiesPerItem<span class="command">\&gt;</span> --maxPrefsInItemSimilarity <span class="command">\&lt;</span>maxPrefsInItemSimilarity<span class="command">\&gt;</span></span><br><span class="line">--similarityClassname <span class="command">\&lt;</span>similarityClassname<span class="command">\&gt;</span> --threshold <span class="command">\&lt;</span>threshold<span class="command">\&gt;</span></span><br><span class="line">--outputPathForSimilarityMatrix <span class="command">\&lt;</span>outputPathForSimilarityMatrix<span class="command">\&gt;</span> --randomSeed</span><br><span class="line"><span class="command">\&lt;</span>randomSeed<span class="command">\&gt;</span> --sequencefileOutput --help --tempDir <span class="command">\&lt;</span>tempDir<span class="command">\&gt;</span> --startPhase</span><br><span class="line"><span class="command">\&lt;</span>startPhase<span class="command">\&gt;</span> --endPhase <span class="command">\&lt;</span>endPhase<span class="command">\&gt;</span><span class="special">]</span></span><br><span class="line">--similarityClassname (-s) similarityClassname    Name of distributed</span><br><span class="line"> similarity measures class to</span><br><span class="line"> instantiate, alternatively</span><br><span class="line"> use one of the predefined</span><br><span class="line"> similarities</span><br><span class="line"> (<span class="special">[</span>SIMILARITY_COOCCURRENCE,</span><br><span class="line"> SIMILARITY_LOGLIKELIHOOD,</span><br><span class="line"> SIMILARITY_TANIMOTO_COEFFICIEN</span><br><span class="line"> T, SIMILARITY_CITY_BLOCK,</span><br><span class="line"> SIMILARITY_COSINE,</span><br><span class="line"> SIMILARITY_PEARSON_CORRELATION</span><br><span class="line"> ,</span><br><span class="line"> SIMILARITY_EUCLIDEAN_DISTANCE<span class="special">]</span></span><br><span class="line"> )</span></span><br></pre></td></tr></table></figure>
+<p>可见，该类可以接收的命令行参数如下：</p>
+<ul>
+<li><code>--input(path)</code> : 存储用户偏好数据的目录，该目录下可以包含一个或多个存储用户偏好数据的文本文件；</li>
+<li><code>--output(path)</code> : 结算结果的输出目录</li>
+<li><code>--numRecommendations (integer)</code> : 为每个用户推荐的item数量，默认为10</li>
+<li><code>--usersFile (path)</code> : 指定一个包含了一个或多个存储userID的文件路径，仅为该路径下所有文件包含的userID做推荐计算 (该选项可选)</li>
+<li><code>--itemsFile (path)</code> : 指定一个包含了一个或多个存储itemID的文件路径，仅为该路径下所有文件包含的itemID做推荐计算 (该选项可选)</li>
+<li><code>--filterFile (path)</code> : 指定一个路径，该路径下的文件包含了 <code>[userID,itemID]</code> 值对，userID和itemID用逗号分隔。计算结果将不会为user推荐 <code>[userID,itemID]</code> 值对中包含的item (该选项可选)</li>
+<li><code>--booleanData (boolean)</code> : 如果输入数据不包含偏好数值，则将该参数设置为true，默认为false</li>
+<li><code>--maxPrefsPerUser (integer)</code> : 在最后计算推荐结果的阶段，针对每一个user使用的偏好数据的最大数量，默认为10</li>
+<li><code>--minPrefsPerUser (integer)</code> : 在相似度计算中，忽略所有偏好数据量少于该值的用户，默认为1</li>
+<li><code>--maxSimilaritiesPerItem (integer)</code> : 针对每个item的相似度最大值，默认为100</li>
+<li><code>--maxPrefsPerUserInItemSimilarity (integer)</code> : 在item相似度计算阶段，针对每个用户考虑的偏好数据最大数量，默认为1000</li>
+<li><code>--similarityClassname (classname)</code> : 向量相似度计算类</li>
+<li><code>outputPathForSimilarityMatrix</code> ：SimilarityMatrix输出目录</li>
+<li><code>--randomSeed</code> ：随机种子 – <code>sequencefileOutput</code> ：序列文件输出路径</li>
+<li><code>--tempDir (path)</code> : 存储临时文件的目录，默认为当前用户的home目录下的temp目录</li>
+<li><code>--startPhase</code></li>
+<li><code>--endPhase</code></li>
+<li><code>--threshold (double)</code> : 忽略相似度低于该阀值的item对</li>
+</ul>
+<p>一个例子如下，使用SIMILARITY_LOGLIKELIHOOD相似度推荐物品：</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$ </span>hadoop jar /usr/<span class="class"><span class="keyword">lib</span>/<span class="title">mahout</span>/<span class="title">mahout</span>-<span class="title">examples</span>-0.9-<span class="title">cdh5</span>.4.0-<span class="title">job</span>.<span class="title">jar</span> <span class="title">org</span>.<span class="title">apache</span>.<span class="title">mahout</span>.<span class="title">cf</span>.<span class="title">taste</span>.<span class="title">hadoop</span>.<span class="title">item</span>.<span class="title">RecommenderJob</span> --<span class="title">input</span> /<span class="title">tmp</span>/<span class="title">mahout</span>/<span class="title">part</span>-00000 --<span class="title">output</span> /<span class="title">tmp</span>/<span class="title">mahout</span>-<span class="title">out</span>  -<span class="title">s</span> <span class="title">SIMILARITY_LOGLIKELIHOOD</span></span></span><br></pre></td></tr></table></figure>
+<p>上面命令运行完成之后，会在当前用户的hdfs主目录生成temp目录，该目录可由 <code>--tempDir (path)</code> 参数设置： </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">$ hadoop fs -ls temp</span><br><span class="line">Found <span class="number">10</span> items</span><br><span class="line">-rw-r--r-- <span class="number">3</span> root hadoop <span class="number">7</span> <span class="number">2015</span>-<span class="number">06</span>-<span class="number">10</span> <span class="number">14</span>:<span class="number">42</span> temp/maxValues.bin</span><br><span class="line">-rw-r--r-- <span class="number">3</span> root hadoop <span class="number">5522717</span> <span class="number">2015</span>-<span class="number">06</span>-<span class="number">10</span> <span class="number">14</span>:<span class="number">42</span> temp/norms.bin</span><br><span class="line">drwxr-xr-x   - root hadoop          <span class="number">0</span> <span class="number">2015</span>-<span class="number">06</span>-<span class="number">10</span> <span class="number">14</span>:<span class="number">41</span> temp/notUsed</span><br><span class="line">-rw-r--r-- <span class="number">3</span> root hadoop <span class="number">7</span> <span class="number">2015</span>-<span class="number">06</span>-<span class="number">10</span> <span class="number">14</span>:<span class="number">42</span> temp/numNonZeroEntries.bin</span><br><span class="line">-rw-r--r-- <span class="number">3</span> root hadoop <span class="number">3452222</span> <span class="number">2015</span>-<span class="number">06</span>-<span class="number">10</span> <span class="number">14</span>:<span class="number">41</span> temp/observationsPerColumn.bin</span><br><span class="line">drwxr-xr-x   - root hadoop          <span class="number">0</span> <span class="number">2015</span>-<span class="number">06</span>-<span class="number">10</span> <span class="number">14</span>:<span class="number">47</span> temp/pairwiseSimilarity</span><br><span class="line">drwxr-xr-x   - root hadoop          <span class="number">0</span> <span class="number">2015</span>-<span class="number">06</span>-<span class="number">10</span> <span class="number">14</span>:<span class="number">52</span> temp/partialMultiply</span><br><span class="line">drwxr-xr-x   - root hadoop          <span class="number">0</span> <span class="number">2015</span>-<span class="number">06</span>-<span class="number">10</span> <span class="number">14</span>:<span class="number">39</span> temp/preparePreferenceMatrix</span><br><span class="line">drwxr-xr-x   - root hadoop          <span class="number">0</span> <span class="number">2015</span>-<span class="number">06</span>-<span class="number">10</span> <span class="number">14</span>:<span class="number">50</span> temp/similarityMatrix</span><br><span class="line">drwxr-xr-x   - root hadoop          <span class="number">0</span> <span class="number">2015</span>-<span class="number">06</span>-<span class="number">10</span> <span class="number">14</span>:<span class="number">42</span> temp/weights</span><br></pre></td></tr></table></figure>
+<p>观察yarn的管理界面，该命令会生成9个任务，任务名称依次是：</p>
+<ul>
+<li>PreparePreferenceMatrixJob-ItemIDIndexMapper-Reducer</li>
+<li>PreparePreferenceMatrixJob-ToItemPrefsMapper-Reducer</li>
+<li>PreparePreferenceMatrixJob-ToItemVectorsMapper-Reducer</li>
+<li>RowSimilarityJob-CountObservationsMapper-Reducer</li>
+<li>RowSimilarityJob-VectorNormMapper-Reducer</li>
+<li>RowSimilarityJob-CooccurrencesMapper-Reducer</li>
+<li>RowSimilarityJob-UnsymmetrifyMapper-Reducer</li>
+<li>partialMultiply</li>
+<li>RecommenderJob-PartialMultiplyMapper-Reducer</li>
+</ul>
+<p>从任务名称，大概可以知道每个任务在做什么，如果你的输入参数不一样，生成的任务数可能不一样，这个需要测试一下才能确认。</p>
+<p>在hdfs上查看输出的结果：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">843</span> [<span class="number">10709679</span>:<span class="number">4.8334665</span>,<span class="number">8389878</span>:<span class="number">4.833426</span>,<span class="number">9133835</span>:<span class="number">4.7503786</span>,<span class="number">10366169</span>:<span class="number">4.7503185</span>,<span class="number">9007487</span>:<span class="number">4.750272</span>,<span class="number">8149253</span>:<span class="number">4.7501993</span>,<span class="number">10366165</span>:<span class="number">4.750115</span>,<span class="number">9780049</span>:<span class="number">4.750108</span>,<span class="number">8581254</span>:<span class="number">4.750071</span>,<span class="number">10456307</span>:<span class="number">4.7500467</span>]</span><br><span class="line"><span class="number">6253</span>    [<span class="number">10117445</span>:<span class="number">3.0375953</span>,<span class="number">10340299</span>:<span class="number">3.0340924</span>,<span class="number">8321090</span>:<span class="number">3.0340924</span>,<span class="number">10086615</span>:<span class="number">3.032164</span>,<span class="number">10436801</span>:<span class="number">3.0187714</span>,<span class="number">9668385</span>:<span class="number">3.0141575</span>,<span class="number">8502110</span>:<span class="number">3.013954</span>,<span class="number">10476325</span>:<span class="number">3.0074399</span>,<span class="number">10318667</span>:<span class="number">3.0004222</span>,<span class="number">8320987</span>:<span class="number">3.0003839</span>]</span><br></pre></td></tr></table></figure>
+<p>使用Java API方式执行：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">StringBuilder <span class="keyword">sb</span> = <span class="keyword">new</span> StringBuilder();</span><br><span class="line"><span class="keyword">sb</span>.<span class="built_in">append</span>(<span class="string">"--input "</span>).<span class="built_in">append</span>(inPath);</span><br><span class="line"><span class="keyword">sb</span>.<span class="built_in">append</span>(<span class="string">" --output "</span>).<span class="built_in">append</span>(outPath);</span><br><span class="line"><span class="keyword">sb</span>.<span class="built_in">append</span>(<span class="string">" --tempDir "</span>).<span class="built_in">append</span>(tmpPath);</span><br><span class="line"><span class="keyword">sb</span>.<span class="built_in">append</span>(<span class="string">" --booleanData true"</span>);</span><br><span class="line"><span class="keyword">sb</span>.<span class="built_in">append</span>(<span class="string">" --similarityClassname </span><br><span class="line"></span>org.apache.mahout.math.hadoop.similarity.</span><br><span class="line">cooccurrence.measures.EuclideanDistanceSimilarity<span class="string">");</span><br><span class="line"></span><span class="keyword">args</span> = <span class="keyword">sb</span>.toString().<span class="built_in">split</span>(<span class="string">" "</span>);</span><br><span class="line"></span><br><span class="line">JobConf jobConf = <span class="keyword">new</span> JobConf(<span class="keyword">conf</span>);</span><br><span class="line">jobConf.setJobName(<span class="string">"MahoutTest"</span>);</span><br><span class="line"></span><br><span class="line">RecommenderJob job = <span class="keyword">new</span> RecommenderJob();</span><br><span class="line">job.setConf(<span class="keyword">conf</span>);</span><br><span class="line">job.run(<span class="keyword">args</span>);</span><br></pre></td></tr></table></figure>
+<p>在Scala或者Spark中，可以以Java API或者命令方式运行，最后还可以通过Spark来处理推荐的结果，例如：过滤、去重、补足数据，这部分内容不做介绍。</p>
+<p>时间 2015-06-10 00:00:00  <a href="http://www.tuicool.com/sites/7JvUNj2" target="_blank" rel="external">JavaChen’s Blog</a></p>
+<p>原文 <a href="http://blog.javachen.com/2015/06/10/collaborative-filtering-using-mahout.html?utm_source=tuicool&amp;utm_medium=referral" target="_blank" rel="external">http://blog.javachen.com/2015/06/10/collaborative-filtering-using-mahout.html</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Mahout/" rel="tag">#Mahout</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/17/Learning-Spark-Lightning-Fast-Data-Analysis/" rel="prev">Learning Spark Lightning-Fast Data Analysis</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/16/Mahout-in-Action-4/" rel="next">Mahout in Action 4</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">98</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">38</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用依赖"><span class="nav-number">2.</span> <span class="nav-text">使用依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#在Spark中使用"><span class="nav-number">3.</span> <span class="nav-text">在Spark中使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分布式运行"><span class="nav-number">4.</span> <span class="nav-text">分布式运行</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

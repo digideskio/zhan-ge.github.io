@@ -52,7 +52,7 @@
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Hulu%E6%9E%B6%E6%9E%84.jpg">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Ali%E6%8E%A8%E8%8D%90%E6%9E%B6%E6%9E%84.jpg">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/Google%E6%8E%A8%E8%8D%90%E6%9E%B6%E6%9E%84.jpg">
-<meta property="og:updated_time" content="2016-03-14T15:32:37.000Z">
+<meta property="og:updated_time" content="2016-03-17T03:17:51.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Recommendation System">
 <meta name="twitter:description" content="推荐系统介绍">
@@ -210,7 +210,6 @@
 <p>这种方法更加个性化,反映了用户自己的兴趣传承,而与其他用户无关.</p>
 <h3 id="新闻应用中的协同过滤">新闻应用中的协同过滤</h3><p>在新闻的应用中,用户的兴趣不是特别细化,绝大多数都是喜欢看热门的新闻.</p>
 <p>即使是个性化,也是比较粗粒度的,不如有些用户喜欢体育新闻,有些喜欢社会新闻,而特别细粒度的个性化一般是不存在的.比方说,很少有用户只看某个话题的新闻,主要是因为这个话题不可能保证每天都有新的消息,而这个用户确实天天需要看新闻的.因此,个性化新闻推荐更加强调抓住新闻热点,热门程度和时效性是个性化新闻推荐的重点,而个性化对于这两点略显次要.因此,UserCF可以给用户推荐和他有相似爱好的一群其他用户今天都在看的新闻,这样在抓住热点和时效性的同事,保证了一定程度的个性化.这是Digg在新闻推荐中使用UserCF的最重要原因.</p>
-<p>UserCF适合用于新闻推荐的另一个原因是从技术角度考量的。因为作为一种物品,新闻的更 新非常快,每时每刻都有新内容出现,而ItemCF需要维护一张物品相关度的表,如果物品更新很 快,那么这张表也需要很快更新,这在技术上很难实现。绝大多数物品相关度表都只能做到一天 一次更新,这在新闻领域是不可以接受的。而UserCF只需要用户相似性表,虽然UserCF对于新 用户也需要更新相似度表,但在新闻网站中,物品的更新速度远远快于新用户的加入速度,而且 对于新用户,完全可以给他推荐最热门的新闻,因此UserCF显然是利大于弊。</p>
 <p>UserCF适合用于新闻推荐的另一个原因是从技术角度考量的.因为作为一种物品,新闻的更新非常快速,每时每刻都有新的内容出现,而ItemCF需要维护一张物品相关度的表,如果物品更新很快,那么这张表也需要很快更新,这在技术上很难实现.绝大多数物品相关度表都只能做到一天更新一次,这在新闻领域是不可以接收的.而UserCF是需要用户相似性表,虽然UserCF对于新用户也需要更新相似度表,但在新闻网站中,物品的更新速度远远快于新用户的加入速度,而且对于新用户,完全可以给他推荐最热门的新闻,因此UserCF显得是利大于弊.</p>
 <p>UserCF需要维护一个用户相似度矩阵,而ItemCF需要维护一个物品相似度矩阵.从存储的角度来说,如果用户很多,那么维护用户兴趣的相似度矩阵需要很大空间,同理,如果物品很多,那么维护物品相似度矩阵代价较大.</p>
 <p>在早期的研究中,大部分研究人员都是让少量的用户对大量的物品进行评价,然后研究用户兴趣的模式.那么,对于他们来说,因为用户很少,计算用户兴趣相似度也是最快最简单的方法.但是实际互联网中,用户数目往往非常庞大,而在图书,电子商务网站中,物品的数目则是比较少的.因此,物品的相似度对于用户的兴趣一般比较稳定,因此使用ItemCF是比较好的选择.当然,新闻网站是个例外,在新闻应用中,物品的相似度变化很快,物品数目庞大,相反兴趣则相对固定(都是喜欢看热门的),所以新闻网站的个性化推荐使用UserCF算法的更多.</p>
@@ -476,7 +475,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">96</span>
+              <span class="site-state-item-count">98</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -490,7 +489,7 @@
 
           <div class="site-state-item site-state-tags">
             <a href="/tags">
-              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-count">38</span>
               <span class="site-state-item-name">标签</span>
               </a>
           </div>
