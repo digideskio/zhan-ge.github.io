@@ -58,7 +58,16 @@
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/%E6%95%B0%E5%80%BCRDD%E6%93%8D%E4%BD%9C.jpg">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/master%E6%A0%87%E8%AE%B0%E5%8F%AF%E4%BB%A5%E6%8E%A5%E6%94%B6%E7%9A%84%E5%80%BC.jpg">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/spark-submit%E5%B8%B8%E8%A7%81%E6%A0%87%E8%AF%86.jpg">
-<meta property="og:updated_time" content="2016-03-17T15:38:59.000Z">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/SchemaRDD%E6%94%AF%E6%8C%81%E7%9A%84%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/SchemaRDD%E6%94%AF%E6%8C%81%E7%9A%84%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B1.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/SparkStreaming%E9%AB%98%E5%B1%82%E6%9E%B6%E6%9E%84.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/DStream.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/DStream%E8%BD%AC%E5%8C%96%E5%85%B3%E7%B3%BB.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/StreamingWorking.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/DStreamUnStateConvert.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/SparkStreamingWindow.jpg">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/SparkStreamingWindowReduce.jpg">
+<meta property="og:updated_time" content="2016-03-18T15:45:38.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Learning Spark Lightning-Fast Data Analysis">
 <meta name="twitter:description" content="Spark快速大数据分析总结.">
@@ -414,7 +423,172 @@ data.saveAsSequenceFile(outputFile)
 <li>Mesos优势在于细粒度共享的选项,可以将命令分配到指定CPU</li>
 <li>尽量将Spark运行与HDFS节点以加速存储访问</li>
 </ol>
-<h2 id="Spark_SQL-1">Spark SQL</h2><h2 id="Spark_Streaming-1">Spark Streaming</h2></span>
+<h2 id="Spark_SQL-1">Spark SQL</h2><p>Spark SQL提供了一下三大功能:</p>
+<ol>
+<li>可以从各种结构化数据源中读取数据</li>
+<li>不仅支持在Spark程序内使用SQL语句进行数据检查,也支持从类似商业智能软件Tableau这样的外部工具中,通过标准数据库连接器(JDBC/ODBC)连接Spark进行SQL查询</li>
+<li>当在Spark内部使用Spark SQL时,支持SQL与常规的代码高度整合,包括连接RDD与SQL表,公开的自定义SQL函数接口等.</li>
+</ol>
+<p>为了实现以上功能,实现了一种特殊的RDD,称为SchemaRDD,是存放row对象的RDD,每个Row对象代表一行数据,同时还包含了结构信息,即数据字段,可以利用结构信息比普通RDD更加高效的存取数据.支持普通RDD没有的操作,如执行SQL查询,可以从外部数据源创建,也可以从查询结果或普通RDD中创建.</p>
+<p>基础的SQLContext只支持Spark SQL的一个子集,要使用完整的Hive支持则需要引入Hive依赖,以支持Hive表访问,UDF和SerDe,以及Hive查询语句.通过使用HiveContext.使用时并不需要先部署Hive.</p>
+<pre><code><span class="comment">// 导入Spark SQL </span>
+import org<span class="class">.apache</span><span class="class">.spark</span><span class="class">.sql</span><span class="class">.hive</span><span class="class">.HiveContext</span> 
+<span class="comment">// 如果不能使用hive依赖的话 </span>
+import org<span class="class">.apache</span><span class="class">.spark</span><span class="class">.sql</span><span class="class">.SQLContext</span>
+<span class="comment">// 创建Spark SQL的HiveContext</span>
+ val hiveCtx = ...
+<span class="comment">// 导入隐式转换支持 </span>
+import hiveCtx._
+
+<span class="comment">// 创建SQL上下文环境</span>
+val sc = new <span class="function"><span class="title">SparkContext</span><span class="params">(...)</span></span> 
+val hiveCtx = new <span class="function"><span class="title">HiveContext</span><span class="params">(sc)</span></span>
+
+<span class="comment">// 读取并查询推文</span>
+val <span class="tag">input</span> = hiveCtx.<span class="function"><span class="title">jsonFile</span><span class="params">(inputFile)</span></span> 
+<span class="comment">// 注册输入的SchemaRDD </span>
+<span class="tag">input</span>.<span class="function"><span class="title">registerTempTable</span><span class="params">(<span class="string">"tweets"</span>)</span></span> 
+<span class="comment">// 依据retweetCount(转发计数)选出推文 </span>
+val topTweets = hiveCtx.<span class="function"><span class="title">sql</span><span class="params">(<span class="string">"SELECT text, retweetCount FROM tweets ORDER BY retweetCount LIMIT 10"</span>)</span></span>
+</code></pre><p>SchemaRDD支持的数据类型:</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/SchemaRDD%E6%94%AF%E6%8C%81%E7%9A%84%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B.jpg" alt="SchemaRDD支持的数据类型" title="SchemaRDD支持的数据类型"></p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/SchemaRDD%E6%94%AF%E6%8C%81%E7%9A%84%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B1.jpg" alt="SchemaRDD支持的数据类型" title="SchemaRDD支持的数据类型"></p>
+<p>最后一种类型,也就是结构体,可以直接被表示为其他的Row对象.所有这些复杂类型都可以进行嵌套.</p>
+<p>Row对象表示SchemaRDD中的记录,其本质就是一个定长的字段数组.提供多种getter方法.</p>
+<p>获取每一行的第一个字段,即第一列:</p>
+<pre><code>val topTweetText = topTweets.<span class="function"><span class="title">map</span><span class="params">(row =&gt; row.getString(<span class="number">0</span>)</span></span>)
+</code></pre><p>使用SchemaRDD专用的方法对数据进行缓存:</p>
+<pre><code>hiveCtx.<span class="function"><span class="title">cacheTable</span><span class="params">(<span class="string">"tableName"</span>)</span></span>
+</code></pre><p>支持的数据源包括Hive表,JSON,Parquet.使用SQL时只会扫描使用到的字段而不是整个表.或者通过指定结构信息将常规RDD转换为SchemaRDD.</p>
+<h3 id="Hive">Hive</h3><p>Spark SQL支持所有Hive的存储格式(SerDe),包括文本文件,RCFiles,ORC,Avro,Protocol Buffer.</p>
+<p>连接已部署的Hive时需要提供相应的配置文件,或者不提供配置时在本地创建Hive元数据仓.</p>
+<pre><code><span class="comment">// 从Hive中读取</span>
+import org<span class="class">.apache</span><span class="class">.spark</span><span class="class">.sql</span><span class="class">.hive</span><span class="class">.HiveContext</span>
+val hiveCtx = new <span class="function"><span class="title">HiveContext</span><span class="params">(sc)</span></span> 
+val rows = hiveCtx.<span class="function"><span class="title">sql</span><span class="params">(<span class="string">"SELECT key, value FROM mytable"</span>)</span></span> 
+val keys = rows.<span class="function"><span class="title">map</span><span class="params">(row =&gt; row.getInt(<span class="number">0</span>)</span></span>)
+</code></pre><h3 id="基于RDD">基于RDD</h3><p>带有 <code>case class</code> 的普通RDD可以隐式转换为SchemaRDD.</p>
+<p>基于 <code>case class</code> 创建SchemaRDD:</p>
+<pre><code>case class <span class="function"><span class="title">HappyPerson</span><span class="params">(handle: String, favouriteBeverage: String)</span></span> 
+... 
+<span class="comment">// 创建了一个人的对象,并且把它转成SchemaRDD </span>
+val happyPeopleRDD = sc.<span class="function"><span class="title">parallelize</span><span class="params">(List(HappyPerson(<span class="string">"holden"</span>, <span class="string">"coffee"</span>)</span></span>)) 
+<span class="comment">// 注意:此处发生了隐式转换 </span>
+<span class="comment">// 该转换等价于</span>
+sqlCtx.<span class="function"><span class="title">createSchemaRDD</span><span class="params">(happyPeopleRDD)</span></span> 
+happyPeopleRDD.<span class="function"><span class="title">registerTempTable</span><span class="params">(<span class="string">"happy_people"</span>)</span></span>
+</code></pre><h3 id="UDF">UDF</h3><p>用户自定义函数,可以使用编程语言注册自定义函数,并在SQL中调用,以提供高级功能支持.</p>
+<p>字符串长度UDF:</p>
+<pre><code><span class="function"><span class="title">registerFunction</span><span class="params">(<span class="string">"strLenScala"</span>, (_: String)</span></span>.length) 
+val tweetLength = hiveCtx.<span class="function"><span class="title">sql</span><span class="params">(<span class="string">"SELECT strLenScala('tweet') FROM tweets LIMIT 10"</span>)</span></span>
+</code></pre><h2 id="Spark_Streaming-1">Spark Streaming</h2><p>与RDD概念相似,Spark Streaming使用离散化流作为抽象表示,叫做DStream.是随时间推移而受到的数据序列.在内部,每个时间区间收到的数据都作为RDD存在,而DStream是由这些RDD组成的序列.可以从各种输入源创建,比如Flume,Kafka或HDFS.创建出的DStream同样支持两种操作,转化操作会生成新的DStream,行动操作将数据写入外部系统.与RDD支持的操作类似,同时提供了基于时间的操作,比如滑动窗口.</p>
+<pre><code><span class="comment">// 依赖支持</span>
+import org<span class="class">.apache</span><span class="class">.spark</span><span class="class">.streaming</span><span class="class">.StreamingContext</span> 
+import org<span class="class">.apache</span><span class="class">.spark</span><span class="class">.streaming</span><span class="class">.StreamingContext</span>._ 
+import org<span class="class">.apache</span><span class="class">.spark</span><span class="class">.streaming</span><span class="class">.dstream</span><span class="class">.DStream</span> 
+import org<span class="class">.apache</span><span class="class">.spark</span><span class="class">.streaming</span><span class="class">.Duration</span> 
+import org<span class="class">.apache</span><span class="class">.spark</span><span class="class">.streaming</span><span class="class">.Seconds</span>
+
+<span class="comment">// 进行流式筛选,打印包含'error'的行</span>
+<span class="comment">// 从SparkConf创建StreamingContext并指定1秒钟的批处理大小 </span>
+val ssc = new <span class="function"><span class="title">StreamingContext</span><span class="params">(conf, Seconds(<span class="number">1</span>)</span></span>) 
+<span class="comment">// 连接到本地机器7777端口上后,使用收到的数据创建DStream </span>
+val lines = ssc.<span class="function"><span class="title">socketTextStream</span><span class="params">(<span class="string">"localhost"</span>, <span class="number">7777</span>)</span></span> 
+<span class="comment">// 从DStream中筛选出包含字符串"error"的行 </span>
+val errorLines = lines.<span class="function"><span class="title">filter</span><span class="params">(_.contains(<span class="string">"error"</span>)</span></span>) 
+<span class="comment">// 打印出有"error"的行 </span>
+errorLines.<span class="function"><span class="title">print</span><span class="params">()</span></span>
+</code></pre><p>要开始收集数据,必须显式调用StreamingContext的start()方法.然后Spark Streaming就会开始把Spark作业不断交给下面的SparkContext去执行,执行会在另一个线程中进行,所以需要调用awaitTermination等待流计算完成.</p>
+<pre><code><span class="comment">// 启动流计算环境StreamingContext并等待它"完成" </span>
+ssc.<span class="function"><span class="title">start</span><span class="params">()</span></span> 
+<span class="comment">// 等待作业完成 </span>
+ssc.<span class="function"><span class="title">awaitTermination</span><span class="params">()</span></span>
+</code></pre><p>一个Streaming Context只能执行一次,只有在配置好需要的DStream和对应的操作时才能启动.</p>
+<pre><code><span class="comment">// 为其提供流数据输入,进行测试</span>
+$ spark-submit --<span class="keyword">class</span> com.oreilly.learningsparkexamples.scala.StreamingLogInput $ASSEMBLY_JAR local[<span class="number">4</span>]
+$ nc localhost <span class="number">7777</span> <span class="preprocessor"># 使你可以键入输入的行来发送给服务器 </span>
+&lt;此处是你的输入&gt;
+</code></pre><h3 id="架构与抽象">架构与抽象</h3><p>Spark Streaming使用为批次架构,把流式计算当做一系列连续的小规模批处理来对待.每个批次按时间间隔创建: 在每个区间开始时,一个新的批次被创建,在该区间内收到的数据会被添加到这个批次中,时间区间结束时,批次停止增长.时间区间大小由批次间隔参数决定,一般为500ms到几秒之间.每个输入批次都形成一个RDD,以Spark作业的方式处理并生成其他RDD.处理结果以批处理方式传给外部系统.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/SparkStreaming%E9%AB%98%E5%B1%82%E6%9E%B6%E6%9E%84.jpg" alt="SparkStreaming高层架构" title="SparkStreaming高层架构"></p>
+<p>Spark Streaming的编程抽象是离散化流,即DStream.是一个RDD序列,每个RDD代表数据流中一个时间片内的数据.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/DStream.jpg" alt="DStream是一个持续的RDD序列" title="DStream是一个持续的RDD序列"></p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/DStream%E8%BD%AC%E5%8C%96%E5%85%B3%E7%B3%BB.jpg" alt="DStream转化关系" title="DStream转化关系"></p>
+<p>Spark Streaming为每个输入源启动对应的接收器,接收器以任务的形式运行在应用的执行器进程中,从输入源收集数据并保存为RDD,收集后会复制到另一个执行器进程已保证容错,被缓存在执行器进程内存,与缓存RDD一样.然后Spark Streaming周期性的运行Spark作业来处理这些数据,把数据与之前时间区间中的RDD进行整合.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/StreamingWorking.jpg" alt="Streaming执行过程" title="Streaming执行过程"></p>
+<p>除了对数据复制保证容错,同时提供检查点机制支持数据恢复,可以把状态阶段性的存储到可靠文件中(HDFS),一般5-10个批次.</p>
+<h3 id="转化操作">转化操作</h3><ol>
+<li>无状态转化操作: 每个批次的数据不依赖于之前批次的数据</li>
+<li>有状态转化操作: 需要使用之前批次的数据或中间结果来计算当前批次的数据</li>
+</ol>
+<h3 id="无状态转化">无状态转化</h3><p>无状态转化操作将简单的RDD转化应用到每个批次上,即转化DStream的每个RDD,即 分别 应用到每个RDD.支持大部分普通RDD的转化操作.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/DStreamUnStateConvert.jpg" alt="DStream无状态转化操作" title="DStream无状态转化操作"></p>
+<p>无状态转化:</p>
+<pre><code><span class="comment">// 假设ApacheAccessingLog是用来从Apache日志中解析条目的工具类 </span>
+val accessLogDStream = logData.<span class="function"><span class="title">map</span><span class="params">(line =&gt; ApacheAccessLog.parseFromLogLine(line)</span></span>)  <span class="comment">// 解析</span>
+val ipDStream = accessLogsDStream.<span class="function"><span class="title">map</span><span class="params">(entry =&gt; (entry.getIpAddress()</span></span>, <span class="number">1</span>)) 
+val ipCountsDStream = ipDStream.<span class="function"><span class="title">reduceByKey</span><span class="params">((x, y)</span></span> =&gt; x + y)
+</code></pre><p>无状态转化也能在多个DStream之间进行整合,不过仍是在各个时间区间内,比如cogroup(),join(),leftOutJoin().这些方法应用到DStream时,会对每个批次分别执行对应的RDD操作.</p>
+<p>连接两个DStream(在一个时间区间内):</p>
+<pre><code>val ipBytesDStream = accessLogsDStream.<span class="function"><span class="title">map</span><span class="params">(entry =&gt; (entry.getIpAddress()</span></span>, entry.<span class="function"><span class="title">getContentSize</span><span class="params">()</span></span>)) 
+val ipBytesSumDStream = ipBytesDStream.<span class="function"><span class="title">reduceByKey</span><span class="params">((x, y)</span></span> =&gt; x + y) 
+val ipBytesRequestCountDStream = ipCountsDStream.<span class="function"><span class="title">join</span><span class="params">(ipBytesSumDStream)</span></span>
+</code></pre><p>或者使用transform(),直接操作内部的RDD,接收一个任意RDD到RDD的函数,会对数据流中的每个批次进行调用,生成一个新的流.通常用于重用对RDD的批处理代码.</p>
+<p>比如有一个extractOutliers函数,用来从一个日志记录的RDD中提取出异常值RDD.可以使用transform进行重用:</p>
+<pre><code><span class="variable"><span class="keyword">val</span> outlierDStream</span> = accessLogsDStream.transform { rdd =&gt; extractOutliers(rdd) }
+</code></pre><h3 id="有状态转化">有状态转化</h3><p>有状态转化操作是跨数据区间跟踪数据的操作: 一些先前批次的数据也被用来在新的批次中计算结果.主要的两种类型是滑动窗口和updateStateByKey(),前者以一个时间阶段为滑动窗口进行操作,后者则用来跟踪每个键的状态变化(例如构建一个代表用户会话的对象).</p>
+<p>有状态转化需要检查点机制保证容错性,将一个目录传递给ssc.checkpoint()以打开检查点支持.</p>
+<pre><code>ssc.<span class="function"><span class="title">checkpoint</span><span class="params">(<span class="string">"hdfs://..."</span>)</span></span>
+</code></pre><h4 id="基于窗口的转化操作">基于窗口的转化操作</h4><p>基于窗口的操作会在一个比StreamingContext的批次间隔更长的时间范围内(窗口),通过整合多个批次的结果,计算出整个窗口的结果.</p>
+<p>滑动窗口需要两个参数: 窗口时长 和 滑动步长,两者都必须是StreamContext的批次间隔的整数倍.窗口时长控制每次计算最近的多少个批次的数据.滑动步长默认与批次间隔相等,用来控制对新的DStream进行计算的间隔,即多久对窗口做一次计算.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/SparkStreamingWindow.jpg" alt="每隔2个批次就对前3个批次的数据做一次计算" title="每隔2个批次就对前3个批次的数据做一次计算"></p>
+<p>DStream最简单的窗口操作是window(),它返回一个新的DStream来表示所请求的窗口操作的结果数据.即,window()生成的DStream中的每个RDD会包含多个批次中的数据,然后再对这些数据进行count(),transform()等操作.</p>
+<p>使用window()对窗口进行计数:</p>
+<pre><code>val accessLogsWindow = accessLogsDStream.<span class="function"><span class="title">window</span><span class="params">(Seconds(<span class="number">30</span>)</span></span>, <span class="function"><span class="title">Seconds</span><span class="params">(<span class="number">10</span>)</span></span>) 
+val windowCounts = accessLogsWindow.<span class="function"><span class="title">count</span><span class="params">()</span></span>
+</code></pre><p>reduceByWindow() 和 reduceByKeyAndWindow() 可以方便的对窗口进行归约操作.接收一个归约函数,在整个窗口上执行,比如 <code>+</code>. </p>
+<p>另一种特殊方式,通过新进窗口的数据和离开窗口的数据,让Spark增量计算归约结果.这种特殊形式需要提供归约函数的逆函数,比如 <code>+</code> 的逆函数为 <code>-</code>, 对于较大的窗口,提供逆函数可以大大提高执行效率.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/SparkStreamingWindowReduce.jpg" alt="窗口归约操作" title="窗口归约操作"></p>
+<p>IP地址访问计数:</p>
+<pre><code>val ipDStream = accessLogsDStream.<span class="built_in">map</span>(logEntry =&gt; (logEntry.getIpAddress(), <span class="number">1</span>)) 
+val ipCountDStream = ipDStream.reduceByKeyAndWindow( {(x, y) =&gt; x + y}, <span class="comment">// 加上新进入窗口的批次中的元素 </span>
+                                                     {(x, y) =&gt; x - y}, <span class="comment">// 移除离开窗口的老批次中的元素 </span>
+                                                     Seconds(<span class="number">30</span>), <span class="comment">// 窗口时长 </span>
+                                                     Seconds(<span class="number">10</span>)) <span class="comment">// 滑动步长</span>
+</code></pre><p>提供了countByWindow() 和 countByValueAndWindow() 作为对数据进行计数操作的简写.前者会返回一个DStream包含窗口中元素个数.后者返回一个DStream包含窗口中每个值的个数.</p>
+<p>窗口计数操作:</p>
+<pre><code><span class="variable"><span class="keyword">val</span> ipDStream</span> = accessLogsDStream.map{entry =&gt; entry.getIpAddress()} 
+<span class="variable"><span class="keyword">val</span> ipAddressRequestCount</span> = ipDStream.countByValueAndWindow(Seconds(<span class="number">30</span>), Seconds(<span class="number">10</span>)) 
+<span class="variable"><span class="keyword">val</span> requestCount</span> = accessLogsDStream.countByWindow(Seconds(<span class="number">30</span>), Seconds(<span class="number">10</span>))
+</code></pre><h4 id="UpdateStateByKey转化操作">UpdateStateByKey转化操作</h4><p>有时候需要在DStream中跨批次维护状态(如用户session). updateStateByKey()为我们提供了一个对状态变量访问,用于键值对形式的DStream.</p>
+<p>给定一个由(键, 事件)对构成的DStream,并传递一个指定如何根据新的事件更新每个键对应状态的函数,它可以构建出一个新的DStream,其内部状态为(键,状态)对.</p>
+<p>比如,网络服务器日志中,事件可能是对网站的访问,此时键是用户ID,使用updateStateByKey()可以跟踪每个用户最近访问的10个页面.这个列表就是状态对象,我们会在每个事件到来时更新这个状态.</p>
+<p>要使用updateStateByKey(),提供了一个update(events, oldState)函数,接收与某键相关的事件以及该键之前的状态,返回这个键的新状态,该函数签名如下:</p>
+<ol>
+<li>events: 是在当前批次中收到的事件列表(可能为空)</li>
+<li>oldState: 是一个可选的状态对象,存放在Option内,如果一个键灭有之前的状态,这个值可以空缺</li>
+<li>newState: 有函数返回,也以Opiton形式存在,我们可以返回一个空的Option来表示想要删除该状态</li>
+</ol>
+<p>updateStateByKey()的结果是一个新的DStream,其内部的RDD序列是由每个时间区间对应的(键,状态)对组成的.</p>
+<p>统计状态码计数的例子,跟窗口不同,计数自程序启动后无限增长:</p>
+<pre><code>def updateRunningSum(values: Seq[Long], <span class="keyword">state</span>: Option[Long]) = {
+    Some(<span class="keyword">state</span>.getOrElse(<span class="number">0</span>L) + values.size) 
+}
+val responseCodeDStream = accessLogsDStream.map(<span class="keyword">log</span> =&gt; (<span class="keyword">log</span>.getResponseCode(), <span class="number">1</span>L)) 
+val responseCodeCountDStream = responseCodeDStream.updateStateByKey(updateRunningSum _)
+</code></pre><h3 id="输出操作">输出操作</h3><pre><code><span class="comment">// 保存为文本</span>
+ipAddressRequestCount.saveAsTextFiles(<span class="string">"outputDir"</span>, <span class="string">"txt"</span>)
+
+<span class="comment">// 保存为SequenceFile</span>
+val writableIpAddressRequestCount = ipAddressRequestCount.<span class="built_in">map</span> {
+    (ip, <span class="built_in">count</span>) =&gt; (<span class="keyword">new</span> <span class="type">Text</span>(ip), <span class="keyword">new</span> <span class="type">LongWritable</span>(<span class="built_in">count</span>)) 
+} 
+writableIpAddressRequestCount.saveAsHadoopFiles[ <span class="type">SequenceFileOutputFormat</span>[<span class="type">Text</span>, <span class="type">LongWritable</span>]](<span class="string">"outputDir"</span>, <span class="string">"txt"</span>)
+</code></pre><h3 id="输入源">输入源</h3><p>文件流: 支持从任意Hadoop兼容的文件系统目录中的文件创建数据流.需要为目录名字提供统一的日期,文件也必须原子化创建.</p>
+<pre><code>val logData = ssc.<span class="function"><span class="title">textFileStream</span><span class="params">(logDirectory)</span></span>
+</code></pre><p>Akka actor流: 可以把actor作为数据源的流,创建一个actor然后实现 <code>org.apache.spark. streaming.receiver.ActorHelper</code>, 然后调用actor的store()函数将数据从actor复制到SparkStreaming.</p>
+<p>Apache Kafka</p>
+<p>Flume</p>
+</span>
       
     </div>
 
@@ -541,7 +715,7 @@ data.saveAsSequenceFile(outputFile)
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Spark_Core"><span class="nav-number">1.1.</span> <span class="nav-text">Spark Core</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spark_SQL"><span class="nav-number">1.2.</span> <span class="nav-text">Spark SQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spark_Streaming"><span class="nav-number">1.3.</span> <span class="nav-text">Spark Streaming</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MLlib"><span class="nav-number">1.4.</span> <span class="nav-text">MLlib</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GraphX"><span class="nav-number">1.5.</span> <span class="nav-text">GraphX</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#集群管理器"><span class="nav-number">1.6.</span> <span class="nav-text">集群管理器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开始使用"><span class="nav-number">2.</span> <span class="nav-text">开始使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RDD基础"><span class="nav-number">3.</span> <span class="nav-text">RDD基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向Spark传递函数"><span class="nav-number">4.</span> <span class="nav-text">向Spark传递函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#转化操作与行动操作"><span class="nav-number">5.</span> <span class="nav-text">转化操作与行动操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缓存"><span class="nav-number">6.</span> <span class="nav-text">缓存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pair_RDD"><span class="nav-number">7.</span> <span class="nav-text">Pair RDD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据分区"><span class="nav-number">8.</span> <span class="nav-text">数据分区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据读取与保存"><span class="nav-number">9.</span> <span class="nav-text">数据读取与保存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#累加器"><span class="nav-number">10.</span> <span class="nav-text">累加器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#广播变量"><span class="nav-number">11.</span> <span class="nav-text">广播变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于分区进行操作"><span class="nav-number">12.</span> <span class="nav-text">基于分区进行操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与外部程序间的管道"><span class="nav-number">13.</span> <span class="nav-text">与外部程序间的管道</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数值RDD操作"><span class="nav-number">14.</span> <span class="nav-text">数值RDD操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群运行"><span class="nav-number">15.</span> <span class="nav-text">集群运行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群管理器选择"><span class="nav-number">16.</span> <span class="nav-text">集群管理器选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spark_SQL-1"><span class="nav-number">17.</span> <span class="nav-text">Spark SQL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spark_Streaming-1"><span class="nav-number">18.</span> <span class="nav-text">Spark Streaming</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Spark_Core"><span class="nav-number">1.1.</span> <span class="nav-text">Spark Core</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spark_SQL"><span class="nav-number">1.2.</span> <span class="nav-text">Spark SQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spark_Streaming"><span class="nav-number">1.3.</span> <span class="nav-text">Spark Streaming</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MLlib"><span class="nav-number">1.4.</span> <span class="nav-text">MLlib</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GraphX"><span class="nav-number">1.5.</span> <span class="nav-text">GraphX</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#集群管理器"><span class="nav-number">1.6.</span> <span class="nav-text">集群管理器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开始使用"><span class="nav-number">2.</span> <span class="nav-text">开始使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RDD基础"><span class="nav-number">3.</span> <span class="nav-text">RDD基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向Spark传递函数"><span class="nav-number">4.</span> <span class="nav-text">向Spark传递函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#转化操作与行动操作"><span class="nav-number">5.</span> <span class="nav-text">转化操作与行动操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#缓存"><span class="nav-number">6.</span> <span class="nav-text">缓存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pair_RDD"><span class="nav-number">7.</span> <span class="nav-text">Pair RDD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据分区"><span class="nav-number">8.</span> <span class="nav-text">数据分区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据读取与保存"><span class="nav-number">9.</span> <span class="nav-text">数据读取与保存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#累加器"><span class="nav-number">10.</span> <span class="nav-text">累加器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#广播变量"><span class="nav-number">11.</span> <span class="nav-text">广播变量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于分区进行操作"><span class="nav-number">12.</span> <span class="nav-text">基于分区进行操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与外部程序间的管道"><span class="nav-number">13.</span> <span class="nav-text">与外部程序间的管道</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数值RDD操作"><span class="nav-number">14.</span> <span class="nav-text">数值RDD操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群运行"><span class="nav-number">15.</span> <span class="nav-text">集群运行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群管理器选择"><span class="nav-number">16.</span> <span class="nav-text">集群管理器选择</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spark_SQL-1"><span class="nav-number">17.</span> <span class="nav-text">Spark SQL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Hive"><span class="nav-number">17.1.</span> <span class="nav-text">Hive</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于RDD"><span class="nav-number">17.2.</span> <span class="nav-text">基于RDD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#UDF"><span class="nav-number">17.3.</span> <span class="nav-text">UDF</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spark_Streaming-1"><span class="nav-number">18.</span> <span class="nav-text">Spark Streaming</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#架构与抽象"><span class="nav-number">18.1.</span> <span class="nav-text">架构与抽象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#转化操作"><span class="nav-number">18.2.</span> <span class="nav-text">转化操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#无状态转化"><span class="nav-number">18.3.</span> <span class="nav-text">无状态转化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#有状态转化"><span class="nav-number">18.4.</span> <span class="nav-text">有状态转化</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基于窗口的转化操作"><span class="nav-number">18.4.1.</span> <span class="nav-text">基于窗口的转化操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UpdateStateByKey转化操作"><span class="nav-number">18.4.2.</span> <span class="nav-text">UpdateStateByKey转化操作</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#输出操作"><span class="nav-number">18.5.</span> <span class="nav-text">输出操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#输入源"><span class="nav-number">18.6.</span> <span class="nav-text">输入源</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
