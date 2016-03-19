@@ -158,6 +158,72 @@
           
           
             
+              <a class="post-title-link" href="/2016/03/20/PlayFramework-routing-DSL/" itemprop="url">
+                PlayFramework routing DSL
+              </a>
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-20T00:01:32+08:00" content="2016-03-20">
+            2016-03-20
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        
+          <span itemprop="description">PlayFramework路由DSL总结.</span>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2016/03/20/PlayFramework-routing-DSL/">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
               <a class="post-title-link" href="/2016/03/19/10-Easy-Steps-to-a-Complete-Understanding-of-SQL/" itemprop="url">
                 10 Easy Steps to a Complete Understanding of SQL
               </a>
@@ -195,193 +261,6 @@
               阅读全文 &raquo;
             </a>
           </div>
-        
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      
-      
-        <h1 class="post-title" itemprop="name headline">
-          
-          
-            
-              <a class="post-title-link" href="/2016/03/19/All-you-need-to-know-about-Play-s-routing-DSL/" itemprop="url">
-                All you need to know about Play's routing DSL
-              </a>
-            
-          
-        </h1>
-      
-
-      <div class="post-meta">
-        <span class="post-time">
-          发表于
-          <time itemprop="dateCreated" datetime="2016-03-19T15:02:10+08:00" content="2016-03-19">
-            2016-03-19
-          </time>
-        </span>
-
-        
-
-        
-          
-        
-      </div>
-    </header>
-
-    <div class="post-body">
-
-      
-      
-
-      
-        
-          <span itemprop="articleBody"><h2 id="启动一个Play_Server">启动一个Play Server</h2><h3 id="创建一个默认的SBT工程">创建一个默认的SBT工程</h3><p>Play现在支持以SBT的方式创建工程:</p>
-<pre><code>.
-<span class="string">|-- build.sbt</span>
-<span class="string">|-- src/</span>
-    <span class="string">|--main/</span>
-        <span class="string">|--resources/</span>
-        <span class="string">|--scala/</span>
-            <span class="string">|-- mypackage/</span>
-                <span class="string">|-- Main.scala</span>
-</code></pre><p>如果没有以存在的工程,可以按上面的主要格式创建一个工程.</p>
-<h3 id="在build-sbt中添加依赖">在build.sbt中添加依赖</h3><p>除了添加一些Play框架自身的依赖,从2.4版本开始需要添加Netty的依赖支持(注意:2.5版本中已经使用Akka-stream替换了Netty,如果需要使用Netty需要通过别的方式开启支持):</p>
-<pre><code>libraryDependencies += <span class="string">"com.typesafe.play"</span> <span class="variable">%%</span> <span class="string">"play-netty-server"</span> % <span class="string">"2.4.6"</span>
-</code></pre><h3 id="添加_resources/application-conf_配置">添加 resources/application.conf 配置</h3><p>Play仍然需要配置文件 <code>application.conf</code> 的支持,需要在resources目录下添加.一个主要的配置是需要提供 <code>play.crypto.secret</code>:</p>
-<pre><code><span class="keyword">play</span>.crypto.secret = <span class="string">"test"</span>
-<span class="keyword">play</span>.crypto.secret = ${?APPLICATION_SECRET}
-</code></pre><h3 id="启动NettyServer(2-4x)">启动NettyServer(2.4x)</h3><p>从Main类启动服务:</p>
-<pre><code><span class="keyword">val</span> server = <span class="type">NettyServer</span>.fromRouter<span class="literal">()</span> {
- <span class="keyword">case</span> <span class="type">GET</span>(p<span class="string">"/posts/"</span>) =&gt; <span class="type">Action</span> {
-    <span class="type">Results</span>.<span class="type">Ok</span>(<span class="string">"All posts"</span>)
-  }
-  <span class="keyword">case</span> <span class="type">GET</span>(p<span class="string">"/posts/$id"</span>) =&gt; <span class="type">Action</span> {
-    <span class="type">Results</span>.<span class="type">Ok</span>(<span class="string">"Post:"</span> + id ) 
-  }
-}
-</code></pre><p>这会以默认的host和port启动NettyServer并创建一个Nettyserver实例.</p>
-<h2 id="SIRD">SIRD</h2><p>SIRD的意思是 <code>String Interprolating Routing DSL</code>, 上面的代码中已经进行了部分展示:</p>
-<pre><code>case <span class="function"><span class="title">GET</span><span class="params">(p<span class="string">"/posts/"</span>)</span></span> =&gt;
-</code></pre><p>这种写法对于即便是没有Scala语言背景的人来说可读性也是很好的.上面的意思是: 接收一个HTTP的GET请求,url为 <code>/posts</code>.</p>
-<pre><code>case <span class="function"><span class="title">GET</span><span class="params">(p<span class="string">"/posts/$id"</span>)</span></span> =&gt;
-</code></pre><p>这样会匹配到一个 <code>/posts/something</code> 的URL,并把something部分解析为变量”id”.</p>
-<h3 id="解析查询参数">解析查询参数</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts"</span> ? <span class="string">q"page=$p"</span> &amp; <span class="string">q"limit=$l"</span>) =&gt;
-</code></pre><p>这会把page和limit部分的参数分别以字符串类型解析为变量”p”和”l”,如果缺失任何其中一个参数,则会匹配失败.</p>
-<h3 id="可选参数">可选参数</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts"</span> ? <span class="string">q"page=$p"</span> &amp; q_?<span class="string">"limit=$l"</span>) =&gt;
-</code></pre><p>符号”q_?”或者”q_o”用于解析可选参数,在URL匹配是作为可选参数,并且上面匹配到的l类型为 <code>Option[String]</code>.</p>
-<h3 id="解析列表">解析列表</h3><p>Play支持以数组的方式解析URL中的重复参数,如, “/posts?tag=tag1&amp;tag=tag2&amp;tag=tag3”:</p>
-<pre><code>case <span class="function"><span class="title">GET</span><span class="params">(p<span class="string">"/posts/"</span> ? q_*<span class="string">"tag=$tags"</span>)</span></span> =&gt;
-</code></pre><p>使用符号”q_*”或者”q_s”,可以把查询参数中所有的”tag”的值解析到变量”tags”,类型为 <code>Seq[String]</code>.</p>
-<p>如果URL中没有任何”tag”参数,这个URL仍然会匹配正确,得到的tags为一个空序列.</p>
-<h3 id="对正则表达式的支持">对正则表达式的支持</h3><pre><code>case <span class="function"><span class="title">GET</span><span class="params">(p<span class="string">"/posts/$id&lt;[0-9]+&gt;"</span>)</span></span> =&gt;
-</code></pre><p>将所有数字匹配为id.</p>
-<h3 id="但是在查询字符串中不能使用正则">但是在查询字符串中不能使用正则</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts/"</span> ? <span class="string">q"id=$id&lt;[0-9]{3}&gt;"</span>) =&gt;
-</code></pre><p>这是一个查询字符串类型的URL,正则部分”&lt;[0-9]{3}&gt;”会得到一个编译错误:</p>
-<pre><code>Unexpected <span class="type">text</span> <span class="keyword">at</span> <span class="keyword">end</span> <span class="keyword">of</span> query <span class="type">string</span> extractor: ‘&lt;[<span class="number">0</span>-<span class="number">9</span>]{<span class="number">3</span>}&gt;’
-</code></pre><p>有更好的方式在查询字符串类型的URL中匹配参数.</p>
-<h3 id="类型解析">类型解析</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts"</span> ? <span class="string">q"page=${ int(p) }"</span>) =&gt;
-</code></pre><p>p 会被解析为一个Int类型,并且若果page是一个字母而不是数字时会匹配失败.</p>
-<p>同时支持其他的基本类型,long,float,double,bool:</p>
-<pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts/"</span> ? q_?<span class="string">"limit=<span class="subst">${ int(l) }</span>"</span> &amp; q_*<span class="string">"xs=<span class="subst">${ int(xs) }</span>"</span>) =&gt;
-</code></pre><p>上面的模式会把l解析为 <code>Option[Int]</code>,xs被解析为 <code>Seq[Int]</code>.</p>
-<p>同时支持path模式:</p>
-<pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts/<span class="subst">${ int(id) }</span>"</span> =&gt;
-</code></pre><p>如果需要添加更多验证,可以将类型解析和正则解析结合在一起:</p>
-<pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts/<span class="variable">${ int(id) }</span>&lt;[0-9]{3}&gt;"</span> ? q_*<span class="string">"tag=<span class="variable">$tags</span>"</span>) =&gt;
-</code></pre><p>或者直接使用模式匹配中的守卫:</p>
-<pre><code>case <span class="function"><span class="title">GET</span><span class="params">(p<span class="string">"/posts/${ int(id) }&lt;[0-9]{3}&gt;"</span> ? q_*<span class="string">"tag=$tags"</span>)</span></span> <span class="keyword">if</span> tags<span class="class">.length</span> &gt; <span class="number">0</span> =&gt;
-</code></pre><h3 id="自定义解析器">自定义解析器</h3><p>如果有比较精练的验证需求,并且在多个route中重复,则可以定义自己的解析器:</p>
-<pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts/<span class="subst">${postId(id)}</span>"</span>) =&gt;
-</code></pre><p>下面是具体实现方式:</p>
-<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">PostId</span>(</span>id: <span class="type">String</span>){ require(id.length == <span class="number">3</span> }         <span class="comment">// 具体的验证需求</span>
-
-<span class="keyword">implicit</span> <span class="class"><span class="keyword">object</span> <span class="title">bindablePostId</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Parsing</span>[</span><span class="type">PostId</span>](         <span class="comment">// 对require的异常捕获</span>
-  <span class="type">PostId</span>.apply, 
-  _.id, 
-  (key: <span class="type">String</span>, e: <span class="type">Exception</span>) =&gt; s<span class="string">"$key is not correct PostId"</span>
-)
-
-<span class="function"><span class="keyword">val</span> <span class="title">postId</span> =</span> <span class="keyword">new</span> <span class="type">PathBindableExtractor</span>[<span class="type">PostId</span>]                   <span class="comment">// 创建一个解析器实例</span>
-</code></pre><p>postID 是 PathBindableExtractor的实例,并且隐式的将bindablePostId作为参数,bindablePostId中对解析进行验证,并将PostID的实例作为一个值解析到id中.</p>
-<p>如果参数不满足PostID的require部分,则该URL不会成功匹配,进而跳到下一个route进行匹配.不会有报错出现,异常部分也不会用到,在当前版本还不知道该异常的用途.</p>
-<h3 id="查询字符串组解析器">查询字符串组解析器</h3><p>如果有多个查询字符串组总是同时出现,比如 page 和 limit 的组合,可以把他们组合在一起以实现DRY原则:</p>
-<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Pagination</span>(</span>page: <span class="type">Int</span>, limit: <span class="type">Int</span>)    <span class="comment">// 为了兼容Slick,可以使用Long</span>
-
-<span class="class"><span class="keyword">object</span> <span class="title">pagination</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">QueryStringParameterExtractor</span>[</span><span class="type">Pagination</span>] {
-  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">unapply</span>(</span>qs: <span class="type">QueryString</span>) = qs <span class="keyword">match</span> {
-    <span class="keyword">case</span> q<span class="string">"page=${int(page)}"</span> &amp; q_?<span class="string">"limit=${int(limit)}"</span> =&gt;     <span class="comment">// limit作为可选参数</span>
-      <span class="type">Some</span>(<span class="type">Pagination</span>(page, limit.getOrElse(<span class="number">10</span>)))               <span class="comment">// 提供limit的默认值为10,或者同时对page进行 -1 操作,以便在Slick中直接进行查询</span>
-    <span class="keyword">case</span> _ =&gt;
-      <span class="type">None</span>
-  }
-}
-
-<span class="function"><span class="keyword">val</span> <span class="title">routes</span>:</span> <span class="type">Router</span>.<span class="type">Routes</span> = {                   <span class="comment">// 使用方式,将整个查询字符串作为参数传入pagination</span>
-  <span class="keyword">case</span> <span class="type">GET</span>(p<span class="string">"/posts/"</span> ? pagination(p)) =&gt; <span class="type">Action</span> {
-    <span class="type">Results</span>.<span class="type">Ok</span>(s<span class="string">"Posts: page = ${p.page} limit = ${p.limit}"</span>)
-  }
-}
-</code></pre><p>只需要写一次模板然后就可以重复使用,或者跟普通的解析器组合使用:</p>
-<pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts/"</span> ? pagination(p) &amp; <span class="string">q"show_comments=${ bool(showComments) }"</span>) =&gt;
-</code></pre><p>将模板解析器与普通解析器使用符号 <code>&amp;</code> 连接,或者将多个模板解析器组进行连接.</p>
-<h2 id="组合路由">组合路由</h2><p>如果我们在一个大型项目中用于上百个端点,这时路由文件会变得巨大而难以管理,这时候可以将路由拆开放在不同的模块,然后在一个类中组合.</p>
-<p>比如有如下两个服务:</p>
-<pre><code>val service1 = Router.<span class="name">from</span> {
-  <span class="keyword">case</span> GET(p<span class="string">"hello/<span class="variable">$to</span>"</span>) =&gt; ???
-}
-
-<span class="name">val</span> <span class="name">service2</span> = Router.<span class="name">from</span> {
-  <span class="keyword">case</span> GET(p<span class="string">"echo/<span class="variable">$msg</span>"</span>) =&gt; ???
-}
-</code></pre><p>Route 都是PartialFunctions(偏函数)类型,可以进行相互组合,使用Scala中简单的 orElse 方法:</p>
-<pre><code><span class="tag">Router</span><span class="class">.from</span>(<span class="tag">service1</span><span class="class">.routes</span> <span class="tag">orElse</span> <span class="tag">service2</span><span class="class">.routes</span>)
-</code></pre><p>这会生成一个更大的路由PartialFunctions,首先在第一个路由中尝试匹配,然后跳到第二个路由进行尝试匹配.Play同时提供了另一种特性, withPrefix:</p>
-<pre><code>service1.<span class="function"><span class="title">withPrefix</span><span class="params">(<span class="string">"echo"</span>)</span></span>
-</code></pre><p>然后组合使用,匹配URL “echo/hello/something”:</p>
-<pre><code>Router.<span class="function"><span class="title">from</span><span class="params">(service1.withPrefix(<span class="string">"service"</span>)</span></span><span class="class">.routes</span> orElse service2.<span class="function"><span class="title">withPrefix</span><span class="params">(<span class="string">"service2"</span>)</span></span>.routes)
-</code></pre><p>或者使用更优雅的方式:</p>
-<pre><code>CompositeRouter(
-  <span class="string">"service1"</span> -&gt; service1<span class="class">.routes</span>,
-  <span class="string">"service2"</span> -&gt; service2<span class="class">.routes</span>
-)
-</code></pre><p>CompositeRouter的实现方式:</p>
-<pre><code><span class="class"><span class="keyword">class</span> <span class="type">CompositeRouter</span><span class="container">(<span class="title">routers</span>: <span class="type">Seq</span>[<span class="type">Router</span>])</span> extends <span class="type">SimpleRouter</span> {
-  override def documentation: <span class="type">Seq</span>[<span class="container">(<span class="type">String</span>, <span class="type">String</span>, <span class="type">String</span>)</span>] =
-    routers.flatMap<span class="container">(<span class="title">_</span>.<span class="title">documentation</span>)</span>
-
-  override def routes: <span class="type">Router</span>.<span class="type">Routes</span> =
-    routers.map<span class="container">(<span class="title">_</span>.<span class="title">routes</span>)</span>.fold<span class="container">(<span class="type">Router</span>.<span class="title">empty</span>.<span class="title">routes</span>)</span><span class="container">(<span class="title">_</span> <span class="title">orElse</span> <span class="title">_</span>)</span>
-}
-
-object <span class="type">CompositeRouter</span> {
-  def fromPrefixedRoutes<span class="container">(<span class="title">routers</span>: (<span class="type">String</span>, <span class="type">Router</span>.<span class="type">Routes</span>)</span>*): <span class="type">CompositeRouter</span> =
-    new <span class="type">CompositeRouter</span><span class="container">(<span class="title">routers</span>.<span class="title">map</span> {
-      <span class="title">case</span> (<span class="title">prefix</span>, <span class="title">routes</span>)</span> =&gt;
-        <span class="type">Router</span>.from<span class="container">(<span class="title">routes</span>)</span>.withPrefix<span class="container">(<span class="title">prefix</span>)</span>
-    })
-}</span>
-</code></pre><p><a href="http://www.cakesolutions.net/teamblogs/all-you-need-to-know-about-plays-routing-dsl?utm_campaign=Team+Blogs&amp;utm_source=hs_email&amp;utm_medium=email&amp;utm_content=27436816&amp;_hsenc=p2ANqtz-_1qhXJDcGF0CK8BXtEaPc9WFk0zPNiEWiQyMwEJ9T5DBkg-E9zAvHyGiafhqaDaHj5OBn6N_wIqcildnkb9OlznDK08g&amp;_hsmi=27436816" title="Tamer M AbdulRadi: All you need to know about Play&#39;s routing DSL" target="_blank" rel="external">Tamer M AbdulRadi: All you need to know about Play’s routing DSL</a></p>
-</span>
         
       
     </div>

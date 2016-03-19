@@ -39,43 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="启动一个Play Server创建一个默认的SBT工程Play现在支持以SBT的方式创建工程:
-.
-|-- build.sbt
-|-- src/
-    |--main/
-        |--resources/
-        |--scala/
-            |-- mypackage/
-                |-- Main.scala
-如果没有以存在的工程,可以按上面">
+<meta name="description" content="PlayFramework路由DSL总结.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="All you need to know about Play's routing DSL">
-<meta property="og:url" content="http://yoursite.com/2016/03/19/All-you-need-to-know-about-Play-s-routing-DSL/index.html">
+<meta property="og:title" content="PlayFramework routing DSL">
+<meta property="og:url" content="http://yoursite.com/2016/03/20/PlayFramework-routing-DSL/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="启动一个Play Server创建一个默认的SBT工程Play现在支持以SBT的方式创建工程:
-.
-|-- build.sbt
-|-- src/
-    |--main/
-        |--resources/
-        |--scala/
-            |-- mypackage/
-                |-- Main.scala
-如果没有以存在的工程,可以按上面">
-<meta property="og:updated_time" content="2016-03-19T15:50:09.000Z">
+<meta property="og:description" content="PlayFramework路由DSL总结.">
+<meta property="og:updated_time" content="2016-03-19T16:05:22.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="All you need to know about Play's routing DSL">
-<meta name="twitter:description" content="启动一个Play Server创建一个默认的SBT工程Play现在支持以SBT的方式创建工程:
-.
-|-- build.sbt
-|-- src/
-    |--main/
-        |--resources/
-        |--scala/
-            |-- mypackage/
-                |-- Main.scala
-如果没有以存在的工程,可以按上面">
+<meta name="twitter:title" content="PlayFramework routing DSL">
+<meta name="twitter:description" content="PlayFramework路由DSL总结.">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -85,7 +58,7 @@
   };
 </script>
 
-  <title> All you need to know about Play's routing DSL | Hexo </title>
+  <title> PlayFramework routing DSL | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -184,7 +157,7 @@
           
           
             
-              All you need to know about Play's routing DSL
+              PlayFramework routing DSL
             
           
         </h1>
@@ -193,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2016-03-19T15:02:10+08:00" content="2016-03-19">
-            2016-03-19
+          <time itemprop="dateCreated" datetime="2016-03-20T00:01:32+08:00" content="2016-03-20">
+            2016-03-20
           </time>
         </span>
 
@@ -246,7 +219,7 @@
 </code></pre><p>这会把page和limit部分的参数分别以字符串类型解析为变量”p”和”l”,如果缺失任何其中一个参数,则会匹配失败.</p>
 <h3 id="可选参数">可选参数</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts"</span> ? <span class="string">q"page=$p"</span> &amp; q_?<span class="string">"limit=$l"</span>) =&gt;
 </code></pre><p>符号”q_?”或者”q_o”用于解析可选参数,在URL匹配是作为可选参数,并且上面匹配到的l类型为 <code>Option[String]</code>.</p>
-<h3 id="解析列表">解析列表</h3><p>Play支持以数组的方式解析URL中的重复参数,如, “/posts?tag=tag1&amp;tag=tag2&amp;tag=tag3”:</p>
+<h3 id="解析列表">解析列表</h3><p>Play支持以数组的方式解析URL中的重复参数,如, <code>/posts?tag=tag1&amp;tag=tag2&amp;tag=tag3</code>:</p>
 <pre><code>case <span class="function"><span class="title">GET</span><span class="params">(p<span class="string">"/posts/"</span> ? q_*<span class="string">"tag=$tags"</span>)</span></span> =&gt;
 </code></pre><p>使用符号”q_*”或者”q_s”,可以把查询参数中所有的”tag”的值解析到变量”tags”,类型为 <code>Seq[String]</code>.</p>
 <p>如果URL中没有任何”tag”参数,这个URL仍然会匹配正确,得到的tags为一个空序列.</p>
@@ -314,7 +287,7 @@
 <pre><code><span class="tag">Router</span><span class="class">.from</span>(<span class="tag">service1</span><span class="class">.routes</span> <span class="tag">orElse</span> <span class="tag">service2</span><span class="class">.routes</span>)
 </code></pre><p>这会生成一个更大的路由PartialFunctions,首先在第一个路由中尝试匹配,然后跳到第二个路由进行尝试匹配.Play同时提供了另一种特性, withPrefix:</p>
 <pre><code>service1.<span class="function"><span class="title">withPrefix</span><span class="params">(<span class="string">"echo"</span>)</span></span>
-</code></pre><p>然后组合使用,匹配URL “echo/hello/something”:</p>
+</code></pre><p>然后组合使用,匹配URL <code>echo/hello/something</code>:</p>
 <pre><code>Router.<span class="function"><span class="title">from</span><span class="params">(service1.withPrefix(<span class="string">"service"</span>)</span></span><span class="class">.routes</span> orElse service2.<span class="function"><span class="title">withPrefix</span><span class="params">(<span class="string">"service2"</span>)</span></span>.routes)
 </code></pre><p>或者使用更优雅的方式:</p>
 <pre><code>CompositeRouter(
@@ -357,13 +330,11 @@ object <span class="type">CompositeRouter</span> {
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2016/03/19/10-Easy-Steps-to-a-Complete-Understanding-of-SQL/" rel="prev">10 Easy Steps to a Complete Understanding of SQL</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/03/17/Learning-Spark-Lightning-Fast-Data-Analysis/" rel="next">Learning Spark Lightning-Fast Data Analysis</a>
+              <a href="/2016/03/19/10-Easy-Steps-to-a-Complete-Understanding-of-SQL/" rel="next">10 Easy Steps to a Complete Understanding of SQL</a>
             
           </div>
         </div>
