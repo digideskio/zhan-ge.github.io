@@ -285,21 +285,21 @@
 </code></pre><p>这种写法对于即便是没有Scala语言背景的人来说可读性也是很好的.上面的意思是: 接收一个HTTP的GET请求,url为 <code>/posts</code>.</p>
 <pre><code>case <span class="function"><span class="title">GET</span><span class="params">(p<span class="string">"/posts/$id"</span>)</span></span> =&gt;
 </code></pre><p>这样会匹配到一个 <code>/posts/something</code> 的URL,并把something部分解析为变量”id”.</p>
-<h3 id="解析查询参数:">解析查询参数:</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts"</span> ? <span class="string">q"page=$p"</span> &amp; <span class="string">q"limit=$l"</span>) =&gt;
+<h3 id="解析查询参数">解析查询参数</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts"</span> ? <span class="string">q"page=$p"</span> &amp; <span class="string">q"limit=$l"</span>) =&gt;
 </code></pre><p>这会把page和limit部分的参数分别以字符串类型解析为变量”p”和”l”,如果缺失任何其中一个参数,则会匹配失败.</p>
-<h3 id="可选参数:">可选参数:</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts"</span> ? <span class="string">q"page=$p"</span> &amp; q_?<span class="string">"limit=$l"</span>) =&gt;
+<h3 id="可选参数">可选参数</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts"</span> ? <span class="string">q"page=$p"</span> &amp; q_?<span class="string">"limit=$l"</span>) =&gt;
 </code></pre><p>符号”q_?”或者”q_o”用于解析可选参数,在URL匹配是作为可选参数,并且上面匹配到的l类型为 <code>Option[String]</code>.</p>
-<h3 id="解析列表:">解析列表:</h3><p>Play支持以数组的方式解析URL中的重复参数,如, “/posts?tag=tag1&amp;tag=tag2&amp;tag=tag3”:</p>
+<h3 id="解析列表">解析列表</h3><p>Play支持以数组的方式解析URL中的重复参数,如, “/posts?tag=tag1&amp;tag=tag2&amp;tag=tag3”:</p>
 <pre><code>case <span class="function"><span class="title">GET</span><span class="params">(p<span class="string">"/posts/"</span> ? q_*<span class="string">"tag=$tags"</span>)</span></span> =&gt;
 </code></pre><p>使用符号”q_*”或者”q_s”,可以把查询参数中所有的”tag”的值解析到变量”tags”,类型为 <code>Seq[String]</code>.</p>
 <p>如果URL中没有任何”tag”参数,这个URL仍然会匹配正确,得到的tags为一个空序列.</p>
-<h3 id="对正则表达式的支持:">对正则表达式的支持:</h3><pre><code>case <span class="function"><span class="title">GET</span><span class="params">(p<span class="string">"/posts/$id&lt;[0-9]+&gt;"</span>)</span></span> =&gt;
+<h3 id="对正则表达式的支持">对正则表达式的支持</h3><pre><code>case <span class="function"><span class="title">GET</span><span class="params">(p<span class="string">"/posts/$id&lt;[0-9]+&gt;"</span>)</span></span> =&gt;
 </code></pre><p>将所有数字匹配为id.</p>
-<h3 id="但是在查询字符串中不能使用正则:">但是在查询字符串中不能使用正则:</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts/"</span> ? <span class="string">q"id=$id&lt;[0-9]{3}&gt;"</span>) =&gt;
+<h3 id="但是在查询字符串中不能使用正则">但是在查询字符串中不能使用正则</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts/"</span> ? <span class="string">q"id=$id&lt;[0-9]{3}&gt;"</span>) =&gt;
 </code></pre><p>这是一个查询字符串类型的URL,正则部分”&lt;[0-9]{3}&gt;”会得到一个编译错误:</p>
 <pre><code>Unexpected <span class="type">text</span> <span class="keyword">at</span> <span class="keyword">end</span> <span class="keyword">of</span> query <span class="type">string</span> extractor: ‘&lt;[<span class="number">0</span>-<span class="number">9</span>]{<span class="number">3</span>}&gt;’
 </code></pre><p>有更好的方式在查询字符串类型的URL中匹配参数.</p>
-<h3 id="类型解析:">类型解析:</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts"</span> ? <span class="string">q"page=${ int(p) }"</span>) =&gt;
+<h3 id="类型解析">类型解析</h3><pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts"</span> ? <span class="string">q"page=${ int(p) }"</span>) =&gt;
 </code></pre><p>p 会被解析为一个Int类型,并且若果page是一个字母而不是数字时会匹配失败.</p>
 <p>同时支持其他的基本类型,long,float,double,bool:</p>
 <pre><code><span class="keyword">case</span> GET(p<span class="string">"/posts/"</span> ? q_?<span class="string">"limit=<span class="subst">${ int(l) }</span>"</span> &amp; q_*<span class="string">"xs=<span class="subst">${ int(xs) }</span>"</span>) =&gt;
