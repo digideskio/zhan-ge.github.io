@@ -1,0 +1,693 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="SQL," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="深入理解SQL.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="10 Easy Steps to a Complete Understanding of SQL">
+<meta property="og:url" content="http://yoursite.com/2016/03/19/10-Easy-Steps-to-a-Complete-Understanding-of-SQL/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="深入理解SQL.">
+<meta property="og:updated_time" content="2016-03-19T14:10:50.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="10 Easy Steps to a Complete Understanding of SQL">
+<meta name="twitter:description" content="深入理解SQL.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> 10 Easy Steps to a Complete Understanding of SQL | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              10 Easy Steps to a Complete Understanding of SQL
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-19T20:26:16+08:00" content="2016-03-19">
+            2016-03-19
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>很多程序员视SQL如猛兽.它是为数不多的声明式语言的一种,它的表现形式与一些面向对象语言或者函数式语言完全不同.</p>
+<p>这篇文章主要会关注 SELECT语句.</p>
+<h2 id="SQL_is_declarative(SQL是声明性的)">SQL is declarative(SQL是声明性的)</h2><p>把这个概念放在脑子里,声明性.唯一的一个范例就是,你只是以”声明”的性质来获取你想要的结果.而不是你的电脑如何计算出这些结果.</p>
+<pre><code><span class="keyword">SELECT</span> first_name, last_name 
+<span class="keyword">FROM</span> employees 
+<span class="keyword">WHERE</span> salary &gt; <span class="number">100000</span>
+</code></pre><p>这很容易理解,你并不关系员工的档案是从哪来的.你仅仅想要拿到那些在薪水范围内的员工信息.</p>
+<p>总结:</p>
+<p>问题在于我们通常认为这是在进行命令式的编程.比如: “机器,做这个,然后做那个,但是开始之前,先做一个检查,如果怎样怎样就失败”.这些包含了,在变量中保存缓存结果,编写循环,迭代,调用函数等等.</p>
+<p>丢掉这些想法,然后思考如何使用声明的方式.而不是告诉机器如何去计算.</p>
+<h2 id="SQL_syntax_is_not_“well-ordered”(SQL的语法并不是井然有序的)">SQL syntax is not “well-ordered”(SQL的语法并不是井然有序的)</h2><p>一个普遍困惑的来源就是,SQL中的语法元素顺序完全不同于其执行顺序.</p>
+<p>词汇的排序方式如下:</p>
+<ol>
+<li>SELECT [ DISTINCT ]</li>
+<li>FROM</li>
+<li>WHERE</li>
+<li>GROUP BY</li>
+<li>HAVING</li>
+<li>UNION</li>
+<li>ORDER BY</li>
+</ol>
+<p>为了简单,并没有列出所有的SQL子句.这些词汇顺序跟逻辑顺序有很大的不同(或者跟执行的顺序相反,取决于有效的选择):</p>
+<ol>
+<li>FROM</li>
+<li>WHERE</li>
+<li>GROUP BY</li>
+<li>HAVING</li>
+<li>SELECT</li>
+<li>DISTINCT</li>
+<li>UNION</li>
+<li>ORDER BY</li>
+</ol>
+<p>有三点需要注意的地方:</p>
+<ol>
+<li><p>FROM 作为了第一个子句,而不是 SELECT.发生的第一件事就是将数据从磁盘加载到内存,以便于对这些数据进行操作.</p>
+</li>
+<li><p>SELECT 是在多个子句之后才执行.重要的是,在FROM 和 GROUP之后.这对于理解为什么你能在SELECT子句引用WHERE子句中的声明非常重要.</p>
+<p> 比如,下面是不可行的:</p>
+<pre><code><span class="keyword">SELECT</span> A.x + A.y <span class="keyword">AS</span> z
+<span class="keyword">FROM</span> A
+<span class="keyword">WHERE</span> z = <span class="number">10</span> -- z <span class="keyword">is</span> <span class="keyword">not</span> available here!
+</code></pre><p> 如果你想重用z,有两种方式,重复该表达式:</p>
+<pre><code>SELECT A<span class="class">.x</span> + A<span class="class">.y</span> AS z
+FROM A
+WHERE (A<span class="class">.x</span> + A.y) = <span class="number">10</span>
+</code></pre></li>
+<li><p>UNION在两种顺序中都处于 ORDER BY之前,很多人都会人会多个UNION子查询都会被排序,但是根据SQL标准和很多SQL方言,并不是这样.虽然一些方言支持子查询或者导出表有排序,但是在UNION操作之后的排序并不能做出保证.</p>
+</li>
+</ol>
+<p>注意,并不是所有的数据库实现都是一样的.比如上面的第二条,在MySQL,PostgreSQL,SQLite中并没有准确应用.</p>
+<p>总结:</p>
+<p>牢记字典顺序和逻辑顺序以避免基本错误.如果你理解其中的区别,类似 “为什么有些可以执行”而”有些不可以”这样的问题就会变得显而易见.</p>
+<h2 id="SQL_is_about_table_references(SQL是关于表的引用)">SQL is about table references(SQL是关于表的引用)</h2><p>由于词汇顺序与逻辑顺序的不同,很多新手会误以为SQL中字段值是一等公民.他们并不是,最重要的是表引用.</p>
+<p>在SQL标准中FROM的从句的定义如下:</p>
+<pre><code><span class="tag">&lt;<span class="title">from</span> <span class="attribute">clause</span>&gt;</span> ::= 
+    FROM <span class="tag">&lt;<span class="title">table</span> <span class="attribute">reference</span>&gt;</span> 
+        [ { <span class="tag">&lt;<span class="title">comma</span>&gt;</span> <span class="tag">&lt;<span class="title">table</span> <span class="attribute">reference</span>&gt;</span> }... ]
+</code></pre><p>The “output” of the FROM clause is a combined table reference of the combined degree of all table references.</p>
+<pre><code>FROM <span class="tag">a</span>, b
+</code></pre><p>该从句产生一个组合表引用,a + b,如果a有三列,b有5列,这时,输出的表将会含有8(3+5)个列.</p>
+<p>同时如果a有3行,b有5行,总共将会有15(3x5)行.</p>
+<p>总结:</p>
+<p>总是认为SQL是表的引用以理解数据是如何被SQL从句传输的.</p>
+<h2 id="SQL_table_references_can_be_rather_powerful(SQL表引用的强大之处)">SQL table references can be rather powerful(SQL表引用的强大之处)</h2><p>表引用的强大之处在JOIN关键字上体现的比较明显,JOIN并不是SELECT语句的一部分.但是属于特殊的表引用的一部分.连接后的表在SQL标准中的定义:</p>
+<pre><code><span class="tag">&lt;<span class="title">table</span> <span class="attribute">reference</span>&gt;</span> ::=
+    <span class="tag">&lt;<span class="title">table</span> <span class="attribute">name</span>&gt;</span>
+  | <span class="tag">&lt;<span class="title">derived</span> <span class="attribute">table</span>&gt;</span>
+  | <span class="tag">&lt;<span class="title">joined</span> <span class="attribute">table</span>&gt;</span>
+</code></pre><p>仍然是上面的例子:</p>
+<pre><code>FROM <span class="tag">a</span>, b
+</code></pre><p>按下面的方式进行连接:</p>
+<pre><code><span class="label">a1</span> JOIN <span class="literal">a2</span> ON <span class="literal">a1</span>.id = <span class="literal">a2</span>.id
+</code></pre><p>然后两个语句结合在一起:</p>
+<pre><code><span class="label">FROM</span> <span class="literal">a1</span> JOIN <span class="literal">a2</span> ON <span class="literal">a1</span>.id = <span class="literal">a2</span>.id, <span class="keyword">b</span>
+</code></pre><p>结果将会得到一个a1+a2+b的连接.</p>
+<p>总结:</p>
+<p>仍然总是任务SQL是表的引用,以便于理解复杂的表引用的构成.</p>
+<h2 id="SQL_JOIN_tables_should_be_used_rather_than_comma-separated_tables(总是使用连接表而不是逗号分割的表)">SQL JOIN tables should be used rather than comma-separated tables(总是使用连接表而不是逗号分割的表)</h2><p>首先看下面的从句:</p>
+<pre><code>FROM <span class="tag">a</span>, b
+</code></pre><p>有经验的SQL开发人员总是会告诉你不要使用逗号分割的表组合方式,而是尽量使用JOIN来连接表.这将有助于提高SQL语句的可读性,同时又避免错误.</p>
+<p>一个非常普遍的错误是总是忘记使用JOIN,比如下面的例子:</p>
+<pre><code>FROM <span class="tag">a</span>, <span class="tag">b</span>, c, d, e, f, g, h
+WHERE <span class="tag">a</span><span class="class">.a1</span> = <span class="tag">b</span><span class="class">.bx</span>
+AND <span class="tag">a</span><span class="class">.a2</span> = c<span class="class">.c1</span>
+AND d<span class="class">.d1</span> = <span class="tag">b</span><span class="class">.bc</span>
+-- etc...
+</code></pre><p>JOIN语法的有点:</p>
+<ol>
+<li>安全,可以将JOIN紧挨着需要连接的表使用,以避免错误</li>
+<li>更有表现力,可以在OUTER JOIN,INNER JOIN等等之间明显辨别</li>
+</ol>
+<p>总结:</p>
+<p>总是使用JOIN,永远不要在FROM从句中使用逗号分隔表.</p>
+<h2 id="SQL’s_different_JOIN_operations(SQL中不同的JOIN操作)">SQL’s different JOIN operations(SQL中不同的JOIN操作)</h2><p>JOIN操作的5中不同形式:</p>
+<ol>
+<li>EQUI JOIN</li>
+<li>SEMI JOIN</li>
+<li>ANTI JOIN</li>
+<li>CROSS JOIN</li>
+<li>DIVISION</li>
+</ol>
+<h3 id="EQUI_JOIN">EQUI JOIN</h3><p>比较常用的JOIN操作,拥有两个子从句:</p>
+<ol>
+<li>INNER JOIN (or just JOIN)</li>
+<li>OUTER JOIN (further sub-flavoured as LEFT, RIGHT, FULL OUTER JOIN)</li>
+</ol>
+<p>下面例子解释他们的区别:</p>
+<pre><code>-<span class="ruby">- <span class="constant">This</span> table reference contains authors <span class="keyword">and</span> their books.
+</span>-<span class="ruby">- <span class="constant">There</span> is one record <span class="keyword">for</span> each book <span class="keyword">and</span> its author.
+</span>-<span class="ruby">- authors without books are <span class="constant">NOT</span> included
+</span>author JOIN book ON author.id = book.author_id
+
+-<span class="ruby">- <span class="constant">This</span> table reference contains authors <span class="keyword">and</span> their books
+</span>-<span class="ruby">- <span class="constant">There</span> is one record <span class="keyword">for</span> each book <span class="keyword">and</span> its author.
+</span>-<span class="ruby">- ... <span class="constant">OR</span> there is an <span class="string">"empty"</span> record <span class="keyword">for</span> authors without books
+</span>-<span class="ruby">- (<span class="string">"empty"</span> meaning that all book columns are <span class="constant">NULL</span>)
+</span>author LEFT OUTER JOIN book ON author.id = book.author_id
+</code></pre><h3 id="SEMI_JOIN">SEMI JOIN</h3><p>….</p>
+<p><a href="https://www.javacodegeeks.com/2016/03/10-easy-steps-complete-understanding-sql.html" title="Lukas Eder: 10 Easy Steps to a Complete Understanding of SQL" target="_blank" rel="external">Lukas Eder: 10 Easy Steps to a Complete Understanding of SQL</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/SQL/" rel="tag">#SQL</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/19/All-you-need-to-know-about-Play-s-routing-DSL/" rel="next">All you need to know about Play's routing DSL</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">100</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL_is_declarative(SQL是声明性的)"><span class="nav-number">2.</span> <span class="nav-text">SQL is declarative(SQL是声明性的)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL_syntax_is_not_“well-ordered”(SQL的语法并不是井然有序的)"><span class="nav-number">3.</span> <span class="nav-text">SQL syntax is not “well-ordered”(SQL的语法并不是井然有序的)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL_is_about_table_references(SQL是关于表的引用)"><span class="nav-number">4.</span> <span class="nav-text">SQL is about table references(SQL是关于表的引用)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL_table_references_can_be_rather_powerful(SQL表引用的强大之处)"><span class="nav-number">5.</span> <span class="nav-text">SQL table references can be rather powerful(SQL表引用的强大之处)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL_JOIN_tables_should_be_used_rather_than_comma-separated_tables(总是使用连接表而不是逗号分割的表)"><span class="nav-number">6.</span> <span class="nav-text">SQL JOIN tables should be used rather than comma-separated tables(总是使用连接表而不是逗号分割的表)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL’s_different_JOIN_operations(SQL中不同的JOIN操作)"><span class="nav-number">7.</span> <span class="nav-text">SQL’s different JOIN operations(SQL中不同的JOIN操作)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#EQUI_JOIN"><span class="nav-number">7.1.</span> <span class="nav-text">EQUI JOIN</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SEMI_JOIN"><span class="nav-number">7.2.</span> <span class="nav-text">SEMI JOIN</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
