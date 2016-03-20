@@ -1,0 +1,653 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Scala中5个令人头痛的问题.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: 5 Puzzlers That will make your brain hurt">
+<meta property="og:url" content="http://yoursite.com/2016/03/20/Simple-Scala-5-Puzzlers-That-will-make-your-brain-hurt/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Scala中5个令人头痛的问题.">
+<meta property="og:updated_time" content="2016-03-20T11:54:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: 5 Puzzlers That will make your brain hurt">
+<meta name="twitter:description" content="Scala中5个令人头痛的问题.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: 5 Puzzlers That will make your brain hurt | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: 5 Puzzlers That will make your brain hurt
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-20T18:42:42+08:00" content="2016-03-20">
+            2016-03-20
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="An_Exceptional_Failure">An Exceptional Failure</h2><p>判断下面代码的打印结果:</p>
+<pre><code><span class="preprocessor"><span class="keyword">import</span> scala.concurrent.Future</span>
+<span class="preprocessor"><span class="keyword">import</span> scala.concurrent.ExecutionContext.Implicits.global</span>
+<span class="preprocessor"><span class="keyword">import</span> scala.util.{Failure, Success}</span>
+
+val f = Future { <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">"fatal!"</span>) } recoverWith {
+    <span class="keyword">case</span> err: <span class="built_in">Error</span> =&gt; Future.successful(<span class="string">"Ignoring error: "</span> + err.getMessage)
+}
+
+f onComplete {
+    <span class="keyword">case</span> Success(res) =&gt; println(<span class="string">"Yay: "</span> + res)
+    <span class="keyword">case</span> Failure(e) =&gt; println(<span class="string">"Oops: "</span> + e.getMessage)
+}
+</code></pre><p>在下面的结果中选择:</p>
+<pre><code><span class="number">1.</span> Prints:
+    Yay: Ignoring error: fatal!
+<span class="number">2.</span> Throws an error
+<span class="number">3.</span> Prints:
+    Oops: fatal!
+<span class="number">4.</span> Prints:
+    Oops: Boxed Error
+</code></pre><p>而正确的答案应该是第四个.</p>
+<p>在Future中包含了一个抛出的Error,并且带有一条消息”fatal!”,你会认为会在recoverWith中恢复并且最终返回一个成功的状态.但事实并非如此,Future中抛出的是一个异常(Throwable)而不是一个Error,所以并不能到达recoverWith的处理逻辑.</p>
+<p>现在我们能确定这个future失败了,但是在onComplete部分匹配到的错误消息并不是我们在Future中定义的”fatal!”,因为我们抛出的是一个来自box自外的 <code>java.util.concurrent.ExecutionException</code>,而Future失败时创建的是一个 <code>“Boxed Error</code>消息.</p>
+<p>因此,这个Future的结果是:</p>
+<pre><code>Failure<span class="list">(<span class="keyword">new</span> ExecutionException<span class="list">(<span class="string">"Boxed Error"</span>, new Error<span class="list">(<span class="string">"fatal!"</span>)</span>)</span>)</span>
+</code></pre><h2 id="$!-*%_Iterators!"><code>$!.*%</code> Iterators!</h2><p>判断一下代码执行的结果:</p>
+<pre><code><span class="variable"><span class="keyword">val</span> t</span> = <span class="string">"this is a test"</span>
+<span class="variable"><span class="keyword">val</span> rx</span> = <span class="string">" "</span>.r
+<span class="variable"><span class="keyword">val</span> m</span> = rx.findAllIn(t)
+println(m)
+println(m.end)
+println(rx.findAllIn(t).end)
+</code></pre><p>这个片段创建了一个正则表达式,以在给定的字符串当中找到匹配的空格.调用findAllIn会返回一个Iterator.当打印一个迭代器时只会显示”epmty iterator”或者”non-empty iterator”.因为我们在字符串中会找到三个空格,因此打印的结果是”non-empty iterator”.</p>
+<p>然后在打印 <code>m.end</code> 时会得到第一个命中的位置之后的字符索引,第一个空格的索引是4,下一个字符索引就是5.</p>
+<p>但是下一步我们得到了一个 <code>IllegalStateException</code>异常.这表示,在正则匹配中,除非你去请求或者检查第一个元素,这个正则是不会被激活的.而上面的例子中,首先是对m调用了println,从而调用了它的toString方法以此激活了这个正则,所以在打印 <code>m.end</code>时没有任何问题.</p>
+<h2 id="What’s_in_a_Name?">What’s in a Name?</h2><pre><code><span class="class"><span class="keyword">class</span> <span class="title">C</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">sum</span>(</span>x: <span class="type">Int</span> = <span class="number">1</span>, y: <span class="type">Int</span> = <span class="number">2</span>): <span class="type">Int</span> = x + y
+}
+<span class="class"><span class="keyword">class</span> <span class="title">D</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">C</span> {</span>
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">sum</span>(</span>y: <span class="type">Int</span> = <span class="number">3</span>, x: <span class="type">Int</span> = <span class="number">4</span>): <span class="type">Int</span> = <span class="keyword">super</span>.sum(x, y)
+}
+<span class="function"><span class="keyword">val</span> <span class="title">d</span>:</span> <span class="type">D</span> = <span class="keyword">new</span> <span class="type">D</span>
+<span class="function"><span class="keyword">val</span> <span class="title">c</span>:</span> <span class="type">C</span> = d
+c.sum(x = <span class="number">0</span>)
+d.sum(x = <span class="number">0</span>)
+</code></pre><p>首先由两个问题:</p>
+<ol>
+<li>参数名的绑定是编译器完成的,同时编译器唯一能够使用的信息就是变量的静态类型</li>
+<li>对于带有默认值的参数,编译器会创建一个方法,一个会按照默认参数计算的表达式.上面的例子中,C和D都有一个为默认值提供的方法: <code>sum$default$1</code> 和 <code>sum$default$1</code>.如果该参数未提供,编译器会直接使用这些方法进行计算,这些方法会在运行时被唤起.</li>
+</ol>
+<p>在调用 <code>c.sum(x = 0)</code> 时,这时只提供了一个参数x,会使用y的迷默认值.但是后面真正发生了什么呢,因为c是有d创建的,它会携带D中带有默认参数的方法sum,当他选择方法进行使用时,并不会考虑该方法中的参数名.这时第二个参数没有提供,则会使用默认的4,因此计算得到结果 0+4=4.</p>
+<p>在调用 <code>d.sum(x = 0)</code> 时,情况会有点不同,这时会直接找到D类中的sum方法,y的参数没有提供,会使用默认的3,因此计算结果是 3+0=3.</p>
+<p>Josh Suereth 把这个规则总结为: 名字是静态的,而值是运行时(Names are static; values are runtime).</p>
+<h2 id="(Ex)Stream_Surprise">(Ex)Stream Surprise</h2><pre><code>val nats: Stream[Int] = <span class="number">1</span> <span class="preprocessor">#:: (nats map { _ + <span class="number">1</span> })</span>
+val odds: Stream[Int] = <span class="number">1</span> <span class="preprocessor">#:: (odds map { _ + <span class="number">1</span> } filter { _ % <span class="number">2</span> != <span class="number">0</span> })</span>
+
+nats filter { _ % <span class="number">2</span> != <span class="number">0</span> } take <span class="number">2</span> foreach println
+odds take <span class="number">2</span> foreach println
+</code></pre><p>这里创建了两个stream,nats和odds.nats包含了 (1,?),同时定义了向他添加元素的规则,即增加1.类似的,odds拥有同样的规则,并且带有一个filter,只允许添加奇数.问题出在我们要打印它的时候.</p>
+<p>对于nats,我们在它进行懒创建<code>(1, (2, (3, ?)))</code>之后执行了过滤,取前两个奇数元素,则会得到1和3,这没有任何问题.</p>
+<p>对于odds,我们去不到2个元素,而只能取到一个.我们进入了一个无止境的递归状态.因为2不是奇数,当stream按照 <code>+1</code>的规则创建时同时激活了右侧的filter.我们永远无法到达3同时得到一个运行时异常.</p>
+<h2 id="A_Case_of_Strings">A Case of Strings</h2><pre><code><span class="keyword">def</span> <span class="string">objFromJava:</span> Object = <span class="string">"string"</span>
+<span class="keyword">def</span> <span class="string">stringFromJava:</span> String = <span class="literal">null</span>
+
+<span class="keyword">def</span> printLengthIfString(<span class="string">a:</span> AnyRef) {
+    a match {
+        <span class="keyword">case</span> <span class="string">s:</span> String =&gt; println(<span class="string">"String of length "</span> + s.length)
+        <span class="keyword">case</span> _ =&gt; println(<span class="string">"Not a string"</span>)
+    }
+}
+
+printLengthIfString(objFromJava)
+printLengthIfString(stringFromJava)
+</code></pre><p>对于objFromJava,尽管它被定义为一个Object,但是我们仍然给他返回一个String类型,由于模式匹配基于运行时类型,因此能够打印出”string”的长度.</p>
+<p>对于stringFromJava,是一个null,得到的并不是一个String类型.因为null是一个完全不同的类型,因此在case时需要明确指定进行检查.</p>
+<p><a href="https://www.javacodegeeks.com/2015/11/5-scala-puzzlers-will-make-brain-hurt.html" title="Alex Zhitnitsky: 5 Scala Puzzlers That Will Make Your Brain Hurt" target="_blank" rel="external">Alex Zhitnitsky: 5 Scala Puzzlers That Will Make Your Brain Hurt</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/20/Simple-Play2-Play-Json/" rel="prev">Simple Play2: Play Json</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/20/Simple-Scala-Traits/" rel="next">Simple Scala: Traits</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">103</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#An_Exceptional_Failure"><span class="nav-number">1.</span> <span class="nav-text">An Exceptional Failure</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#$!-*%_Iterators!"><span class="nav-number">2.</span> <span class="nav-text">$!.*% Iterators!</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What’s_in_a_Name?"><span class="nav-number">3.</span> <span class="nav-text">What’s in a Name?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#(Ex)Stream_Surprise"><span class="nav-number">4.</span> <span class="nav-text">(Ex)Stream Surprise</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#A_Case_of_Strings"><span class="nav-number">5.</span> <span class="nav-text">A Case of Strings</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

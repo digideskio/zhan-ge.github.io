@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/03/Simple-Scala-OOP-in-Scala/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="面向对象编程">
-<meta property="og:updated_time" content="2016-03-03T10:00:27.000Z">
+<meta property="og:updated_time" content="2016-03-20T05:02:23.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Scala: OOP in Scala">
 <meta name="twitter:description" content="面向对象编程">
@@ -208,15 +208,20 @@
 <pre><code><span class="keyword">case</span> <span class="keyword">class</span> ImmutablePerson(<span class="keyword">name</span>: String, age: <span class="built_in">Int</span>)
 </code></pre><p>Scala支持overloaded methods,多个方法可以使用一个name,但是签名必须是唯一的,签名部分包含类型名,方法名,参数列表类型,参数名本身没有限制.在JVM中,不同的返回值类型不足够去区分一个方法.</p>
 <p>术语member以泛型的方式被引用为field,method,type,与java不同的是,如果方法有一个参数列表,则方法可以和字段同名.</p>
+<p>Scala中可以使用type声明类型成员,这些类型成员是类型参数化的一种补充机制,经常被用来作为复杂类型的别名,以提供可读性.</p>
 <p>Type名必须唯一.</p>
 <p>Scala没有静态成员,通常使用object存放一些跨实例的成员,比如常量.</p>
 <p>如果一个object和一个class同名并在同一个文件,则该object作为该类的半生对象. 对于case类,编译器会自动生成一个伴生对象.</p>
-<h2 id="Reference_Versus_Value_Types">Reference Versus Value Types</h2><p>Java中short, int, long, float, double, boolean, char, byte, void作为原始类型,存在栈中以提高性能.除此之外均称为引用类型.</p>
+<h2 id="Reference_Versus_Value_Types">Reference Versus Value Types</h2><p>Java中short, int, long, float, double, boolean, char, byte, void作为原始类型,他们被存储在堆栈中,或者为了更高的性能存储在CPU寄存器.除此之外均称为引用类型,他们的实例被分配在堆中,引用这些实例的变量实际上是指向了堆中的对应位置.</p>
 <p>Scala遵循了这些规则,但是更清晰的分离了原始类型和引用类型.</p>
 <p>引用类型都是AnyRef的子类型.AnyRef为Any的子类型,Scala类型系统的底层类型.所有值类型都是AnyVal的子类型,同时属于Any的子类型.而Java中根类型是object,更接近于AnyRef而不是Any.</p>
 <p>引用类型的实例由new关键字创建,跟没有参数的方法一样,如果构造器为空则同样可以省略括号.</p>
+<p>值类型没有构造器,所以像 <code>val a = new Int(1)</code> 这样的表达式将无法通过编译.</p>
 <p>Short, Int, Long, Float, Double, Boolean, Char, Byte, and Unit被称为值类型,与java一致,这些值类型均是AnyVal的子类型.</p>
-<h2 id="Value_Classes">Value Classes</h2><pre><code><span class="class"><span class="keyword">class</span> <span class="title">Dollar</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">value</span>:</span> <span class="type">Float</span>) <span class="keyword">extends</span> <span class="type">AnyVal</span> { 
+<h2 id="Value_Classes">Value Classes</h2><p>Scala中经常引入包装类型来实现新类型,这被称为扩展方法,但是对值类型的包装,会将值类型编程引用类型,从而失去原始类型的性能.</p>
+<p>Scala中的解决方案是 value class,和一个附带的特质,称为通用特质.这些类型限制了可声明范围,但也带来了好处: 避免封装分配在堆上.</p>
+<p>定义一个value class:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Dollar</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">value</span>:</span> <span class="type">Float</span>) <span class="keyword">extends</span> <span class="type">AnyVal</span> {     <span class="comment">// 只有一个val型参数,继承自AnyVal</span>
     <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span> =</span> <span class="string">"$%.2f"</span>.format(value)
 }
 <span class="function"><span class="keyword">val</span> <span class="title">benjamin</span> =</span> <span class="keyword">new</span> <span class="type">Dollar</span>(<span class="number">100</span>)
@@ -234,15 +239,83 @@
 <li>只能继承universal traits</li>
 <li>必须是一个顶层类型或被引用的对象</li>
 </ol>
+<p>上面的例子中,Dollar在编译时是一个外部类型,而在运行时,该类型是一个被包装过的类型,即float.</p>
+<p>通常情况下,被包装过的类型是AnyVal的子类型之一,但并不必须这样,如果换成引用类型,仍然可以收益于内存不再堆上分配的优势.</p>
+<p>下面使用String而不是原始类型来实现一个value class:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">USPhoneNumber</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">s</span>:</span> <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">AnyVal</span> {
+
+<span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span> =</span> { 
+    <span class="function"><span class="keyword">val</span> <span class="title">digs</span> =</span> digits(s) 
+    <span class="function"><span class="keyword">val</span> <span class="title">areaCode</span> =</span> digs.substring(<span class="number">0</span>,<span class="number">3</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">exchange</span> =</span> digs.substring(<span class="number">3</span>,<span class="number">6</span>) 
+    <span class="function"><span class="keyword">val</span> <span class="title">subnumber</span> =</span> digs.substring(<span class="number">6</span>,<span class="number">10</span>)        <span class="comment">// 客户编号</span>
+    s<span class="string">"($areaCode) $exchange-$subnumber"</span> }
+
+    <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">digits</span>(</span>str: <span class="type">String</span>): <span class="type">String</span> = str.replaceAll(<span class="string">"""\D"""</span>, <span class="string">""</span>)
+}
+
+<span class="function"><span class="keyword">val</span> <span class="title">number</span> =</span> <span class="keyword">new</span> <span class="type">USPhoneNumber</span>(<span class="string">"987-654-3210"</span>) 
+<span class="comment">// 结果: number: USPhoneNumber = (987) 654-3210</span>
+</code></pre><p>同样特质的特性:</p>
+<ol>
+<li>可以从Any派生(而不能从其他同样特质派生)</li>
+<li>只能定义方法</li>
+<li>没有对自身做初始化</li>
+</ol>
+<p>下面是一个改进版的USPhoneNumber,混入了两个通用特质:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">Digitizer</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Any</span> {</span>                   <span class="comment">// 1</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">digits</span>(</span>s: <span class="type">String</span>): <span class="type">String</span> = s.replaceAll(<span class="string">"""\D"""</span>, <span class="string">""</span>) 
+}
+
+<span class="class"><span class="keyword">trait</span> <span class="title">Formatter</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Any</span> {</span>                   <span class="comment">// 2</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">format</span>(</span>areaCode: <span class="type">String</span>, exchange: <span class="type">String</span>, subnumber: <span class="type">String</span>): <span class="type">String</span> = 
+        s <span class="string">"($areaCode) $exchange-$subnumber"</span>
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">USPhoneNumber</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">s</span>:</span> <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">AnyVal</span> <span class="keyword">with</span> <span class="type">Digitizer</span> <span class="keyword">with</span> <span class="type">Formatter</span> {
+
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span> =</span> { 
+        <span class="function"><span class="keyword">val</span> <span class="title">digs</span> =</span> digits(s)                    <span class="comment">// 3</span>
+        <span class="function"><span class="keyword">val</span> <span class="title">areaCode</span> =</span> digs.substring(<span class="number">0</span>,<span class="number">3</span>) 
+        <span class="function"><span class="keyword">val</span> <span class="title">exchange</span> =</span> digs.substring(<span class="number">3</span>,<span class="number">6</span>) 
+        <span class="function"><span class="keyword">val</span> <span class="title">subnumber</span> =</span> digs.substring(<span class="number">6</span>,<span class="number">10</span>) 
+        format(areaCode, exchange, subnumber)   <span class="comment">// 4</span>
+    }
+}
+
+<span class="function"><span class="keyword">val</span> <span class="title">number</span> =</span> <span class="keyword">new</span> <span class="type">USPhoneNumber</span>(<span class="string">"987-654-3210"</span>) 
+<span class="comment">// 结果: number: USPhoneNumber = (987) 654-3210</span>
+</code></pre><ol>
+<li>定义了一个通用特质,以实现digits方法</li>
+<li>定义一个通用特质,实现format方法</li>
+<li>分别调用特质中的方法</li>
+</ol>
+<p>Formatter解决了一个设计问题,因为USPhoneNumber中只能传入一个参数,但是如果想要传入别的参数来实现可配置的格式化时,同过特质传入参数能解决value class的参数限制问题.</p>
+<p>但是通用特质有时会触发实例化(即将实例的内存分配到堆中),下面是会触发实例化的情况:</p>
+<ol>
+<li>当value class的实例被传递给函数作为参数,而该函数预期参数为通用特质且需要被实例实现.不过,如果函数的参数是value class本身,则不需要实例化.</li>
+<li>value class 的实例被赋值给数组</li>
+<li>value class 的类型被用于类型参数</li>
+</ol>
+<p>比如,当用USPhoneNumber调用一下方法时,会创建一个USPhoneNumber实例:</p>
+<pre><code>def <span class="function"><span class="title">toDigits</span><span class="params">(d: Digitizer, str: String)</span></span> = d.<span class="function"><span class="title">digits</span><span class="params">(str)</span></span> 
+... 
+val digs = <span class="function"><span class="title">toDigits</span><span class="params">(new USPhoneNumber(<span class="string">"987-654-3210"</span>)</span></span>, <span class="string">"123-Hello!-456"</span>) 
+<span class="comment">// 结果: digs: String = 123456</span>
+</code></pre><p>或者用USPhoneNumber调用一下参数化类型的方法时,也会产生USPhoneNumber的实例:</p>
+<pre><code>def print[<span class="link_label">T</span>](<span class="link_url">t: T</span>) = println(t.toString) 
+print(new USPhoneNumber("987-654-3210")) 
+// 结果: (987) 654-3210
+</code></pre><p>总结: value class 提供了一个低开销的技术,用于定义扩展方法,并为类型定义有意义的类型名称,这利用了被包装值的类型安全性.</p>
 <h2 id="Parent_Types">Parent Types</h2><p>与java一样,scala只支持但继承,不支持多继承,一个子类只能有一个父类.</p>
 <pre><code><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">BulkReader</span> {</span> 
-    <span class="class"><span class="keyword">type</span> <span class="title">In</span>
+    <span class="class"><span class="keyword">type</span> <span class="title">In</span>                 <span class="title">//</span> <span class="title">类型成员</span>,<span class="title">子类中药实现该类型</span>,<span class="title">即指定一个类型</span>
 </span>    <span class="function"><span class="keyword">val</span> <span class="title">source</span>:</span> <span class="type">In</span>
-    <span class="function"><span class="keyword">def</span> <span class="title">read</span>:</span> <span class="type">String</span> <span class="comment">// Read source and return a String </span>
+    <span class="function"><span class="keyword">def</span> <span class="title">read</span>:</span> <span class="type">String</span>        <span class="comment">// Read source and return a String </span>
 }
 
 <span class="class"><span class="keyword">class</span> <span class="title">StringBulkReader</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">source</span>:</span> <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">BulkReader</span> { 
-    <span class="class"><span class="keyword">type</span> <span class="title">In</span> =</span> <span class="type">String</span>
+    <span class="class"><span class="keyword">type</span> <span class="title">In</span> =</span> <span class="type">String</span>        <span class="comment">// 指定类型成员In为String类型</span>
     <span class="function"><span class="keyword">def</span> <span class="title">read</span>:</span> <span class="type">String</span> = source
 }
 <span class="class"><span class="keyword">class</span> <span class="title">FileBulkReader</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">source</span>:</span> java.io.<span class="type">File</span>) <span class="keyword">extends</span> <span class="type">BulkReader</span> { 
@@ -264,11 +337,16 @@
     <span class="function"><span class="keyword">def</span> <span class="title">this</span>(</span>name: <span class="type">String</span>, address: <span class="type">Address</span>) = <span class="keyword">this</span>(name, <span class="type">None</span>, <span class="type">Some</span>(address)) 
 }
 </code></pre><ol>
-<li>一个仅接受zip参数的辅助构造器,它调用帮助方法来推断city和state,但是不能推断street.</li>
-<li>帮助方法从zip参数查找对应的city和state(假设实现)</li>
+<li>一个仅接受zip参数的辅助构造器,它调用辅助方法来推断city和state,但是不能推断street.</li>
+<li>辅助方法从zip参数查找对应的city和state(假设实现)</li>
 <li>指定age和address参数可选</li>
 <li>提供多种构造器以便用户提供一个或多个参数</li>
 </ol>
+<p>辅助构造器均被命名为this,它的第一个构造器必须调用主构造器或其他辅助构造器.并且编译器要求被调用的构造器必须先于当前构造器出现,因此必须小心排列构造器顺序.</p>
+<p>通过强制让所有构造器最终都调用主构造器,可以将代码冗余最小化,并确保新实例的初始化逻辑一致.</p>
+<p>在使用中会发现,Person有很多参数类似的次级构造器.这时可以对可选参数指定默认值,而在创建实例时可以指定参数名来提供具体参数:</p>
+<pre><code><span class="keyword">case</span> <span class="keyword">class</span> Person2( <span class="keyword">name</span>: String, age: Option[<span class="built_in">Int</span>] = <span class="type">None</span>, address: Option[Address] = <span class="type">None</span>)
+</code></pre><p>但是在创建实例时,除非是调用主构造器,否则必须使用 <code>new</code> 关键字,因为编译器不会自动为case类的次级构造器创建apply方法.</p>
 <p>调用实例:</p>
 <pre><code><span class="keyword">import</span> progscala2.basicoop.{<span class="type">Address</span>, <span class="type">Person</span>}
 
@@ -286,7 +364,21 @@
 <span class="comment">// Some(Address([unknown],Anytown,CA,98765)))</span>
 <span class="keyword">new</span> <span class="type">Person</span>(<span class="string">"Buck Trends4"</span>, <span class="number">20</span>)
 <span class="comment">// Result: Person(Buck Trends4,Some(20),None)</span>
-</code></pre><h2 id="Fields_in_Classes">Fields in Classes</h2><pre><code><span class="class"><span class="keyword">class</span> <span class="title">Name</span></span>(<span class="variable"><span class="keyword">var</span> value</span>: String)
+</code></pre><p>这时我们可以在伴生对象中(case类的object)重载apply方法,以获得便利的构造器,而不需要再使用new关键字.</p>
+<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Person3</span>(</span> name: <span class="type">String</span>, age: <span class="type">Option</span>[<span class="type">Int</span>] = <span class="type">None</span>, address: <span class="type">Option</span>[<span class="type">Address</span>] = <span class="type">None</span>)
+<span class="class"><span class="keyword">object</span> <span class="title">Person3</span> {</span>
+    <span class="comment">// 由于我们重载的是普通方法,而不是构造器, 所以必须明确地指定返回类型(因为如果通过使用this来重载构造器,返回的仍然是该类型的实例),在这里返回类型是Person3。 </span>
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span>(</span>name: <span class="type">String</span>): <span class="type">Person3</span> = <span class="keyword">new</span> <span class="type">Person3</span>(name)
+
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span>(</span>name: <span class="type">String</span>, age: <span class="type">Int</span>): <span class="type">Person3</span> = <span class="keyword">new</span> <span class="type">Person3</span>(name, <span class="type">Some</span>(age))
+
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span>(</span>name: <span class="type">String</span>, age: <span class="type">Int</span>, address: <span class="type">Address</span>): <span class="type">Person3</span> = <span class="keyword">new</span> <span class="type">Person3</span>(name, <span class="type">Some</span>(age), <span class="type">Some</span>(address))
+
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span>(</span>name: <span class="type">String</span>, address: <span class="type">Address</span>): <span class="type">Person3</span> = <span class="keyword">new</span> <span class="type">Person3</span>(name, address = <span class="type">Some</span>(address))
+}
+</code></pre><p>注意,与构造器不同,apply这样的重载方法必须指定返回类型.</p>
+<p>在使用时,如果提供了与主构造器签名一致的参数,则会调用case类自动生成的apply方法,否则会依次去匹配其他的辅助构造器.</p>
+<h2 id="Fields_in_Classes">Fields in Classes</h2><pre><code><span class="class"><span class="keyword">class</span> <span class="title">Name</span></span>(<span class="variable"><span class="keyword">var</span> value</span>: String)
 </code></pre><p>被展开:</p>
 <pre><code><span class="class"><span class="keyword">class</span> <span class="title">Name</span>(</span>s: <span class="type">String</span>) {
     <span class="keyword">private</span> <span class="keyword">var</span> _value: <span class="type">String</span> = s                          <span class="comment">// 1</span>
@@ -297,6 +389,75 @@
 <li>内部可变字段</li>
 <li>getter</li>
 <li>setter</li>
+</ol>
+<p>上面setter中的 <code>value_=</code> 是一个完整的方法名,<code>(newValue: String)</code> 是其参数列表.当编译器看到这样一个方法名时,会允许去掉<code>_</code>,使用中缀表达式,就好像我们是在设置一个对象的字段一样:</p>
+<pre><code>name.<span class="keyword">value</span><span class="number">_</span>=(<span class="string">"Bubba"</span>)   <span class="comment">// 默认的调用方法</span>
+name.<span class="keyword">value</span> = <span class="string">"Hank"</span>     <span class="comment">// 使用中缀表达式的方法</span>
+</code></pre><p>如果参数声明为val,则不会生成setter方法,因为其不可变.</p>
+<p>同时,对于非case类,如果我们向构造器传递参数时不希望该参数称为类的一个字段,可以在构造器中省略val或var.但是该值仍然在类体的作用范围内,仍然指向构造实例时所用的参数,只是没有被声明为类的字段,在类体中都是可见的,只能被类的成员在类内部使用,比如类的成员方法,但对类的客户端不可见.</p>
+<p>Scala并没有采用Java风格的getter和setter方法,而是支持统一访问原则.在统一访问原则中,读写”裸”字段的语法和通过间接调用方法读写的语法是一样的.</p>
+<h2 id="一元方法">一元方法</h2><pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Complex</span>(</span>real: <span class="type">Double</span>, imag: <span class="type">Double</span>) { 
+    <span class="function"><span class="keyword">def</span> <span class="title">unary_-</span> :</span> <span class="type">Complex</span> = <span class="type">Complex</span>(-real, imag)        <span class="comment">// 1 </span>
+    <span class="function"><span class="keyword">def</span> <span class="title">-</span>(</span>other: <span class="type">Complex</span>) = <span class="type">Complex</span>(real - other.real, imag - other.imag) 
+}
+
+<span class="function"><span class="keyword">val</span> <span class="title">c1</span> =</span> <span class="type">Complex</span>(<span class="number">1.1</span>, <span class="number">2.2</span>) 
+<span class="function"><span class="keyword">val</span> <span class="title">c2</span> =</span> -c1                        <span class="comment">// Complex(-1.1, 2.2)</span>
+<span class="function"><span class="keyword">val</span> <span class="title">c3</span> =</span> c1.unary_-                 <span class="comment">// Complex(-1.1, 2.2)</span>
+<span class="function"><span class="keyword">val</span> <span class="title">c4</span> =</span> c1 - <span class="type">Complex</span>(<span class="number">0.5</span>, <span class="number">1.0</span>)     <span class="comment">// Complex(0.6, 1.2)</span>
+</code></pre><ol>
+<li>方法名 <code>unary_X</code>, X就是我们想要的操作符,上例中为 <code>-</code>,注意在 <code>:</code> 之前有一个空格,以告诉编译器方法名是以 <code>-</code> 结尾而不是 <code>:</code>.</li>
+</ol>
+<p>一旦定义了一元操作符,就可以将操作符放在实例之前进行调用.</p>
+<h2 id="验证输入">验证输入</h2><p>如果需要验证输入的参数,以确保创建有效的实例,可以使用Predef中定义的require方法.</p>
+<p>比如对一个邮编进行验证:</p>
+<pre><code><span class="keyword">case</span> <span class="keyword">class</span> ZipCode(zip: <span class="keyword">Int</span>, extension: Option[<span class="keyword">Int</span>] = None) { 
+    require(valid(zip, extension), s<span class="string">"Invalid Zip+4 specified: $toString"</span>)       <span class="comment">// 1</span>
+
+    <span class="keyword">protected</span> <span class="keyword">def</span> valid(z: <span class="keyword">Int</span>, e: Option[<span class="keyword">Int</span>]): <span class="keyword">Boolean</span> = { 
+        <span class="keyword">if</span> (<span class="number">0</span> &lt; z &amp;&amp; z &lt;= <span class="number">99999</span>) e match { 
+            <span class="keyword">case</span> None =&gt; validUSPS(z, <span class="number">0</span>) 
+            <span class="keyword">case</span> Some(e) =&gt; <span class="number">0</span> &lt; e &amp;&amp; e &lt;= <span class="number">9999</span> &amp;&amp; validUSPS(z, e) 
+        }
+        <span class="keyword">else</span> <span class="keyword">false</span>
+    }
+
+    <span class="comment">/**这是个有效的美国邮政编码吗? */</span> 
+    <span class="keyword">protected</span> <span class="keyword">def</span> validUSPS(i: <span class="keyword">Int</span>, e: <span class="keyword">Int</span>): <span class="keyword">Boolean</span> = <span class="keyword">true</span>                     <span class="comment">// 2</span>
+
+    override <span class="keyword">def</span> toString =                                                     <span class="comment">// 3 </span>
+        <span class="keyword">if</span> (extension != None) s<span class="string">"$zip-${extension.get}"</span> <span class="keyword">else</span> zip.toString 
+}
+
+object ZipCode {                                                                <span class="comment">// 4</span>
+    <span class="keyword">def</span> apply (zip: <span class="keyword">Int</span>, extension: <span class="keyword">Int</span>): ZipCode = <span class="keyword">new</span> ZipCode(zip, Some(extension)) 
+}
+</code></pre><ol>
+<li>使用 require 方法验证参数输入</li>
+<li>真正的方法实现是查询USPS认可的数据库来验证编码是否真的存在</li>
+<li>重写toString方法,返回标准的邮编格式</li>
+<li>同时提供了一个apply方法,以提供便利的实例化方法,在提供可选参数extension时不需要再提供Some()</li>
+</ol>
+<p>同时还可以使用Predef中的ensuring和assume实现类似功能.</p>
+<h2 id="调用父类构造器">调用父类构造器</h2><p>子类的构造器必须调用父类的构造器,可以是父类的主构造器或辅助构造器.</p>
+<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span>(</span>name: <span class="type">String</span>, age: <span class="type">Option</span>[<span class="type">Int</span>] = <span class="type">None</span>, address: <span class="type">Option</span>[<span class="type">Address</span>] = <span class="type">None</span>)
+
+<span class="class"><span class="keyword">class</span> <span class="title">Employee</span>(</span> name: <span class="type">String</span>, age: <span class="type">Option</span>[<span class="type">Int</span>] = <span class="type">None</span>, address: <span class="type">Option</span>[<span class="type">Address</span>] = <span class="type">None</span>, <span class="function"><span class="keyword">val</span> <span class="title">title</span>:</span> <span class="type">String</span> = <span class="string">"[unknown]"</span>, <span class="function"><span class="keyword">val</span> <span class="title">manager</span>:</span> <span class="type">Option</span>[<span class="type">Employee</span>] = <span class="type">None</span>) 
+    <span class="keyword">extends</span> <span class="type">Person</span>(name, age, address) {
+    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span> =</span> s<span class="string">"Employee($name, $age, $address, $title, $manager)"</span>
+}
+<span class="function"><span class="keyword">val</span> <span class="title">a1</span> =</span> <span class="keyword">new</span> <span class="type">Address</span>(<span class="string">"1 Scala Lane"</span>, <span class="string">"Anytown"</span>, <span class="string">"CA"</span>, <span class="string">"98765"</span>) 
+<span class="function"><span class="keyword">val</span> <span class="title">a2</span> =</span> <span class="keyword">new</span> <span class="type">Address</span>(<span class="string">"98765"</span>)
+</code></pre><p>Person是一个case类,而Employee被声明为一个普通的类.子类中新增的两个字段title和manager需要使用val关键字声明,因为Employee不是case类.同时调用了Person的主构造器,调用时只需要提供参数名即可.重写了toString方法,如果不重写则会调用父类的toString.</p>
+<p>在Java中需要定义构造方法,并用super调用父类的初始化逻辑,但是在Scala中,使用 <code>ChildClass(...) extends ParentClass(...)</code> 这样的语法隐式的调用父类构造器.</p>
+<h2 id="良好的面向对象设计">良好的面向对象设计</h2><p>可以从一个case类中派生一个普通类,或者反过来,但是不能从一个case类派生另一个case类,因为,自动生成的toString,equals,hashCode方法在子类中无法正常工作.</p>
+<p>case类为方便简单的域类型提供了模式匹配和实例分解,但支持继承结构并不是他们的目的.</p>
+<p>当使用继承时,可以遵循以下规则:</p>
+<ol>
+<li>一个抽象的基类或者trait,只被下一层的具体的类继承,包括case类</li>
+<li>具体类的子类永远不会再次被继承,除了两种情况: 类中混入了定义于trait中的其他行为,理想情况下,这些行为是不重叠的.只用于自动化单元测试的类.</li>
+<li>当使用子类继承似乎是争取的做法时,考虑将行为分离到trait中,然后在类里面混入这些trait</li>
+<li>切勿将逻辑状态跨越子类和父类,比如一些私有的专门实现的状态,这种状态不影响外部可见性,相等,散列逻辑.</li>
 </ol>
 </span>
       
@@ -383,7 +544,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">100</span>
+              <span class="site-state-item-count">103</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -425,7 +586,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Class_and_Object_Basics"><span class="nav-number">1.</span> <span class="nav-text">Class and Object Basics</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference_Versus_Value_Types"><span class="nav-number">2.</span> <span class="nav-text">Reference Versus Value Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Value_Classes"><span class="nav-number">3.</span> <span class="nav-text">Value Classes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Parent_Types"><span class="nav-number">4.</span> <span class="nav-text">Parent Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Constructors_in_Scala"><span class="nav-number">5.</span> <span class="nav-text">Constructors in Scala</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fields_in_Classes"><span class="nav-number">6.</span> <span class="nav-text">Fields in Classes</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Class_and_Object_Basics"><span class="nav-number">1.</span> <span class="nav-text">Class and Object Basics</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reference_Versus_Value_Types"><span class="nav-number">2.</span> <span class="nav-text">Reference Versus Value Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Value_Classes"><span class="nav-number">3.</span> <span class="nav-text">Value Classes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Parent_Types"><span class="nav-number">4.</span> <span class="nav-text">Parent Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Constructors_in_Scala"><span class="nav-number">5.</span> <span class="nav-text">Constructors in Scala</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Fields_in_Classes"><span class="nav-number">6.</span> <span class="nav-text">Fields in Classes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一元方法"><span class="nav-number">7.</span> <span class="nav-text">一元方法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#验证输入"><span class="nav-number">8.</span> <span class="nav-text">验证输入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#调用父类构造器"><span class="nav-number">9.</span> <span class="nav-text">调用父类构造器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#良好的面向对象设计"><span class="nav-number">10.</span> <span class="nav-text">良好的面向对象设计</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

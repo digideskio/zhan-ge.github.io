@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/11/05/Simple-Scala-Future/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Scala中的Future.">
-<meta property="og:updated_time" content="2015-11-06T03:35:34.000Z">
+<meta property="og:updated_time" content="2016-03-20T10:41:25.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Scala: Future">
 <meta name="twitter:description" content="Scala中的Future.">
@@ -278,7 +278,7 @@
   <span class="function"><span class="keyword">def</span> <span class="title">apply</span>[<span class="title">T</span>]<span class="params">(body: =&gt; T)</span><span class="params">(implicit execctx: ExecutionContext)</span>:</span> Future[T]
 }
 </code></pre><p>需要执行的异步计算通过传名参数body传入,第二个参数是一个隐式参数.隐式参数是指函数调用时,如果作用域中存在一个匹配的隐式值,就无需显式指定这个参数.ExecutionContext可以执行一个Future,可以把它看成是一个线程池,是绝大部分Future API的隐式参数.</p>
-<p>import scala.concurrent.ExecutionContext.Implicits.global引入了一个全局执行的上下文,确保了隐式值的存在.这时候只需要一个单元素列表,可以用大括号代替小括号.调用Future方法时,经常使用这种形式,使得它看起来像是一种语言特性,而不是一个普通的方法调用.</p>
+<p><code>import scala.concurrent.ExecutionContext.Implicits.global</code> 引入了一个全局执行的上下文,确保了隐式值的存在.这时候只需要一个单元素列表,可以用大括号代替小括号.调用Future方法时,经常使用这种形式,使得它看起来像是一种语言特性,而不是一个普通的方法调用.</p>
 <p>这个例子中没有大量计算,所以用随机时间休眠来模拟以便说明问题,而且,为了清晰说明并发代码的执行顺序,还在”计算”之前和之后打印了一些信息.</p>
 <p>Future计算会在创建后的某个不确定时间点上由ExecutionContext给其分配的某个线程中执行.</p>
 <h2 id="回调">回调</h2><p>对于一些简单的问题,使用回调就能很好解决,Future的回调是偏函数,你可以把回调传递给Future的onSucces方法,如果这个Future成功完成,这个回调就会执行,并把Future的返回值作为参数输入:</p>
@@ -345,6 +345,39 @@ val flatFuture: Future[Boolean] = <span class="function">heatWater</span>(<span 
 </code></pre><p>在for语句之前,三个Future在创建之后就各自独立的运行,显示屏输出的顺序是不确定的,唯一确定的是”happy brewing”总是出现在后面.因为该输出所在的函数brew是在其他两个函数执行完毕后才开始执行的,也因为这样,可以在for语句里直接调用它,当让,前提是前面的Future都成功完成.</p>
 <h2 id="失败偏向的Future">失败偏向的Future</h2><p>你可能发现Future[T]是偏向成功的,允许你使用map/flatMap/for等.</p>
 <p>但是有可能需要处理出错的情况.调用Future[T]上的failed方法,会得到一个失败偏向的Future,类型是Future[Throwable].之后可以映射这个Future[Throwable],在失败的情况下执行mapping操作.</p>
+<h2 id="Filter">Filter</h2><p>Filter可以用于创建一个新的Future对象,该对象只有在满足特定条件的前提下才会得到原始Future的计算值,否则会抛出一个NoSuchElementException的异常而失败.调用了filter的future,其效果与直接调用withFilter完全一样.</p>
+<p>而Collect与Filter的关系跟在集合操作时的API含义类似.</p>
+<h2 id="Foreach">Foreach</h2><p>调用foreach组合器并不会在计算值可用的时候阻塞当前的线程去获取计算值.恰恰相反,只有当future对象成功计算完成了,foreach所迭代的函数才能够被异步的执行,这表示foreach与onSucess回调意义完全相同.</p>
+<h2 id="Recover">Recover</h2><p>由于Future特质从概念上看包含两种类型的返回值,即计算结果和异常,所以组合器会有一个处理异常的需求.</p>
+<p>Recover能够创建一个新的future对象,该对象当计算完成时持有和原future对象一样的值.如果执行不成功则偏函数的参数会被传递给是Future失败的那个Throwable异常.若果把Throwable映射到了某个值,那么新的Future就会成功完成并返回该值.如果偏函数没有定义在Throwable中,那么最终产生结果的future也会失败并返回同样的Throwable.</p>
+<p>而recoverWith与recover的关系类似于flatMap与map的关系.</p>
+<h2 id="FallbackTo">FallbackTo</h2><p>FallbackTo组合器生成的Future对象可以在该原future成功计算时返回结果,如果原future失败或者异常则返回该future参数对象的成功值.在原future和参数future都失败的情况下,新future对象会完成并返回原future抛出的异常,正如下面的例子中,本想打印美元汇率,但是在获取美元汇率失败的情况下会打印出瑞士法郎的汇率:</p>
+<pre><code>val usdQuote = <span class="name">future</span> {
+  connection.getCurrentValue(USD)
+} <span class="name">map</span> {
+  usd =&gt; <span class="string">"Value: "</span> + usd + <span class="string">"$"</span>
+}
+<span class="name">val</span> <span class="name">chfQuote</span> = <span class="name">future</span> {
+  connection.getCurrentValue(CHF)
+} <span class="name">map</span> {
+  chf =&gt; <span class="string">"Value: "</span> + chf + <span class="string">"CHF"</span>
+}
+<span class="name">al</span> <span class="name">anyQuote</span> = usdQuote fallbackTo chfQuote
+anyQuote <span class="name">onSuccess</span> { println(<span class="number">_</span>) }
+</code></pre><p>上面的例子中,若果usdQuote失败了,会返回chfQuote,如果两者同时失败,则返回usdQuote的异常.</p>
+<h2 id="AndThen">AndThen</h2><p>组合器andThen的用法是处于纯粹的side-effecting(副作用)目的.经andThen返回的新Future,无论原future成功或者失败都会返回与原future一样的结果.一旦原future成功并返回结果,andThen后跟的代码块就会被调用,且新Future将返回与future一样的结果,这确保了多个andThen调用的顺序执行.</p>
+<p>在下面的例子中,把近期发出的帖子收集到一个可变集合中,然后把他们打印到屏幕上:</p>
+<pre><code>val allposts = mutable.Set[<span class="link_label">String</span>](<span class="link_url"></span>)
+future {
+  session.getRecentPosts
+} andThen {
+  posts =&gt; allposts ++= posts
+} andThen {
+  posts =&gt;
+  clearAll()
+  for (post <span class="xml"><span class="tag">&lt;<span class="title">-</span> <span class="attribute">allposts</span>) <span class="attribute">render</span>(<span class="attribute">post</span>)
+}</span></span>
+</code></pre><p>总结: Future的组合器是纯函数式的,每个组合器都会返回一个跟原future相关的新future.</p>
 <h2 id="参考">参考</h2><p><a href="https://windor.gitbooks.io/beginners-guide-to-scala/content/chp8-welcome-to-the-future.html" title="info" target="_blank" rel="external">参考链接</a></p>
 </span>
       
@@ -431,7 +464,7 @@ val flatFuture: Future[Boolean] = <span class="function">heatWater</span>(<span 
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">100</span>
+              <span class="site-state-item-count">103</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -473,7 +506,7 @@ val flatFuture: Future[Boolean] = <span class="function">heatWater</span>(<span 
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#顺序代码为什么会变坏"><span class="nav-number">2.</span> <span class="nav-text">顺序代码为什么会变坏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Future语义"><span class="nav-number">3.</span> <span class="nav-text">Future语义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Future"><span class="nav-number">4.</span> <span class="nav-text">使用Future</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#回调"><span class="nav-number">5.</span> <span class="nav-text">回调</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Future组合"><span class="nav-number">6.</span> <span class="nav-text">Future组合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Map操作"><span class="nav-number">7.</span> <span class="nav-text">Map操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FlatMap操作"><span class="nav-number">8.</span> <span class="nav-text">FlatMap操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#for语句"><span class="nav-number">9.</span> <span class="nav-text">for语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#失败偏向的Future"><span class="nav-number">10.</span> <span class="nav-text">失败偏向的Future</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">11.</span> <span class="nav-text">参考</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#顺序代码为什么会变坏"><span class="nav-number">2.</span> <span class="nav-text">顺序代码为什么会变坏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Future语义"><span class="nav-number">3.</span> <span class="nav-text">Future语义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Future"><span class="nav-number">4.</span> <span class="nav-text">使用Future</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#回调"><span class="nav-number">5.</span> <span class="nav-text">回调</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Future组合"><span class="nav-number">6.</span> <span class="nav-text">Future组合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Map操作"><span class="nav-number">7.</span> <span class="nav-text">Map操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FlatMap操作"><span class="nav-number">8.</span> <span class="nav-text">FlatMap操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#for语句"><span class="nav-number">9.</span> <span class="nav-text">for语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#失败偏向的Future"><span class="nav-number">10.</span> <span class="nav-text">失败偏向的Future</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Filter"><span class="nav-number">11.</span> <span class="nav-text">Filter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Foreach"><span class="nav-number">12.</span> <span class="nav-text">Foreach</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Recover"><span class="nav-number">13.</span> <span class="nav-text">Recover</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FallbackTo"><span class="nav-number">14.</span> <span class="nav-text">FallbackTo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AndThen"><span class="nav-number">15.</span> <span class="nav-text">AndThen</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">16.</span> <span class="nav-text">参考</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
