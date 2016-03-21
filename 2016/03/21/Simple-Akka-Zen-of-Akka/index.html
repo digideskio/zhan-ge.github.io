@@ -1,0 +1,841 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Akka," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Akka之禅.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Akka: Zen of Akka">
+<meta property="og:url" content="http://yoursite.com/2016/03/21/Simple-Akka-Zen-of-Akka/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Akka之禅.">
+<meta property="og:updated_time" content="2016-03-21T15:57:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Akka: Zen of Akka">
+<meta name="twitter:description" content="Akka之禅.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Akka: Zen of Akka | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Akka: Zen of Akka
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-21T22:09:41+08:00" content="2016-03-21">
+            2016-03-21
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="One_actor_is_no_Actor">One actor is no Actor</h2><p>当系统中只有一个actor时,所能完成的工作非常有限,并不能解决并发并行的问题.</p>
+<ol>
+<li><p>Actors需要的是多个actor互相组合完成工作:</p>
+<ol>
+<li>一个actor只负责一项工作并且把它做好</li>
+<li>然后告诉其他的actor来未它完成其他的工作</li>
+</ol>
+</li>
+<li><p>子actor通常用于工作或任务的分配</p>
+</li>
+<li>避免使用 <code>actorSelection</code>,而是通过actor互相引用</li>
+</ol>
+<p>一般只在这两种情况下才会去使用 <code>actorSelection</code>, 而其他的时候应该尽量避免:</p>
+<ol>
+<li>因为某些原因需要使用actor path中的通配符优势,比如在path中使用通配符同时选择多个actor以便于同时发送消息</li>
+<li>在拥有一个远程actor的引用之前,想要与之通信</li>
+</ol>
+<p>同时使用 <code>actorSelection</code> 的两个最佳实践:</p>
+<ol>
+<li>尽量使用ActorRef,并通过这个ActorRef使用tell发送消息,而不是 <code>actorSelection</code>,因为他类似一种UDP,发送消息时并不知道对方的状态</li>
+<li>不要硬编码path,而是在一个公用类中进行维护</li>
+</ol>
+<h2 id="Structure_your_Actors">Structure your Actors</h2><p>不同的actor之间在设计时进行层级划分以制定合理的结构,并同时设置合理的监管策略,同时,同一种类型的actor可以创建一个Pool使用合适的消息分发策略.</p>
+<h2 id="Name_your_Actors">Name your Actors</h2><p>为actor制定合理清晰的命名,而不是由系统生成base64格式的编码.</p>
+<p>比如:</p>
+<pre><code>// better: but <span class="keyword">not</span> very informative...
+context.actorOf(childProps, nextFetchWorkerName) // <span class="string">"fetch-worker-1"</span>, <span class="string">"fetch-worker-2"</span>
+
+private var _fetchWorkers: Int = <span class="number">0</span>
+private <span class="function"><span class="keyword">def</span> <span class="title">nextFetchWorkerName</span>:</span> String = {
+    _fetchWorkers += <span class="number">1</span>
+    <span class="string">"fetch-worker-${_fetchWorkers}"</span>
+}
+</code></pre><p>这会生成一个有序的actor名,便于管理或错误排查.</p>
+<p>或者更加优雅的方式:</p>
+<pre><code><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">SeqActorName</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">next</span>(</span>): <span class="type">String</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">copy</span>(</span>name:<span class="type">String</span>):<span class="type">SeqActorName</span>
+}
+
+<span class="class"><span class="keyword">object</span> <span class="title">SeqActorName</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span>(</span>prefix:<span class="type">String</span>) = <span class="keyword">new</span> <span class="type">SeqActorNameImpl</span>(prefix, <span class="keyword">new</span> <span class="type">AtomicLong</span>(<span class="number">0</span>))
+}
+
+<span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">SeqActorNameImpl</span>(</span><span class="function"><span class="keyword">val</span> <span class="title">prefix</span>:</span><span class="type">String</span>, counter: <span class="type">AtomicLong</span>) <span class="keyword">extends</span> <span class="type">SeqActorName</span>{
+    <span class="function"><span class="keyword">def</span> <span class="title">next</span>(</span>):<span class="type">String</span> = prefix + '-' + counter.getAndIncremet()
+
+    <span class="function"><span class="keyword">def</span> <span class="title">copy</span>(</span>newPrefix:<span class="type">String</span>):<span class="type">SeqActorName</span> = <span class="keyword">new</span> <span class="type">SeqActorNameImpl</span>(newPrefix, counter)
+}
+</code></pre><p>当然,最后的方式是根据actor的真正用途定义有意义的名字:</p>
+<pre><code>context.actorOf(childProps, fetcherName(videoUrl))  <span class="comment">// "fetch-yt-MRCWy2E_Ts", ...</span>
+<span class="function">def <span class="title">fetcherName</span><span class="params">(link: Link)</span> </span>= link match {
+    <span class="function"><span class="keyword">case</span> <span class="title">YoutubeLink</span><span class="params">(id, metadata)</span> </span>=&gt; s<span class="string">"fetch-yt-$id"</span> 
+    <span class="function"><span class="keyword">case</span> <span class="title">DailyMotionLink</span><span class="params">(id, metadata)</span> </span>=&gt; s<span class="string">"fetch-dm-$id"</span> 
+    <span class="function"><span class="keyword">case</span> <span class="title">VimeoLink</span><span class="params">(id, metadata)</span> </span>=&gt; s<span class="string">"fetch-vim-$id"</span>
+}
+</code></pre><p>然后在监管策略中,打印出现错误的actor的名字:</p>
+<pre><code><span class="keyword">import</span> akka.actor.OneForOneStrategy 
+<span class="keyword">import</span> akka.actor.SupervisorStrategy._ 
+<span class="keyword">import</span> scala.concurrent.duration._
+// ... extends Actor <span class="keyword">with</span> ActorLogging {
+    override <span class="function"><span class="keyword">def</span> <span class="title">supervisorStrategy</span>:</span> SupervisorStrategy = 
+        OneForOneStrategy(maxNrOfRetries = <span class="number">10</span>, withinTimeRange = <span class="number">1.</span>minute) {
+            case ex: Exception =&gt;
+                log.warning(<span class="string">"Child {} failed with {}, attempting restart..."</span>, sender().path.name,   // actor的名字
+                    ex.getMessage)
+                Restart
+}
+</code></pre><p>同时注意,在使用logger时应该总是使用 <code>{}</code>进行格式化,而不是 <code>s&quot;&quot;</code>的方式:</p>
+<pre><code>log.<span class="function"><span class="title">debug</span><span class="params">(<span class="string">"Something heavy {} from {}"</span>, generateId, physicalAddress)</span></span>
+</code></pre><h2 id="Matrix_of_mutalility(Pain)">Matrix of mutalility(Pain)</h2><p>各种可变性的使用效果:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Item</th>
+<th style="text-align:left">Imutable</th>
+<th style="text-align:left">Mutable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Val</td>
+<td style="text-align:left">最好</td>
+<td style="text-align:left">尽量不用</td>
+</tr>
+<tr>
+<td style="text-align:left">var</td>
+<td style="text-align:left">可以使用</td>
+<td style="text-align:left">绝对不能</td>
+</tr>
+</tbody>
+</table>
+<p>比如:</p>
+<pre><code><span class="variable"><span class="keyword">val</span> people</span>:List[Person]
+<span class="variable"><span class="keyword">val</span> people</span>: mutable.ListBuffer[Person]
+<span class="variable"><span class="keyword">var</span> people</span>: List[Persion]
+<span class="variable"><span class="keyword">var</span> people</span>:mutable.ListBuffer[Person]   <span class="comment">// 不能这样使用</span>
+</code></pre><h2 id="Blocking_needs_careful_management">Blocking needs careful management</h2><p>阻塞本身来说是没有好处的,因为相比于做别的事情,阻塞时什么也不做就只是在等待,浪费CPU时间.</p>
+<p>下面的例子:</p>
+<pre><code>// BAD<span class="comment">! (不要在Future中进行阻塞操作):</span>
+<span class="type">implicit</span> val defaultDispatcher = system.dispatcher
+val routes: Route = post { 
+    complete {
+        Future { // 使用了默认的Dispatcher 
+            Thread.sleep(<span class="number">5000</span>)                      // will block on the <span class="keyword">default</span> dispatcher, 
+            System.currentTimeMillis().toString     // starving the routing infra
+        }   
+    }
+}
+</code></pre><p>我们可以单独在<code>application.conf</code>中配置一个dispatcher设置供阻塞的Future使用:</p>
+<pre><code><span class="pi">// application.conf
+my-blocking-dispatcher {
+type = Dispatcher
+executor = “thread-pool-executor"
+thread-pool-executor {
+    //</span> <span class="keyword">in</span> Akka previous <span class="keyword">to</span> <span class="number">2.4</span>.<span class="number">2</span>: 
+    core-pool-size-min = <span class="number">16</span> 
+    core-pool-size-max = <span class="number">16</span> 
+    max-pool-size-min = <span class="number">16</span> 
+    max-pool-size-max = <span class="number">16</span>
+
+    // <span class="keyword">or</span> <span class="keyword">in</span> Akka <span class="number">2.4</span>.<span class="number">2</span>+
+    fixed-pool-size = <span class="number">16</span>
+  }
+  throughput = <span class="number">100</span>
+}
+</code></pre><p>然后在导入dispatcher时进行指定:</p>
+<pre><code><span class="comment">// GOOD (due to the blocking on a dedicated dispatcher):</span>
+<span class="keyword">implicit</span> <span class="function"><span class="keyword">val</span> <span class="title">blockingDispatcher</span> =</span> system.dispatchers.lookup(<span class="string">"my-blocking-dispatcher"</span>)
+<span class="function"><span class="keyword">val</span> <span class="title">routes</span>:</span> <span class="type">Route</span> = post { 
+    complete {
+        <span class="type">Future</span> {        <span class="comment">// uses the good "blocking dispatcher" that we configured,</span>
+                        <span class="comment">// instead of the default dispatcher – the blocking is isolated.</span>
+            <span class="type">Thread</span>.sleep(<span class="number">5000</span>)
+            <span class="type">System</span>.currentTimeMillis().toString 
+        }
+    } 
+}
+</code></pre><p>在Future中使用阻塞代码时,并不意味着这段代码就不阻塞了,而是表示阻塞不会发生在当前线程,这时候要确认Future使用的线程池是否真的够用.</p>
+<h2 id="Never_Await,_for/flatMap_instead">Never Await, for/flatMap instead</h2><p>不使用 <code>Await</code>,而是使用 <code>for/flatMap</code>来获取Future的结果:</p>
+<pre><code>// ... extends <span class="type">Actor</span> {
+<span class="keyword">import</span> context.dispatcher
+<span class="keyword">import</span> scala.concurrent.duration._
+<span class="keyword">import</span> scala.concurrent.<span class="type">Await</span> // bad sign!
+// <span class="type">BAD</span>!!!
+val fThings: <span class="type">Future</span>[<span class="type">Things</span>] = computeThings()
+val t: <span class="type">Things</span> = <span class="type">Await</span>.<span class="literal">result</span>(fThings, atMost = <span class="number">3</span>.seconds)
+val d: <span class="type">Details</span> = <span class="type">Await</span>.<span class="literal">result</span>(moreDetailsFor(t), atMost = <span class="number">3</span>.seconds)
+
+// <span class="type">Good</span>:
+val fThingsWithDetails = <span class="keyword">for</span> { 
+    t &lt;- computeThings()
+    d &lt;- moreDetailsFor(t)
+} <span class="keyword">yield</span> t -&gt; d
+
+fThingsWithDetails foreach {
+    <span class="keyword">case</span> (things, details) =&gt; // <span class="keyword">case</span> (things: <span class="type">Things</span>, details: <span class="type">Details</span>) =&gt;
+        println(<span class="string">s"$things with $details"</span>) 
+}
+</code></pre><p>或者为Future的计算添加超时:</p>
+<pre><code><span class="comment">// adding timeout:</span>
+val timeoutFuture = akka.pattern.after(<span class="number">3.</span>seconds, context.system.scheduler) { 
+    Future.failed(<span class="keyword">new</span> TimeoutException(<span class="string">"My timeout details..."</span>))
+}
+Future.firstCompletedOf(<span class="string">fThingsWithDetails :</span>: <span class="string">timeoutFuture :</span>: Nil) foreach { 
+    <span class="keyword">case</span> (things, details) =&gt; <span class="comment">// case (things: Things, details: Details) =&gt;</span>
+        println(s<span class="string">"$things with $details"</span>) 
+}
+</code></pre><h2 id="Avoid_Java_Serialization">Avoid Java Serialization</h2><p>Akka中默认的序列化模块由Java提供,通常默认就会使用它来处理消息的序列化,因为不需要任何配置.</p>
+<p>如果需要更高的性能或者运行一个拥有大规模节点的集群,这时就需要对序列化进行配置.</p>
+<p>比较流行的是ProtoBuf和Kryo.ProtoBuf不容易维护但是模式比较利于扩展,Kryo则相反.</p>
+<p>配置序列化支持:</p>
+<pre><code><span class="comment">// dependencies</span>
+<span class="string">"com.github.romix.akka"</span> <span class="variable">%%</span> <span class="string">"akka-kryo-serialization"</span> % <span class="string">"0.4.0"</span>
+<span class="comment">// application.conf</span>
+extensions = [<span class="string">"com.romix.akka.serialization.kryo.KryoSerializationExtension$"</span>]  
+serializers {  
+    java = <span class="string">"akka.serialization.JavaSerializer"</span>
+    kryo = <span class="string">"com.romix.akka.serialization.kryo.KryoSerializer"</span>  
+}
+akka.actor.serialization-bindings { 
+    <span class="string">"com.mycompany.Example"</span>: kryo 
+    ...
+}
+</code></pre><p>消息通常会在服务中保持一段时间,如果消息很多则会占用大量内存,特别是默认的java序列器,如果需要易于维护的扩展方式并且兼容,使用JSON或者ProtocolBuffers都是比较推荐的,甚至是Thrift.</p>
+<h3 id="Trust_no-one,_benchmark_ererything!">Trust no-one, benchmark ererything!</h3><p>性能测试通常难于实行,需要选择合适的工具:</p>
+<ol>
+<li>JMH (for Scala via: ktoso/sbt-jmh) </li>
+<li>YourKit / JProfiler / …</li>
+<li>Linux perf_events</li>
+</ol>
+<h2 id="Let_it_Crash">Let it Crash</h2><p>Error: 通常是预期的,并且是通过编码实现的条件.比如在对输入进行验证的时候发现一个错误,这是这个错误就会同时到客户端.</p>
+<p>Failure: 通常是一个不可预期的事件,在服务中阻止提供正常的功能.一个Failure通常会阻止当前访问,甚至是后来的所有客户端请求.</p>
+<h2 id="Backoff_Superivision">Backoff Superivision</h2><p>原则是尽管让他崩溃,然后优雅的进行恢复.合理的设置监管策略,覆写父actor的supervisorStrategy来针对各种异常做出正确的处理.</p>
+<p>在策略中支持的4中不同的处理方式:</p>
+<ol>
+<li>Resume the subordinate, keeping its accumulated internal state</li>
+<li>Restart the subordinate, clearing out its accumulated internal state</li>
+<li>Stop the subordinate permanently</li>
+<li>Escalate the failure, thereby failing itself</li>
+</ol>
+<p>可以查看Akka文档中详细的<a href="http://doc.akka.io/docs/akka/2.4.2/general/supervision.html" title="处理方式" target="_blank" rel="external">处理方式</a>.</p>
+<h2 id="Design_using_State_Machines">Design using State Machines</h2><p>针对一个actor中多种不同的处理逻辑,可以进行分类并切分,然后在不同的状态之间切换:</p>
+<pre><code>def receive = { <span class="function"><span class="keyword">case</span> <span class="title">Thingy</span>(<span class="params"></span>) </span>=&gt;
+    <span class="comment">// ...</span>
+    <span class="function"><span class="keyword">case</span> <span class="title">AnotherThingy</span>(<span class="params"></span>) </span>=&gt; <span class="comment">// ...</span>
+    <span class="function"><span class="keyword">case</span> <span class="title">DoOtherThings</span>(<span class="params"></span>) </span>=&gt; <span class="comment">// ...</span>
+    <span class="function"><span class="keyword">case</span> <span class="title">PleaseGoAway</span>(<span class="params"></span>) </span>=&gt; <span class="comment">// ...</span>
+    <span class="function"><span class="keyword">case</span> <span class="title">CarryOn</span>(<span class="params"></span>) </span>=&gt; <span class="comment">// ...</span>
+    <span class="function"><span class="keyword">case</span> <span class="title">MakeSomething</span>(<span class="params"></span>) </span>=&gt; <span class="comment">// ...</span>
+    <span class="comment">// ...</span>
+}
+
+def receive = awaitingInstructions
+
+def awaitingInstructions: Receive = terminationHandling orElse {
+    <span class="function"><span class="keyword">case</span> <span class="title">CarryOn</span>(<span class="params"></span>) </span>=&gt; <span class="comment">// ...</span>
+    <span class="function"><span class="keyword">case</span> <span class="title">MakeSomething</span>(<span class="params">metadata</span>) </span>=&gt; 
+        <span class="comment">// ...</span>
+        <span class="function">context become <span class="title">makeThings</span>(<span class="params">meta</span>)
+}
+def <span class="title">makeThings</span>(<span class="params">metadata: Metadata</span>): Receive </span>= terminationHandling orElse {
+    <span class="function"><span class="keyword">case</span> <span class="title">Thingy</span>(<span class="params"></span>) </span>=&gt;
+        <span class="comment">// make a thingy ...</span>
+    <span class="function"><span class="keyword">case</span> <span class="title">AnotherThingy</span>(<span class="params"></span>) </span>=&gt;
+        <span class="comment">// make another thingy ...</span>
+    <span class="function"><span class="keyword">case</span> <span class="title">DoOtherThings</span>(<span class="params">meta</span>) </span>=&gt; <span class="comment">// ...</span>
+      context become awaitingInstructions
+}
+def terminationHandling: Receive = { 
+    <span class="function"><span class="keyword">case</span> <span class="title">PleaseGoAway</span>(<span class="params"></span>) </span>=&gt;
+        <span class="comment">// ...</span>
+        context stop self
+}
+</code></pre><p>或者在有些合适的场合使用FSM:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="type">Buncher</span> extends <span class="type">FSM</span>[<span class="type">State</span>, <span class="type">Data</span>] {
+
+    startWith<span class="container">(<span class="type">Idle</span>, <span class="type">Uninitialized</span>)</span>
+
+    when<span class="container">(<span class="type">Idle</span>)</span> {
+        case <span class="type">Event</span><span class="container">(<span class="type">SetTarget(ref)</span>, <span class="type">Uninitialized</span>)</span> =&gt;
+            stay using <span class="type">Todo</span><span class="container">(<span class="title">ref</span>, <span class="type">Vector</span>.<span class="title">empty</span>)</span> 
+    }
+
+    // transition elided ...
+    when<span class="container">(<span class="type">Active</span>, <span class="title">stateTimeout</span> = 1 <span class="title">second</span>)</span> {
+        case <span class="type">Event</span><span class="container">(<span class="type">Flush</span> | <span class="type">StateTimeout</span>, <span class="title">t</span>: <span class="type">Todo</span>)</span> =&gt;
+            goto<span class="container">(<span class="type">Idle</span>)</span> using t.copy<span class="container">(<span class="title">queue</span> = <span class="type">Vector</span>.<span class="title">empty</span>)</span> 
+    }
+
+    // unhandled elided ...
+
+    initialize<span class="container">()</span> 
+}</span>
+</code></pre><h2 id="Cluster_Convergence_and_Joining">Cluster Convergence and Joining</h2><p><code>When a node can prove that the cluster state it is observing has been observed by all other nodes in the cluster.</code></p>
+<p>如果一个节点能够观察集群的状态,它的状态同时也被其他节点观察到了.</p>
+<p>Convergence is required for “Leader actions”, which include Join-ing and Remove-ing a node.<br>Down-ing can happen without convergence.</p>
+<p>In order to guarantee consistency via “single writer principle”.</p>
+<p>Akka Distributed Data has no need for “single writer”, it’s CRDT based. But it’s harder to model things as CRDT, so it’s a trade off.</p>
+<h2 id="Cluster_Partitions_and_Down">Cluster Partitions and Down</h2><h2 id="Akka_is_a_Tookkit">Akka is a Tookkit</h2><p>Future: Single value, no streaming by definition. Local abstraction. Execution contexts.</p>
+<p>Strems: Mostly static processing layouts. Well typed and Back-pressured!</p>
+<p>Akka Typed: Plain Actor’s younger brother, experimental. Location transparent, well typed.Technically unconstrained in actions performed.</p>
+<p>Akka Actor: Location transparent.Various resilience mechanisms. (watching, persistent recovering, migration, pools)Untyped and unconstrained in actions performed.</p>
+<p>Akka Persistence is specifically geared towards Event Sourcing.</p>
+<p>If you know you you want a raw Key-Value Store and do not need Event Sourcing’s capabilities, don’t use Akka Persistence – it would be the wrong tool for the job.</p>
+<p>If you use it for Event Sourcing though… it’ll work very well for you. There it is the right tool for the job.</p>
+<p><a href="link" title="Konrad `@ktosopl` Malawski @ Tokyo, Scala Matsuri 2016">Konrad <code>@ktosopl</code> Malawski @ Tokyo, Scala Matsuri 2016</a></p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Akka/" rel="tag">#Akka</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/21/Matrix-Factorization-on-Spark/" rel="next">Matrix Factorization on Spark</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">105</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#One_actor_is_no_Actor"><span class="nav-number">1.</span> <span class="nav-text">One actor is no Actor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Structure_your_Actors"><span class="nav-number">2.</span> <span class="nav-text">Structure your Actors</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Name_your_Actors"><span class="nav-number">3.</span> <span class="nav-text">Name your Actors</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Matrix_of_mutalility(Pain)"><span class="nav-number">4.</span> <span class="nav-text">Matrix of mutalility(Pain)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Blocking_needs_careful_management"><span class="nav-number">5.</span> <span class="nav-text">Blocking needs careful management</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Never_Await,_for/flatMap_instead"><span class="nav-number">6.</span> <span class="nav-text">Never Await, for/flatMap instead</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Avoid_Java_Serialization"><span class="nav-number">7.</span> <span class="nav-text">Avoid Java Serialization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Trust_no-one,_benchmark_ererything!"><span class="nav-number">7.1.</span> <span class="nav-text">Trust no-one, benchmark ererything!</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Let_it_Crash"><span class="nav-number">8.</span> <span class="nav-text">Let it Crash</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Backoff_Superivision"><span class="nav-number">9.</span> <span class="nav-text">Backoff Superivision</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Design_using_State_Machines"><span class="nav-number">10.</span> <span class="nav-text">Design using State Machines</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Convergence_and_Joining"><span class="nav-number">11.</span> <span class="nav-text">Cluster Convergence and Joining</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Partitions_and_Down"><span class="nav-number">12.</span> <span class="nav-text">Cluster Partitions and Down</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Akka_is_a_Tookkit"><span class="nav-number">13.</span> <span class="nav-text">Akka is a Tookkit</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

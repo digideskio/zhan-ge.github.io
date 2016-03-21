@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="Akka," />
+  <meta name="keywords" content="Spark," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="Akka在生产环境中的部署">
+<meta name="description" content="Spark-MLlib中的矩阵分解.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Do's and Dont's When Deploying Akka in Production">
-<meta property="og:url" content="http://yoursite.com/2016/03/13/Do-s-and-Dont-s-When-Deploying-Akka-in-Production/index.html">
+<meta property="og:title" content="Matrix Factorization on Spark">
+<meta property="og:url" content="http://yoursite.com/2016/03/21/Matrix-Factorization-on-Spark/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Akka在生产环境中的部署">
-<meta property="og:updated_time" content="2016-03-13T06:39:00.000Z">
+<meta property="og:description" content="Spark-MLlib中的矩阵分解.">
+<meta property="og:updated_time" content="2016-03-21T13:36:03.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Do's and Dont's When Deploying Akka in Production">
-<meta name="twitter:description" content="Akka在生产环境中的部署">
+<meta name="twitter:title" content="Matrix Factorization on Spark">
+<meta name="twitter:description" content="Spark-MLlib中的矩阵分解.">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Do's and Dont's When Deploying Akka in Production | Hexo </title>
+  <title> Matrix Factorization on Spark | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Do's and Dont's When Deploying Akka in Production
+              Matrix Factorization on Spark
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2016-03-13T14:32:33+08:00" content="2016-03-13">
-            2016-03-13
+          <time itemprop="dateCreated" datetime="2016-03-21T20:51:11+08:00" content="2016-03-21">
+            2016-03-21
           </time>
         </span>
 
@@ -185,9 +185,55 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="Architecture,架构">Architecture,架构</h2><p>一般应用的基本架构通常被领域所驱动,基础设施中如果使用了Akka,同样需要注意一些事项.</p>
-<p><a href="http://boldradius.com/blog-post/U-jexSsAACwA_8nr/dos-and-donts-when-deploying-akka-in-production" title="Do&#39;s and Dont&#39;s When Deploying Akka in Production" target="_blank" rel="external">Do’s and Dont’s When Deploying Akka in Production</a></p>
-</span>
+        <span itemprop="articleBody"><h2 id="显式矩阵分解">显式矩阵分解</h2><p>当要处理的数据是由用户提供的自身的偏好数据,这些数据被称为显式偏好数据.包含用户ID,物品ID,评分.</p>
+<p>将其转换为以用户为行,物品为列的二维矩阵,矩阵中的每个数据表示某个用户对某个物品的偏好值.通常用户看过或评价过的物品只有很少一部分,因此该矩阵是一个稀疏矩阵.</p>
+<p>通过使用矩阵分解的方式进行降维,具体就是找出两个低纬度的矩阵,使其乘积是原有矩阵.</p>
+<p>比如当前用户和物品的数目分别是U和I,对应的”用户-物品”矩阵为 U X I, 要找到和该矩阵近似的k维矩阵,最终要求出如下两个矩阵: 一个用于表示用户的 U X k维矩阵,一个用于表示物品的 I X k维矩阵.二者的乘积便是原始 “用户-物品”矩阵的近似,这两个矩阵称为因子矩阵,并且是稠密矩阵.</p>
+<p>这类模型试图发现对应 “用户-物品” 矩阵内在行为结构的隐含特征(即因子矩阵),所以也被称为隐特征模型.隐含特征不能被直接解释,但他可能表示了某些含义,比如对某种物品的偏好.</p>
+<p>由于是对”用户-物品”矩阵的直接建模,用这些模型进行预测也相对简单:要计算给定用户对某个物品的预计偏好值,就从用户因子矩阵和物品因子矩阵分别选取相应的行和列,然后计算两者点积.</p>
+<p>物品之间相似度的计算,可以用近邻模型中用到的相似度计算,或者这里可以利用物品因子向量,将相似度计算转换为对两物品因子向量之间相似度的计算.</p>
+<h2 id="隐式矩阵分解">隐式矩阵分解</h2><p>这类数据中,用户对物品的偏好值不会直接给出,而是隐含在用户与物品的交互中.比如二元数据(用户是否观看了电影)和计数数据(看了几次这部电影).</p>
+<p>MLlib中实现的方法是,将输入的评级数据视为两个矩阵,一个二元偏好矩阵P,以及一个信心权重矩阵C.P中表示用户是否对该物品有偏好值,C中表示用户对该物品的偏好值程度(比如看了3次电影为3).</p>
+<p>隐式模型仍然会创建一个用户因子矩阵和一个物品因子矩阵,但是模型所求解的是偏好矩阵而不是评级矩阵的近似.同样,此时用户因子向量和物品因子向量的点积得到的分数也不再是对一个评级的估值,而是某个用户对某个物品偏好值的估值.</p>
+<h2 id="最小二乘法(ALS)">最小二乘法(ALS)</h2><p>是一种求解矩阵分解问题的最优方法,功能强大效果理想切利于并行化.其实现原理是迭代式求解一系列最小二乘回归问题,每一次迭代时,固定用户因子矩阵或物品因子矩阵中的一个,然后用固定的这个矩阵及评分数据来更新另一个矩阵,之后,被更新的矩阵被固定住,再更新另外一个矩阵.如此迭代,知道模型收敛(或是迭代到预设的次数).</p>
+<h2 id="提取有效特征">提取有效特征</h2><pre><code><span class="function"><span class="keyword">val</span> <span class="title">rawData</span> =</span> sc.textFile(<span class="string">"/PATH/ml-100k/u.data"</span>)       <span class="comment">// 加载数据</span>
+<span class="function"><span class="keyword">val</span> <span class="title">rawRatings</span> =</span> rawData.map(_.split(<span class="string">"\t"</span>).take(<span class="number">3</span>))     <span class="comment">// 提取需要的数据,用户,物品,偏好值</span>
+<span class="function"><span class="keyword">val</span> <span class="title">ratings</span> =</span> rawRatings.map {                          <span class="comment">// 将初始数据转化为 Rating对象构成的RDD</span>
+    <span class="keyword">case</span> <span class="type">Array</span>(user, movie, rating) =&gt; <span class="type">Rating</span>(user.toInt, movie.toInt, rating.toDouble) 
+}
+</code></pre><h2 id="训练推荐模型">训练推荐模型</h2><p>训练模型时需要提供的参数:</p>
+<ol>
+<li>rank: 对应ALS模型中的因子参数,也就是在低阶近似矩阵中的隐含特征个数.一般越多越好,但会影响训练和保存时的内存开销,特表示用户物品量大,一般取10-200.</li>
+<li>iterations: 对应运行时的迭代次数.ALS能确保每次迭代都能降低评级矩阵的重建误差,但一般少数次迭代后ALS模型便已收敛为一个比较合理的好模型,一般为10次.</li>
+<li>lambda: 该参数控制模型的正则化过程.从而控制模型的过拟合情况,其值越高,正则化越厉害.参数大小与数据大小,特征和稀疏程度有关.一般通过非样本的测试数据进行交叉验证来调整.</li>
+</ol>
+<p>训练模型:</p>
+<pre><code>val model = ALS.train(ratings, <span class="number">50</span>, <span class="number">10</span>, <span class="number">0.01</span>)
+</code></pre><p>上述代码返回一个MatrixFactorizationModel对象,将对象因子和物品因子分别保存在一个(id,factor)对的RDD中,分别为userFeatures和productFeatures.</p>
+<pre><code><span class="tag">model</span><span class="class">.userFeatures</span>
+<span class="tag">model</span><span class="class">.productFeatures</span>
+</code></pre><h3 id="使用隐式反馈数据训练模型">使用隐式反馈数据训练模型</h3><p>训练隐式反馈数据时使用trainImplicit方法,调用方式多了一个可设置的alpha参数,是一个正则化参数.alpha参数指定了信心权重所应达到的基准线,该值越高则所训练出的模型越认为用户与他所没评级过的电影之间没有相关性.</p>
+<h2 id="使用推荐模型">使用推荐模型</h2><p>MatrixFactorizationModel类提供了一个predict方法,以计算给定用户对物品的预计评分:</p>
+<pre><code>val predictedRating = model.<span class="function"><span class="title">predict</span><span class="params">(<span class="number">789</span>, <span class="number">123</span>)</span></span>
+<span class="comment">// predictedRating: Double = 3.128545693368485</span>
+</code></pre><p>predict方法同样可以使用(user,item)ID对类型的RDD对象作为输入,会得到对每一对的预测评分,以同时为多个用户和物品提供评分.</p>
+<p>要为某个用户提供前K个物品的推荐,可以使用MatrixFactorizationModel类提供的recommendProducts方法.接收两个参数,user和num.</p>
+<pre><code>val userId = <span class="number">789</span> 
+val K = <span class="number">10</span> 
+val topKRecs = model.<span class="function"><span class="title">recommendProducts</span><span class="params">(userId, K)</span></span>
+
+<span class="function"><span class="title">Rating</span><span class="params">(<span class="number">789</span>,<span class="number">715</span>,<span class="number">5.931851273771102</span>)</span></span> 
+<span class="function"><span class="title">Rating</span><span class="params">(<span class="number">789</span>,<span class="number">12</span>,<span class="number">5.582301095666215</span>)</span></span> 
+<span class="function"><span class="title">Rating</span><span class="params">(<span class="number">789</span>,<span class="number">959</span>,<span class="number">5.516272981542168</span>)</span></span> 
+<span class="function"><span class="title">Rating</span><span class="params">(<span class="number">789</span>,<span class="number">42</span>,<span class="number">5.458065302395629</span>)</span></span> 
+<span class="function"><span class="title">Rating</span><span class="params">(<span class="number">789</span>,<span class="number">584</span>,<span class="number">5.449949837103569</span>)</span></span> 
+<span class="function"><span class="title">Rating</span><span class="params">(<span class="number">789</span>,<span class="number">750</span>,<span class="number">5.348768847643657</span>)</span></span> 
+<span class="function"><span class="title">Rating</span><span class="params">(<span class="number">789</span>,<span class="number">663</span>,<span class="number">5.30832117499004</span>)</span></span> 
+<span class="function"><span class="title">Rating</span><span class="params">(<span class="number">789</span>,<span class="number">134</span>,<span class="number">5.278933936827717</span>)</span></span> 
+<span class="function"><span class="title">Rating</span><span class="params">(<span class="number">789</span>,<span class="number">156</span>,<span class="number">5.250959077906759</span>)</span></span> 
+<span class="function"><span class="title">Rating</span><span class="params">(<span class="number">789</span>,<span class="number">432</span>,<span class="number">5.169863417126231</span>)</span></span>
+</code></pre><p>同时根据用户原有的评分数据进行对比,以检验推荐结果.</p>
+<h2 id="推荐模型效果的评估">推荐模型效果的评估</h2></span>
       
     </div>
 
@@ -195,7 +241,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Akka/" rel="tag">#Akka</a>
+            <a href="/tags/Spark/" rel="tag">#Spark</a>
           
         </div>
       
@@ -204,13 +250,13 @@
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2016/03/14/Recommendation-System/" rel="prev">Recommendation System</a>
+              <a href="/2016/03/21/Simple-Akka-Zen-of-Akka/" rel="prev">Simple Akka: Zen of Akka</a>
             
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2016/03/13/How-to-start-with-Akka-stream/" rel="next">How to start with Akka-stream</a>
+              <a href="/2016/03/20/Simple-Play2-Play-Json/" rel="next">Simple Play2: Play Json</a>
             
           </div>
         </div>
@@ -314,7 +360,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Architecture,架构"><span class="nav-number">1.</span> <span class="nav-text">Architecture,架构</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#显式矩阵分解"><span class="nav-number">1.</span> <span class="nav-text">显式矩阵分解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#隐式矩阵分解"><span class="nav-number">2.</span> <span class="nav-text">隐式矩阵分解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最小二乘法(ALS)"><span class="nav-number">3.</span> <span class="nav-text">最小二乘法(ALS)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#提取有效特征"><span class="nav-number">4.</span> <span class="nav-text">提取有效特征</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#训练推荐模型"><span class="nav-number">5.</span> <span class="nav-text">训练推荐模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#使用隐式反馈数据训练模型"><span class="nav-number">5.1.</span> <span class="nav-text">使用隐式反馈数据训练模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用推荐模型"><span class="nav-number">6.</span> <span class="nav-text">使用推荐模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#推荐模型效果的评估"><span class="nav-number">7.</span> <span class="nav-text">推荐模型效果的评估</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
