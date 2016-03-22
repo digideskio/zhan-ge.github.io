@@ -1,0 +1,685 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="PostgreSQL," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="PostgreSQL即学即用总结.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple PostgreSQL: Up and Running">
+<meta property="og:url" content="http://yoursite.com/2016/03/22/Simple-PostgreSQL-Up-and-Running/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="PostgreSQL即学即用总结.">
+<meta property="og:updated_time" content="2016-03-22T15:44:19.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple PostgreSQL: Up and Running">
+<meta name="twitter:description" content="PostgreSQL即学即用总结.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple PostgreSQL: Up and Running | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple PostgreSQL: Up and Running
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-22T22:18:03+08:00" content="2016-03-22">
+            2016-03-22
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="配置文件">配置文件</h2><ol>
+<li>postgresql.conf: 包含通用设置,比如内存分配,新建database的默认存储位置,服务器IP地址,日志位置以及其他基本配置.</li>
+<li>pg_hba.conf: 用于控制访问安全性,管理客户端对PostgreSQL服务器的访问权限,包括: 允许那些用户连接到哪个数据库,允许那些IP访问服务器,以及连接时使用的身份验证模式.</li>
+<li>pg_ident.conf: pg_hba.conf的控制权限信息中的身份验证模式字段如果指定为ident模式,则用户连接时,系统会尝试访问pg_ident.conf文件,如果该文件存在,则系统会基于文件内容将当前执行登录操作的操作系统用户映射为一个PostgreSQL数据库内部用户的身份来登录.</li>
+</ol>
+<h3 id="postgresql-conf">postgresql.conf</h3><ol>
+<li>listen_address: 当前服务使用的IP地址,一般为localhost,local,或 <code>*</code>.</li>
+<li>port: 服务侦听的端口号,默认5432.</li>
+<li>max_connections: 系统允许的最大并发连接数.</li>
+<li>shared_buffers: 此设置定义了用户缓存最近访问过的数据页的内存区大小,所有用户会话均可共享此缓存区.一般越大越好,最少达到系统内存的25%,但不宜超过8GB,超过后将出现边际收益递减效应.</li>
+<li>effective_cache_size: 此设置表示一个查询执行过程中可以使用的最大缓存,包括操作系统使用的部分和数据库使用的部分.一般设置为系统内存的一半或更多.</li>
+<li>work_mem: 此设置指定了用于执行排序,哈希关联,表扫描等操作的最大内存量.</li>
+<li>maintenance_work_mem: 此设置指定可用于vaccum操作这类系统内部维护操作的内存总量,不应大于1GB.</li>
+</ol>
+<p>如果由于系统异常关闭而遗留的postmaster.pid文件,可以手动删除然后重启服务.</p>
+<h3 id="pg_hba-conf">pg_hba.conf</h3><pre><code><span class="preprocessor"># TYPE DATABASE USER ADDRESS METHOD </span>
+<span class="preprocessor"># IPv4 local connections: </span>
+host all all <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>/<span class="number">32</span> ident ➊ 
+<span class="preprocessor"># IPv6 local connections: </span>
+host all all ::<span class="number">1</span>/<span class="number">128</span> ➋ trust 
+host all all <span class="number">192.168</span><span class="number">.54</span><span class="number">.0</span>/<span class="number">24</span> ➌ md5 
+hostssl ➍ all all <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">0</span> md5 
+<span class="preprocessor"># Allow replication connections from localhost, by a user with the ➎ </span>
+<span class="preprocessor"># replication privilege. </span>
+<span class="preprocessor">#host replication postgres <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>/<span class="number">32</span> trust </span>
+<span class="preprocessor">#host replication postgres ::<span class="number">1</span>/<span class="number">128</span> trust</span>
+</code></pre><ol>
+<li>身份验证模式,常用的选项有: ident,md5,trust,password.</li>
+<li>用于定义网络范围的IPV6语法.</li>
+<li>用于定义网络范围的IPV4语法.上面的例子表示: 任何一个192.168.54.0子网中的客户端来说,只要提供经md5算法加密的密码是正确的,则允许连接服务.</li>
+<li>针对SSL连接的规则.本例中,任何使用SSL连接并提供合法md5密码的客户端都允许连接服务.</li>
+<li>此处是一套复制系统中其他成员节点的IP列表,每个成员的地址都必须存在于此列表中,否则无法加入该复制系统.</li>
+</ol>
+<p>修改后使用命令进行重新加载:</p>
+<pre><code>service postgresql-<span class="number">9.3</span> reload
+</code></pre><h2 id="连接管理">连接管理</h2><p>取消正在运行的查询并终止连接:</p>
+<ol>
+<li><p>检查活动连接列表和进程ID:</p>
+<pre><code><span class="operator"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> pg_stat_activity;</span>
+</code></pre></li>
+<li><p>取消连接上的活动查询:</p>
+<pre><code>SELECT pg_cancel_backend<span class="list">(<span class="keyword">procid</span>)</span><span class="comment">;</span>
+</code></pre></li>
+<li><p>终止该连接:</p>
+<pre><code>SELECT pg_terminate_backend<span class="list">( <span class="keyword">procid</span> )</span><span class="comment">;</span>
+</code></pre></li>
+</ol>
+<p>或者根据用户进行批量管理:</p>
+<pre><code><span class="operator"><span class="keyword">SELECT</span> pg_terminate_backend(pid) <span class="keyword">FROM</span> pg_stat_activity <span class="keyword">WHERE</span> usename = <span class="string">' some_role '</span>;</span>
+</code></pre><h2 id="角色管理">角色管理</h2><p>PostgreSQL安装过程中会创建一个名为postgres的角色,同时创建一个同名的database.不可将postgres账户提升为操作系统管理员账户.</p>
+<p>创建具备登录权限的角色:</p>
+<pre><code><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">ROLE</span> leo LOGIN <span class="keyword">PASSWORD</span> <span class="string">'king'</span> CREATEDB VALID <span class="keyword">UNTIL</span> <span class="string">'infinity'</span>;</span>
+</code></pre><p>VALID为可选,指权限有效期,默认的infinity为永不过期.CREATEDB表示该角色可以创建数据库.</p>
+<p>创建具备超级用户权限的角色:</p>
+<pre><code><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">ROLE</span> regina LOGIN <span class="keyword">PASSWORD</span> <span class="string">'queen'</span> SUPERUSER VALID <span class="keyword">UNTIL</span> <span class="string">'2020-1-1 00:00'</span>;</span>
+</code></pre><h2 id="创建数据库">创建数据库</h2><pre><code><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> mydb ;</span>
+</code></pre><p>创建数据库时,PostgreSQL默认提供了两个数据库模板,template0和template1,未指定时则默认使用template1.</p>
+<p>基于模板创建数据库:</p>
+<pre><code><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> my_db <span class="keyword">TEMPLATE</span> my_template_db ;</span>
+</code></pre><p>schema用于对database中的对象进行逻辑分组管理.如果创建很多database则管理起来很麻烦,可以通过在一个database中创建不同的schema将数据分组.schema不能重名,不同schema种的对象可以重名.</p>
+<h2 id="扩展包管理">扩展包管理</h2><p>查询已安装的扩展包:</p>
+<pre><code><span class="operator"><span class="keyword">SELECT</span> <span class="keyword">name</span>, default_version, installed_version, <span class="keyword">left</span>(<span class="keyword">comment</span>,<span class="number">30</span>) <span class="keyword">As</span> <span class="keyword">comment</span> <span class="keyword">FROM</span> pg_available_extensions <span class="keyword">WHERE</span> installed_version <span class="keyword">IS</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">ORDER</span> <span class="keyword">BY</span> <span class="keyword">name</span>;</span>
+</code></pre><p>安装扩展包:</p>
+<ol>
+<li><p>将安装包安装到数据库服务器.下载安装包的安装文件以及依赖文件,然后分别将他们复制到操作系统的lib和bin下,同时把SQL脚本文件复制到share/extension文件夹.或者直接通过yum进行安装.查看服务器上已有的扩展包:</p>
+<pre><code><span class="operator"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> pg_available_extensions;</span>
+</code></pre></li>
+<li><p>将扩展包安装到数据库中(&lt;9.1).</p>
+</li>
+<li><p>将扩展包安装到数据库中(&gt;9.1).</p>
+<p> 安装fuzzystrmatch扩展包:</p>
+<pre><code><span class="keyword">CREATE</span> <span class="keyword">EXTENSION</span> fuzzystrmatch;
+</code></pre><p> 或者通过schema安装扩展包,以确保安装包数据与业务数据隔离.建好schema后,通过命令将其指定给待安装的扩展包:</p>
+<pre><code><span class="operator"><span class="keyword">CREATE</span> EXTENSION fuzzystrmatch <span class="keyword">SCHEMA</span> my_extensions;</span>
+</code></pre></li>
+</ol>
+<p>比如常用的添加HSTORE支持,首先进入需要添加扩展的数据库:</p>
+<pre><code><span class="keyword">create</span> <span class="keyword">extension</span> hstore
+</code></pre><p>当然一般需要hstore的时候尽量使用jsonb.</p>
+<h2 id="备份与恢复">备份与恢复</h2><p>pg_dump用于备份指定的database,pg_dumpall用于备份所有database以及系统全局数据.</p>
+<p>备份一个database,备份结果以自定义压缩格式输出:</p>
+<pre><code>pg_dump -h localhost -<span class="tag">p</span> <span class="number">5432</span> -U someuser -F c -<span class="tag">b</span> -v -f mydb <span class="class">.backup</span> mydb
+</code></pre><p>备份结果以SQL文本输出,并且包含CREATE DATABASE语句:</p>
+<pre><code>pg_dump -h localhost -<span class="tag">p</span> <span class="number">5432</span> -U someuser -C -F <span class="tag">p</span> -<span class="tag">b</span> -v -f mydb <span class="class">.backup</span> mydb
+</code></pre><p>备份所有以”pay”开头的表:</p>
+<pre><code><span class="label">pg_dump</span> -h localhost -p <span class="number">5432</span> -U someuser -F c -<span class="keyword">b </span>-v -t *.pay* -f pay .<span class="keyword">backup </span>myd
+</code></pre><p>备份hr和payroll两个schema中的所有数据:</p>
+<pre><code>pg_dump -h localhost -<span class="tag">p</span> <span class="number">5432</span> -U someuser -F c -<span class="tag">b</span> -v -n hr -n payroll -f hr <span class="class">.back-</span> up mydb
+</code></pre><p>备份除了public schema意外的所有数据:</p>
+<pre><code>pg_dump -h localhost -<span class="tag">p</span> <span class="number">5432</span> -U someuser -F c -<span class="tag">b</span> -v -N public -f all_sch_ex cept_pub <span class="class">.backup</span> mydb
+</code></pre><p>恢复一个SQL备份文件并忽略过程中的错误:</p>
+<pre><code>psql -U postgres <span class="operator">-f</span> myglobals.sql
+</code></pre><p>恢复一个SQL备份文件,遇到错误则停止:</p>
+<pre><code>psql -<span class="keyword">U</span> postgres --<span class="keyword">set</span> ON_ERROR_STOP=<span class="keyword">on</span> -f myglobals.sql
+</code></pre><p>将SQL中的数据恢复到指定的database:</p>
+<pre><code>psql -U postgres <span class="operator">-d</span> mydb <span class="operator">-f</span> select_objects.sql
+</code></pre><h2 id="约束与索引">约束与索引</h2><h3 id="外键约束">外键约束</h3><ol>
+<li>一旦建立约束关系,如果主表中不存在约束键的记录,则引用表就不能够插入</li>
+<li>定义级联规则,当主表的约束键发生变化,则引用表会自动进行修改,如果从表中还存在相关约束键的记录,则主表中对应的记录不能够删除.(ON UPDATE CASCADE ON DELETE RESTRICT)</li>
+<li>在建立主键约束和唯一约束时会自动创建索引,大会外键约束在不会创建索引.需要手动创建索引以加速关联引用时的查询速度.</li>
+</ol>
+<h3 id="唯一约束">唯一约束</h3><p>创建唯一约束会自动创建索引,支持多字段联合唯一.</p>
+<h3 id="check约束">check约束</h3><p>对表的一个或多个字段添加一个条件,表中每一行都必须满足该条件.</p>
+<h3 id="排他性约束">排他性约束</h3><h3 id="索引">索引</h3><ol>
+<li>B-树索引: 主键约束和唯一约束自动创建的就是B-树索引.</li>
+<li>GiST索引: 通用搜索树.适用于全文搜索,空间数据,科学数据,非结构化数据和层次化数据的搜索.</li>
+<li>GIN索引: 通用逆序索引.适用于内置的全文搜索引擎和jsonb数据类型.</li>
+<li>SP-GiST索引: 基于空间分区树算法的GiST索引.与GiST索引使用范围相同.</li>
+<li>哈希索引: 不推荐.</li>
+<li>基于B-树算法的GiST和GIN索引: 混合算法索引.支持多种特性.</li>
+</ol>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/PostgreSQL/" rel="tag">#PostgreSQL</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/21/Simple-Akka-Zen-of-Akka/" rel="next">Simple Akka: Zen of Akka</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">106</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置文件"><span class="nav-number">1.</span> <span class="nav-text">配置文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#postgresql-conf"><span class="nav-number">1.1.</span> <span class="nav-text">postgresql.conf</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pg_hba-conf"><span class="nav-number">1.2.</span> <span class="nav-text">pg_hba.conf</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#连接管理"><span class="nav-number">2.</span> <span class="nav-text">连接管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#角色管理"><span class="nav-number">3.</span> <span class="nav-text">角色管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建数据库"><span class="nav-number">4.</span> <span class="nav-text">创建数据库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#扩展包管理"><span class="nav-number">5.</span> <span class="nav-text">扩展包管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#备份与恢复"><span class="nav-number">6.</span> <span class="nav-text">备份与恢复</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#约束与索引"><span class="nav-number">7.</span> <span class="nav-text">约束与索引</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#外键约束"><span class="nav-number">7.1.</span> <span class="nav-text">外键约束</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#唯一约束"><span class="nav-number">7.2.</span> <span class="nav-text">唯一约束</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#check约束"><span class="nav-number">7.3.</span> <span class="nav-text">check约束</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#排他性约束"><span class="nav-number">7.4.</span> <span class="nav-text">排他性约束</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引"><span class="nav-number">7.5.</span> <span class="nav-text">索引</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

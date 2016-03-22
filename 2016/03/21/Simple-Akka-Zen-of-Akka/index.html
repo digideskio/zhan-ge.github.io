@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/21/Simple-Akka-Zen-of-Akka/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Akka之禅.">
-<meta property="og:updated_time" content="2016-03-21T15:57:11.000Z">
+<meta property="og:updated_time" content="2016-03-21T15:58:50.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Akka: Zen of Akka">
 <meta name="twitter:description" content="Akka之禅.">
@@ -441,10 +441,10 @@ def terminationHandling: Receive = {
 }</span>
 </code></pre><h2 id="Cluster_Convergence_and_Joining">Cluster Convergence and Joining</h2><p><code>When a node can prove that the cluster state it is observing has been observed by all other nodes in the cluster.</code></p>
 <p>如果一个节点能够观察集群的状态,它的状态同时也被其他节点观察到了.</p>
-<p>Convergence is required for “Leader actions”, which include Join-ing and Remove-ing a node.<br>Down-ing can happen without convergence.</p>
+<h2 id="Cluster_Partitions_and_Down">Cluster Partitions and Down</h2><p>Convergence is required for “Leader actions”, which include Join-ing and Remove-ing a node.<br>Down-ing can happen without convergence.</p>
 <p>In order to guarantee consistency via “single writer principle”.</p>
 <p>Akka Distributed Data has no need for “single writer”, it’s CRDT based. But it’s harder to model things as CRDT, so it’s a trade off.</p>
-<h2 id="Cluster_Partitions_and_Down">Cluster Partitions and Down</h2><h2 id="Akka_is_a_Tookkit">Akka is a Tookkit</h2><p>Future: Single value, no streaming by definition. Local abstraction. Execution contexts.</p>
+<h2 id="Akka_is_a_Tookkit">Akka is a Tookkit</h2><p>Future: Single value, no streaming by definition. Local abstraction. Execution contexts.</p>
 <p>Strems: Mostly static processing layouts. Well typed and Back-pressured!</p>
 <p>Akka Typed: Plain Actor’s younger brother, experimental. Location transparent, well typed.Technically unconstrained in actions performed.</p>
 <p>Akka Actor: Location transparent.Various resilience mechanisms. (watching, persistent recovering, migration, pools)Untyped and unconstrained in actions performed.</p>
@@ -468,6 +468,8 @@ def terminationHandling: Receive = {
       
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/22/Simple-PostgreSQL-Up-and-Running/" rel="prev">Simple PostgreSQL: Up and Running</a>
             
           </div>
 
@@ -535,7 +537,7 @@ def terminationHandling: Receive = {
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">105</span>
+              <span class="site-state-item-count">106</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>

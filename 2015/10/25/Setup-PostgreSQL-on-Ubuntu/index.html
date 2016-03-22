@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/10/25/Setup-PostgreSQL-on-Ubuntu/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Ubuntu下配置PostgreSQL.">
-<meta property="og:updated_time" content="2015-10-25T13:14:49.000Z">
+<meta property="og:updated_time" content="2016-03-22T13:51:33.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Setup PostgreSQL on Ubuntu">
 <meta name="twitter:description" content="Ubuntu下配置PostgreSQL.">
@@ -228,7 +228,38 @@ root@server2-<span class="keyword">virtual</span>-machine:~<span class="preproce
 查看数据库大小：<span class="operator"><span class="keyword">SELECT</span> pg_size_pretty(pg_database_size(‘data_name’));</span>
 查看表大小：<span class="operator"><span class="keyword">SELECT</span> pg_size_pretty(pg_relation_size(’table_name’));</span>
 退出psql：\q
-</code></pre></span>
+</code></pre><h2 id="迁移数据路径(CentOS,PostgreSQL-9-x)">迁移数据路径(CentOS,PostgreSQL-9.x)</h2><ol>
+<li><p>关闭服务</p>
+<pre><code>/etc/init.d/postgresql-<span class="number">9.4</span> stop
+service postgresql-<span class="number">9.4</span> stop
+</code></pre></li>
+<li><p>挂载数据盘,创建新的数据路径,添加用户权限</p>
+<p> Postgre一般在安装时会自动创建用户postgres,创建新的数据路径后要确保该用户对新路径的访问权限:</p>
+<pre><code>mkdir /data/pgsql-<span class="number">9.4</span>/
+chown postgres pgsql-<span class="number">9.4</span>
+chown <span class="number">0700</span> pgsql-<span class="number">9.4</span>
+</code></pre></li>
+<li><p>复制原始数据</p>
+<p> 将原始数据的data目录复制到新的路径下,同时添加postgres用户访问权限:</p>
+<pre><code>cp -<span class="constant">R</span> /var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span> /<span class="title">data</span>/<span class="title">pgsql</span>-9.4/</span>
+chown -<span class="constant">R</span> postgres /data/
+chmod <span class="number">0700</span> /data/
+</code></pre></li>
+<li><p>切换postgres用户测试访问权限</p>
+<pre><code><span class="keyword">su</span> postgres
+<span class="keyword">cd</span> /data/pgsql-9.4/data
+<span class="keyword">ls</span> -<span class="keyword">l</span>
+</code></pre><p> 上面已经进行了两次用户权限设置,经测试,如果仅在第三步设置权限,则postgres用户并不能访问data目录,从而引起服务启动失败.</p>
+</li>
+<li><p>备份原有数据目录以便恢复,并将新的数据目录建立软连接</p>
+<p> mv /var/lib/pgsql/9.4/data /var/lib/pgsql/9.4/data.backends<br> ln -s /data/pgsql-9.4/data /var/lib/pgsql/9.4/data</p>
+</li>
+<li><p>重新启动服务</p>
+<p> service postgresql-9.4 start<br> /etc/init.d/postgresql-9.4 start</p>
+</li>
+</ol>
+<p>完成数据目录迁移.</p>
+</span>
       
     </div>
 
@@ -313,7 +344,7 @@ root@server2-<span class="keyword">virtual</span>-machine:~<span class="preproce
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">105</span>
+              <span class="site-state-item-count">106</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -355,7 +386,7 @@ root@server2-<span class="keyword">virtual</span>-machine:~<span class="preproce
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装配置"><span class="nav-number">2.</span> <span class="nav-text">安装配置</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装配置"><span class="nav-number">2.</span> <span class="nav-text">安装配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迁移数据路径(CentOS,PostgreSQL-9-x)"><span class="nav-number">3.</span> <span class="nav-text">迁移数据路径(CentOS,PostgreSQL-9.x)</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
