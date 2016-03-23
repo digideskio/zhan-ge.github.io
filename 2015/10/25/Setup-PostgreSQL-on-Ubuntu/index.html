@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/10/25/Setup-PostgreSQL-on-Ubuntu/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Ubuntu下配置PostgreSQL.">
-<meta property="og:updated_time" content="2016-03-22T13:51:33.000Z">
+<meta property="og:updated_time" content="2016-03-23T15:14:54.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Setup PostgreSQL on Ubuntu">
 <meta name="twitter:description" content="Ubuntu下配置PostgreSQL.">
@@ -186,27 +186,27 @@
 
       
         <span itemprop="articleBody"><h2 id="简介">简介</h2><p>在Ubuntu下安装PostgreSQL环境进行测试,Mac客户端使用Navivat图形工具.</p>
-<h2 id="安装配置">安装配置</h2><p>SSH进入远程服务器,使用Ubuntu下的包管理工具apt进行安装:</p>
+<h2 id="安装配置(Ubuntu)">安装配置(Ubuntu)</h2><p>SSH进入远程服务器,使用Ubuntu下的包管理工具apt进行安装:</p>
 <pre><code>apt-get install -y postgresql-<span class="number">9.4</span> postgresql-client-<span class="number">9.4</span> postgresql-contrib-<span class="number">9.4</span> postgresql-server-dev-<span class="number">9.4</span>
 </code></pre><p>安装成功后,修改PostgreSQL数据库的默认用户postgres的密码(注意不是linux系统账户):</p>
 <pre><code>使用psql客户端登陆: sudo -u postgres psql
 修改登陆密码为'postgres': <span class="operator"><span class="keyword">ALTER</span> <span class="keyword">USER</span> postgres <span class="keyword">WITH</span> <span class="keyword">PASSWORD</span> <span class="string">'postgres'</span>;</span>
 退出psql客户端: \q
 </code></pre><p>下面,修改linux系统的postgres用户的密码,密码与数据库用户postgres的密码相同:</p>
-<pre><code>首先删除PostgreSQL用户密码: sudo passwd <span class="operator">-d</span> postgres
-提示为: passwd: password expiry information changed.
-//passwd <span class="operator">-d</span> 是清空指定用户密码的意思
+<pre><code>首先删除PostgreSQL用户密码: sudo passwd -d postgres
+提示为: <span class="string">passwd:</span> password expiry information changed.
+<span class="comment">//passwd -d 是清空指定用户密码的意思</span>
 
 然后设置PostgreSQL用户密码:PostgreSQL数据默认会创建一个linux用户postgres,上面已经修改密码为<span class="string">'postgres'</span>.
 sudo -u postgres passwd
 输入新的 UNIX 密码：
-重新输入新的 UNIX 密码：
+重新输入新的 UNIX 密码：<span class="keyword">new</span> password
 passwd：已成功更新密码
 </code></pre><p>我们就可以在数据库服务器上用 postgres帐号通过psql或者pgAdmin等等客户端操作数据库了.</p>
 <p>最后,修改PostgresSQL数据库配置实现远程访问:</p>
 <pre><code>打开配置文件: vi /etc/postgresql/<span class="number">9.1</span>/main/postgresql.conf
 <span class="number">1.</span>监听任何地址访问，修改连接权限
-<span class="preprocessor">#listen_addresses = ‘localhost’改为 listen_addresses = ‘*’        </span>
+<span class="preprocessor">#listen_addresses = <span class="string">"localhost"</span>改为 listen_addresses = <span class="string">"*"</span>        </span>
 <span class="number">2.</span>启用密码验证
 <span class="preprocessor">#password_encryption = on改为password_encryption = on</span>
 <span class="number">3.</span>可访问的用户ip段
@@ -215,19 +215,56 @@ root@server2-<span class="keyword">virtual</span>-machine:~<span class="preproce
 host all all <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span> <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span> md5
 <span class="number">4.</span>重启PostgreSQL数据库
 root@server2-<span class="keyword">virtual</span>-machine:~<span class="preprocessor"># /etc/init.d/postgresql restart</span>
-</code></pre><p>PostgreSQL常用系统命令:</p>
-<pre><code>重启服务：/etc/init.d/postgresql restart
-管理员登陆：sudo -u postgres psql
-查看版本：psql —version/<span class="operator"><span class="keyword">SELECT</span> <span class="keyword">version</span>();</span>
-查看所有数据库：\l
-查看所有数据库(详细)：<span class="operator"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> pg_database;</span>
-选择数据库：\c database_name
-查看所有表：\dt
-查看某个表的表结构：\d table_name
-查看表索引：<span class="operator"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> pg_indexes <span class="keyword">where</span> tablename=’table_name’;</span>
-查看数据库大小：<span class="operator"><span class="keyword">SELECT</span> pg_size_pretty(pg_database_size(‘data_name’));</span>
-查看表大小：<span class="operator"><span class="keyword">SELECT</span> pg_size_pretty(pg_relation_size(’table_name’));</span>
-退出psql：\q
+</code></pre><h2 id="安装配置(Centos)">安装配置(Centos)</h2><p>配置yum的repo文件:</p>
+<pre><code>/etc/yum<span class="class">.repos</span><span class="class">.d</span>/CentOS-Base<span class="class">.repo</span>
+[base] and [updates]
+exclude=postgresql*
+</code></pre><p>安装yum源:</p>
+<pre><code>yum localinstall http:<span class="comment">//yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-1.noarch.rpm</span>
+yum <span class="built_in">list</span> postgres*
+</code></pre><p>安装:</p>
+<pre><code>yum <span class="operator"><span class="keyword">install</span> postgresql94-<span class="keyword">server</span> postgresql94-contrib</span>
+</code></pre><p>安装后服务路径:</p>
+<pre><code>/var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span></span>
+</code></pre><p>初始化服务:</p>
+<pre><code>service postgresql-<span class="number">9.4</span> initdb
+<span class="preprocessor"># or</span>
+/usr/pgsql-<span class="number">9.4</span>/bin/postgresql94-setup initd
+</code></pre><p>设置开机启动:</p>
+<pre><code>chkconfig postgresql-<span class="number">9.4</span> <span class="function_start"><span class="keyword">on</span></span>
+<span class="comment"># RHEL 7+</span>
+systemctl enable postgresql
+</code></pre><p>启动服务:</p>
+<pre><code>service postgresql-<span class="number">9.4</span> start
+</code></pre><h2 id="参数设置">参数设置</h2><pre><code>/var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span>/<span class="title">postgresql</span>.<span class="title">conf</span></span>
+
+listen_addresses = <span class="string">'*'</span>
+port = <span class="number">5432</span>
+max_connections = <span class="number">3000</span>
+shared_buffers = <span class="number">6</span>GB        <span class="comment"># 1/4 - 1/2 内存,不大于8G</span>
+work_mem = <span class="number">512</span>MB
+maintenance_work_mem = <span class="number">512</span>MB
+max_stack_depth = <span class="number">8</span>MB
+wal_buffers = <span class="number">16384</span>kB
+effective_cache_size = <span class="number">12</span>GB
+log_destination = <span class="string">'stderr'</span>
+log_directory = <span class="string">'pg_log'</span>
+log_filename = <span class="string">'postgresql-%Y-%m-%d_%H%M%S.log'</span>
+log_rotation_age = <span class="number">1</span>d
+log_rotation_size = <span class="number">10</span>MB
+log_lock_waits = on
+log_statement = <span class="string">'ddl'</span>
+log_timezone = <span class="string">'PRC'</span>
+
+/var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span>/<span class="title">pg_hba</span>.<span class="title">conf</span></span>
+
+local   all             all                                     md5
+<span class="comment"># IPv4 local connections:</span>
+host    all             all             <span class="number">127.0</span>.<span class="number">0.1</span>/<span class="number">32</span>            md5
+host    all             all             <span class="number">192.168</span>.<span class="number">1.0</span>/<span class="number">24</span>          md5
+host    all             all             <span class="number">0.0</span>.<span class="number">0.0</span>/<span class="number">0</span>               md5
+<span class="comment"># IPv6 local connections:</span>
+host    all             all             <span class="symbol">:</span><span class="symbol">:</span><span class="number">1</span>/<span class="number">128</span>                 md5
 </code></pre><h2 id="迁移数据路径(CentOS,PostgreSQL-9-x)">迁移数据路径(CentOS,PostgreSQL-9.x)</h2><ol>
 <li><p>关闭服务</p>
 <pre><code>/etc/init.d/postgresql-<span class="number">9.4</span> stop
@@ -252,14 +289,29 @@ chmod <span class="number">0700</span> /data/
 </code></pre><p> 上面已经进行了两次用户权限设置,经测试,如果仅在第三步设置权限,则postgres用户并不能访问data目录,从而引起服务启动失败.</p>
 </li>
 <li><p>备份原有数据目录以便恢复,并将新的数据目录建立软连接</p>
-<p> mv /var/lib/pgsql/9.4/data /var/lib/pgsql/9.4/data.backends<br> ln -s /data/pgsql-9.4/data /var/lib/pgsql/9.4/data</p>
-</li>
+<pre><code>mv /var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span> /<span class="title">var</span>/<span class="title">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span>.<span class="title">backends</span></span>
+ln -s /data/pgsql-<span class="number">9.4</span>/data /var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span></span>
+</code></pre></li>
 <li><p>重新启动服务</p>
-<p> service postgresql-9.4 start<br> /etc/init.d/postgresql-9.4 start</p>
-</li>
+<pre><code>service postgresql-9.4 <span class="operator"><span class="keyword">start</span>
+/etc/init.<span class="keyword">d</span>/postgresql-<span class="number">9.4</span> <span class="keyword">start</span></span>
+</code></pre></li>
 </ol>
 <p>完成数据目录迁移.</p>
-</span>
+<p>PostgreSQL常用系统命令:</p>
+<pre><code>重启服务：/etc/init.d/postgresql restart
+管理员登陆：sudo -u postgres psql
+查看版本：psql —version/<span class="operator"><span class="keyword">SELECT</span> <span class="keyword">version</span>();</span>
+查看所有数据库：\l
+查看所有数据库(详细)：<span class="operator"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> pg_database;</span>
+选择数据库：\c database_name
+查看所有表：\dt
+查看某个表的表结构：\d table_name
+查看表索引：<span class="operator"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> pg_indexes <span class="keyword">where</span> tablename=’table_name’;</span>
+查看数据库大小：<span class="operator"><span class="keyword">SELECT</span> pg_size_pretty(pg_database_size(‘data_name’));</span>
+查看表大小：<span class="operator"><span class="keyword">SELECT</span> pg_size_pretty(pg_relation_size(’table_name’));</span>
+退出psql：\q
+</code></pre></span>
       
     </div>
 
@@ -344,7 +396,7 @@ chmod <span class="number">0700</span> /data/
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">106</span>
+              <span class="site-state-item-count">107</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -386,7 +438,7 @@ chmod <span class="number">0700</span> /data/
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装配置"><span class="nav-number">2.</span> <span class="nav-text">安装配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迁移数据路径(CentOS,PostgreSQL-9-x)"><span class="nav-number">3.</span> <span class="nav-text">迁移数据路径(CentOS,PostgreSQL-9.x)</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装配置(Ubuntu)"><span class="nav-number">2.</span> <span class="nav-text">安装配置(Ubuntu)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装配置(Centos)"><span class="nav-number">3.</span> <span class="nav-text">安装配置(Centos)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数设置"><span class="nav-number">4.</span> <span class="nav-text">参数设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迁移数据路径(CentOS,PostgreSQL-9-x)"><span class="nav-number">5.</span> <span class="nav-text">迁移数据路径(CentOS,PostgreSQL-9.x)</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

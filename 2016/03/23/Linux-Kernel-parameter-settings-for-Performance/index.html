@@ -30,7 +30,7 @@
 
 
 
-  <meta name="keywords" content="scala," />
+  <meta name="keywords" content="Linux," />
 
 
 
@@ -39,16 +39,16 @@
   <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
 
 
-<meta name="description" content="Scala中无处不在的模式.">
+<meta name="description" content="Linux内核参数配置优化">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Simple Scala: Pattern in Everywhere">
-<meta property="og:url" content="http://yoursite.com/2015/11/07/Simple-Scala-Pattern-in-Everywhere/index.html">
+<meta property="og:title" content="Linux Kernel parameter settings for Performance">
+<meta property="og:url" content="http://yoursite.com/2016/03/23/Linux-Kernel-parameter-settings-for-Performance/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Scala中无处不在的模式.">
-<meta property="og:updated_time" content="2015-11-07T13:32:01.000Z">
+<meta property="og:description" content="Linux内核参数配置优化">
+<meta property="og:updated_time" content="2016-03-23T14:42:58.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Simple Scala: Pattern in Everywhere">
-<meta name="twitter:description" content="Scala中无处不在的模式.">
+<meta name="twitter:title" content="Linux Kernel parameter settings for Performance">
+<meta name="twitter:description" content="Linux内核参数配置优化">
 
 
 <script type="text/javascript" id="hexo.configuration">
@@ -58,7 +58,7 @@
   };
 </script>
 
-  <title> Simple Scala: Pattern in Everywhere | Hexo </title>
+  <title> Linux Kernel parameter settings for Performance | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -157,7 +157,7 @@
           
           
             
-              Simple Scala: Pattern in Everywhere
+              Linux Kernel parameter settings for Performance
             
           
         </h1>
@@ -166,8 +166,8 @@
       <div class="post-meta">
         <span class="post-time">
           发表于
-          <time itemprop="dateCreated" datetime="2015-11-07T18:29:41+08:00" content="2015-11-07">
-            2015-11-07
+          <time itemprop="dateCreated" datetime="2016-03-23T22:15:56+08:00" content="2016-03-23">
+            2016-03-23
           </time>
         </span>
 
@@ -185,80 +185,93 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>在提取器和序列提取中详细介绍了:</p>
-<pre><code><span class="number">1.</span> 用模式结构对象是怎么一回事
-<span class="number">2.</span> 如何构造自己的提取器
-</code></pre><p>这里介绍模式更多的用法.</p>
-<h2 id="模式匹配表达式">模式匹配表达式</h2><p>模式可能出现的一个地方是 “模式匹配表达式”,一个表达式e,后面跟着关键字match以及一个代码块,这个代码块包含了一些匹配样例; 而每个样例又包含了case关键字,模式,可选的守卫分句,以及最右边的代码块;如果匹配成功,最右边的代码块就会执行.写成代码,看起来会是这个样子:</p>
-<pre><code>e match {
-  case Pattern1 =&gt; block1
-  case Pattern2<span class="instruction"> if-clause </span>=&gt; block2
-<span class="keyword">  .</span>..
-}
-</code></pre><p>下面是一个更具体的例子:</p>
-<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Player</span>(<span class="title">name</span>: <span class="title">String</span>, <span class="title">score</span>: <span class="title">Int</span>)</span>
-<span class="function"><span class="keyword">def</span> <span class="title">printMessage</span><span class="params">(<span class="symbol">player:</span> <span class="constant">Player</span>)</span> = <span class="title">player</span> <span class="title">match</span> {</span>
-  <span class="keyword">case</span> <span class="constant">Player</span>(<span class="number">_</span>, score) <span class="keyword">if</span> score &gt; <span class="number">100000</span> =&gt;
-    println(<span class="string">"Get a job, dude!"</span>)
-  <span class="keyword">case</span> <span class="constant">Player</span>(name, <span class="number">_</span>) =&gt;
-    println(<span class="string">"Hey, $name, nice to see you again!"</span>)
-}
-</code></pre><p>printMessage的返回类型为Unit,其唯一目的是执行一个副作用,即打印一个信息.记住你不一定非要使用模式匹配,因为你也可以使用像java中的switch语句.</p>
-<p>但这里使用的模式匹配表达式,之所以叫做”模式匹配表达式”,是因为其返回值是由第一个匹配的模式中的代码块决定的.</p>
-<p>使用它通常是好的,因为它解耦两个并不真正属于彼此的东西,也使得代码更易于测试.可以把上面的例子重写成下面这样:</p>
-<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Player</span>(<span class="title">name</span>: <span class="title">String</span>, <span class="title">score</span>: <span class="title">Int</span>)</span>
-<span class="function"><span class="keyword">def</span> <span class="title">message</span><span class="params">(<span class="symbol">player:</span> <span class="constant">Player</span>)</span> = <span class="title">player</span> <span class="title">match</span> {</span>
-  <span class="keyword">case</span> <span class="constant">Player</span>(<span class="number">_</span>, score) <span class="keyword">if</span> score &gt; <span class="number">100000</span> =&gt;
-    <span class="string">"Get a job, dude!"</span>
-  <span class="keyword">case</span> <span class="constant">Player</span>(name, <span class="number">_</span>) =&gt;
-    <span class="string">"Hey, $name, nice to see you again!"</span>
-}
-<span class="function"><span class="keyword">def</span> <span class="title">printMessage</span><span class="params">(<span class="symbol">player:</span> <span class="constant">Player</span>)</span> = <span class="title">println</span><span class="params">(message(player)</span>)</span>
-</code></pre><p>现在,独立出一个返回值类型是String得message函数,它是一个纯函数,没有任何副作用,返回模式匹配表达式的结果,你可以将其保存为值,或者赋给一个变量.</p>
-<h2 id="值定义中的模式">值定义中的模式</h2><p>模式还能出现值定义的左边.</p>
-<p>假设有一个方法,返回当前的球员,我们可以模拟这个方法,让他始终返回同一个球员:</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">currentPlayer</span><span class="params">()</span>:</span> Player = Player(<span class="string">"Daniel"</span>, <span class="number">3500</span>)
-</code></pre><p>通常的值定义如下所示:</p>
-<pre><code>val player = <span class="function"><span class="title">currentPlayer</span><span class="params">()</span></span>
-<span class="function"><span class="title">doSomethingWithName</span><span class="params">(player.name)</span></span>
-</code></pre><p>如果你知道python,你一定了解一个叫做序列解包的功能,它允许在值定义的左侧使用模式.你可以用类似的风格编写Scala代码,改变上面的代码,在将球员赋值给左侧变量的同时去结构它:</p>
-<pre><code>val <span class="function"><span class="title">Player</span><span class="params">(name, _)</span></span> = <span class="function"><span class="title">currentPlayer</span><span class="params">()</span></span>
-<span class="function"><span class="title">doSomethingWithName</span><span class="params">(name)</span></span>
-</code></pre><p>你可以用任何模式来做这件事情,但得确保模式总能够匹配,否则代码会在运行时出错.下面的代码就是有问题的:scores方法返回球员得分的列表,为了说明问题,代码中只是返回一个空得列表:</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">scores</span>:</span> List[Int] = List()
-val best :: rest = scores
-println(<span class="string">"The score of our champion is "</span> + best)
-</code></pre><p>运行的时候就会出现MatchError.</p>
-<p>一种安全且非常方便的方式是只结构那些在编译期就知道类型的样例类.此外,以这种方式使用元组,代码可读性更强.假设有一个函数,返回一个包括球员名字及其得分的元组,而不是先前定义的Player:</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">gameResult</span><span class="params">()</span>:</span> (String, Int) = (<span class="string">"Daniel"</span>, <span class="number">3500</span>)
-</code></pre><p>访问元组字段的代码给人感觉总是很怪异:</p>
-<pre><code>val <span class="literal">result</span> = gameResult()
-println(<span class="literal">result</span>._1 + <span class="string">": "</span> + <span class="literal">result</span>._2)
-</code></pre><p>这样,在赋值的同时结构它是非常安全的,因为我们知道他的类型为Tuple2:</p>
-<pre><code>val (name, score) = <span class="function"><span class="title">gameResult</span><span class="params">()</span></span>
-<span class="function"><span class="title">println</span><span class="params">(name + <span class="string">": "</span> + score)</span></span>
-</code></pre><h2 id="for语句中的模式">for语句中的模式</h2><p>模式在for语句中也非常重要.所有能在值定义的左侧使用的模式都适用于for语句的值定义.因此,如果我们有一个球员得分集,想进入谁能进入名人堂,用for语句就可以解决:</p>
-<pre><code>def gameResults(): <span class="type">Seq</span>[(<span class="type">String</span>, <span class="type">Int</span>)] =
-  (<span class="string">"Daniel"</span>, <span class="number">3500</span>) :: (<span class="string">"Melissa"</span>, <span class="number">13000</span>) :: (<span class="string">"John"</span>, <span class="number">7000</span>) :: <span class="type">Nil</span>
-def hallOfFame = <span class="keyword">for</span> {
-    <span class="literal">result</span> &lt;- gameResults()
-    (name, score) = <span class="literal">result</span>
-    <span class="keyword">if</span> (score &gt; <span class="number">5000</span>)
-} <span class="keyword">yield</span> name
-</code></pre><p>结果为List(“Melissa”, “John”),因为第一个球员得分没有超过5000.<br>上面的代码可以写的更简单,for语句中,生成器的左侧也可以是模式.从而,可以直接在左侧把想要的值结构出来:</p>
-<pre><code><span class="function"><span class="keyword">def</span> <span class="title">hallOfFame</span></span> = <span class="keyword">for</span> {
-    (name, score) &lt;- gameResults()
-    <span class="keyword">if</span> (score &gt; <span class="number">5000</span>)
-} <span class="keyword">yield</span> name
-</code></pre><p>模式(name,score)总会匹配成功,如果没有守卫语句if (score &gt; 5000),for语句就相当于直接将元祖映射到球员名字,不会进行过滤.</p>
-<p>不过你要知道,生成器的左侧也可以用来过滤,如果左侧的模式匹配失败,那相关的元素就会被直接过滤掉.</p>
-<p>为了说明这种情况,假设有一序列的序列,我们想返回所有非空序列的元素个数.这就需要过滤掉所有的空列表,然后再返回剩下列表的元素个数,下面是一个解决方案:</p>
-<pre><code>val lists = List(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>) :: List.empty :: List(<span class="number">5</span>, <span class="number">3</span>) :: Nil
-<span class="keyword">for</span> {
-  <span class="built_in">list</span> @ head :: _ &lt;- lists
-} yield <span class="built_in">list</span>.size
-</code></pre><p>上面的例子中,左侧的模式不匹配空列表,这不会抛出MatchError,但对应的空列表会被丢弃掉,因此得到的结果是List(3,2).</p>
-<p>模式和for语句是一个很自然很强大的结合,在以后的应用中会经常使用.</p>
+        <span itemprop="articleBody"><h2 id="文件句柄限制">文件句柄限制</h2><p>内核中限制了进程可以打开的文件数,提升限制会增加一部分系统内存消耗,一般来说是值得尝试的.</p>
+<p>查看当前文件限制:</p>
+<pre><code>$ cat /<span class="keyword">proc</span>/sys/fs/file-max
+</code></pre><p>增加限制:</p>
+<pre><code><span class="preprocessor"># sysctl -w fs.file-max=<span class="number">100000</span></span>
+</code></pre><p>将设置添加到配置文件:</p>
+<pre><code>vim /etc/sysctl<span class="class">.conf</span>
+fs<span class="class">.file-max</span> = <span class="number">100000</span>
+:wq
+</code></pre><p>生效配置:</p>
+<pre><code><span class="preprocessor"># sysctl -p</span>
+</code></pre><h2 id="Socket调整">Socket调整</h2><p>对于需要处理大量连接的服务,有一些TCP选项可以进行配置.</p>
+<p>增加连接数:</p>
+<pre><code># <span class="operator"><span class="keyword">Use</span> the <span class="keyword">full</span> <span class="keyword">range</span> <span class="keyword">of</span> ports.
+net.ipv4.ip_local_port_range = <span class="number">1024</span> <span class="number">65535</span></span>
+</code></pre><p>增加socket循环:</p>
+<pre><code># Enables fast recycling of TIME_WAIT sockets.
+# (<span class="operator"><span class="keyword">Use</span> <span class="keyword">with</span> caution according <span class="keyword">to</span> the kernel documentation!)
+net.ipv4.tcp_tw_recycle = <span class="number">1</span>
+
+# <span class="keyword">Allow</span> <span class="keyword">reuse</span> <span class="keyword">of</span> sockets <span class="keyword">in</span> TIME_WAIT state <span class="keyword">for</span> <span class="keyword">new</span> connections
+# <span class="keyword">only</span> <span class="keyword">when</span> it <span class="keyword">is</span> <span class="keyword">safe</span> <span class="keyword">from</span> the network stack’s perspective.
+net.ipv4.tcp_tw_reuse = <span class="number">1</span></span>
+</code></pre><p>增加backlog:</p>
+<pre><code><span class="preprocessor">#</span>
+<span class="preprocessor"># <span class="number">16</span>MB per socket - which sounds like a lot, but will virtually never</span>
+<span class="preprocessor"># consume that much.</span>
+<span class="preprocessor">#</span>
+net.core.rmem_max = <span class="number">16777216</span>
+net.core.wmem_max = <span class="number">16777216</span>
+
+<span class="preprocessor"># Increase the number of outstanding syn requests allowed.</span>
+<span class="preprocessor"># c.f. The use of syncookies.</span>
+net.ipv4.tcp_max_syn_backlog = <span class="number">4096</span>
+net.ipv4.tcp_syncookies = <span class="number">1</span>
+
+<span class="preprocessor"># The maximum number of <span class="string">"backlogged sockets"</span>.  Default is <span class="number">128.</span></span>
+net.core.somaxconn = <span class="number">1024</span>
+</code></pre><p>生效配置:</p>
+<pre><code><span class="preprocessor"># sysctl -p</span>
+</code></pre><h2 id="完整参数设置(Centos_6-X)">完整参数设置(Centos 6.X)</h2><pre><code><span class="preprocessor"># Disable netfilter on bridges.</span>
+net.bridge.bridge-nf-call-ip6tables = <span class="number">0</span>
+net.bridge.bridge-nf-call-iptables = <span class="number">0</span>
+net.bridge.bridge-nf-call-arptables = <span class="number">0</span>
+
+kernel.shmmni = <span class="number">4096</span>
+kernel.sem = <span class="number">50100</span> <span class="number">64128000</span> <span class="number">50100</span> <span class="number">1280</span>
+fs.file-max = <span class="number">7672460</span>
+net.ipv4.ip_local_port_range = <span class="number">9000</span> <span class="number">65000</span>
+net.core.rmem_default = <span class="number">1048576</span>
+net.core.rmem_max = <span class="number">16777216</span>
+net.core.wmem_default = <span class="number">262144</span>
+net.core.wmem_max = <span class="number">16777216</span>
+net.core.somaxconn = <span class="number">1024</span>
+net.ipv4.tcp_tw_recycle = <span class="number">1</span>
+net.ipv4.tcp_tw_reuse = <span class="number">1</span>
+net.ipv4.tcp_max_syn_backlog = <span class="number">4096</span>
+net.core.netdev_max_backlog = <span class="number">10000</span>
+vm.overcommit_memory = <span class="number">0</span>
+net.ipv4.ip_conntrack_max = <span class="number">655360</span>
+fs.aio-max-nr = <span class="number">1048576</span>
+net.ipv4.tcp_timestamps = <span class="number">0</span>
+
+<span class="preprocessor"># Controls the default maxmimum size of a mesage queue</span>
+kernel.msgmnb = <span class="number">65536</span>
+
+<span class="preprocessor"># Controls the maximum size of a message, in bytes</span>
+kernel.msgmax = <span class="number">65536</span>
+
+<span class="preprocessor"># Controls the maximum shared segment size, in bytes</span>
+kernel.shmmax = <span class="number">68719476736</span>
+
+<span class="preprocessor"># Controls the maximum number of shared memory segments, in pages</span>
+kernel.shmall = <span class="number">4294967296</span>
+
+vm.swappiness = <span class="number">0</span>
+net.ipv4.neigh.<span class="keyword">default</span>.gc_stale_time=<span class="number">120</span>
+net.ipv4.conf.all.rp_filter=<span class="number">0</span>
+net.ipv4.conf.<span class="keyword">default</span>.rp_filter=<span class="number">0</span>
+net.ipv4.conf.<span class="keyword">default</span>.arp_announce = <span class="number">2</span>
+net.ipv4.conf.all.arp_announce=<span class="number">2</span>
+net.ipv4.tcp_max_tw_buckets = <span class="number">5000</span>
+net.ipv4.tcp_syncookies = <span class="number">1</span>
+net.ipv4.tcp_max_syn_backlog = <span class="number">1024</span>
+net.ipv4.tcp_synack_retries = <span class="number">2</span>
+net.ipv4.conf.lo.arp_announce=<span class="number">2</span>
+</code></pre><p><a href="https://tweaked.io/guide/kernel/" title="Tweaked.io: The GNU/Linux Kernel" target="_blank" rel="external">Tweaked.io: The GNU/Linux Kernel</a></p>
 </span>
       
     </div>
@@ -267,7 +280,7 @@ def hallOfFame = <span class="keyword">for</span> {
       
         <div class="post-tags">
           
-            <a href="/tags/scala/" rel="tag">#scala</a>
+            <a href="/tags/Linux/" rel="tag">#Linux</a>
           
         </div>
       
@@ -276,13 +289,11 @@ def hallOfFame = <span class="keyword">for</span> {
         <div class="post-nav">
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2015/11/07/Simple-Scala-Option/" rel="prev">Simple Scala: Option</a>
-            
           </div>
 
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2015/11/06/Simple-Scala-Promise/" rel="next">Simple Scala: Promise</a>
+              <a href="/2016/03/22/Simple-PostgreSQL-Up-and-Running/" rel="next">Simple PostgreSQL: Up and Running</a>
             
           </div>
         </div>
@@ -386,7 +397,7 @@ def hallOfFame = <span class="keyword">for</span> {
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模式匹配表达式"><span class="nav-number">2.</span> <span class="nav-text">模式匹配表达式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#值定义中的模式"><span class="nav-number">3.</span> <span class="nav-text">值定义中的模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#for语句中的模式"><span class="nav-number">4.</span> <span class="nav-text">for语句中的模式</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件句柄限制"><span class="nav-number">1.</span> <span class="nav-text">文件句柄限制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Socket调整"><span class="nav-number">2.</span> <span class="nav-text">Socket调整</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完整参数设置(Centos_6-X)"><span class="nav-number">3.</span> <span class="nav-text">完整参数设置(Centos 6.X)</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
