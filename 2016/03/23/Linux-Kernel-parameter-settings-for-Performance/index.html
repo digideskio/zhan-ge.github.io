@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/23/Linux-Kernel-parameter-settings-for-Performance/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Linux内核参数配置优化">
-<meta property="og:updated_time" content="2016-03-23T14:42:58.000Z">
+<meta property="og:updated_time" content="2016-03-24T14:42:12.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux Kernel parameter settings for Performance">
 <meta name="twitter:description" content="Linux内核参数配置优化">
@@ -244,7 +244,7 @@ net.ipv4.tcp_tw_reuse = <span class="number">1</span>
 net.ipv4.tcp_max_syn_backlog = <span class="number">4096</span>
 net.core.netdev_max_backlog = <span class="number">10000</span>
 vm.overcommit_memory = <span class="number">0</span>
-net.ipv4.ip_conntrack_max = <span class="number">655360</span>
+<span class="preprocessor"># net.ipv4.ip_conntrack_max = <span class="number">655360</span></span>
 fs.aio-max-nr = <span class="number">1048576</span>
 net.ipv4.tcp_timestamps = <span class="number">0</span>
 
@@ -271,6 +271,29 @@ net.ipv4.tcp_syncookies = <span class="number">1</span>
 net.ipv4.tcp_max_syn_backlog = <span class="number">1024</span>
 net.ipv4.tcp_synack_retries = <span class="number">2</span>
 net.ipv4.conf.lo.arp_announce=<span class="number">2</span>
+</code></pre><h2 id="配置面密码SSH">配置面密码SSH</h2><p>分别在需要互相登录的两个服务器中,切换到需要免密码登录的账户,比如配置PostgreSQL的时候需要使用postgres用户进行免密码互相登录:</p>
+<pre><code><span class="title">su</span> - postgres
+</code></pre><p>然后分别在两个服务器上执行:</p>
+<pre><code>ssh-keygen
+
+ssh-copy-id <span class="function"><span class="title">opposite_ip_address</span><span class="params">(要登录的IP)</span></span>
+</code></pre><p>第二条命令时需要该用户登录时的密码,比如此处用户postgres的密码.</p>
+<p>完成后进行测试.</p>
+<h2 id="阿里云开启IPV6">阿里云开启IPV6</h2><p>阿里云CentOS 6.X默认不支持IPV6,但是有的应用需要开启支持.</p>
+<p>使用命令启用IPV6模块:</p>
+<pre><code>insmod /<span class="class"><span class="keyword">lib</span>/<span class="title">modules</span>/$(<span class="title">uname</span> -<span class="title">r</span>)/<span class="title">kernel</span>/<span class="title">net</span>/<span class="title">ipv6</span>/<span class="title">ipv6</span>.<span class="title">ko</span></span>
+</code></pre><p>或者加入开机启动:</p>
+<pre><code>echo <span class="string">'insmod /lib/modules/$(uname -r)/kernel/net/ipv6/ipv6.ko'</span> <span class="prompt">&gt;&gt; </span>/etc/rc.local
+</code></pre><p>然后编辑 <code>vim /etc/modprobe.d/disable_ipv6.conf</code>:</p>
+<pre><code><span class="preprocessor">#alias net-pf-<span class="number">10</span> off</span>
+<span class="preprocessor">#alias ipv6 off </span>
+<span class="preprocessor">#options ipv6 disable=<span class="number">1</span></span>
+
+alias net-pf-<span class="number">10</span> 
+alias ipv6 
+options ipv6 disable=<span class="number">0</span>
+</code></pre><p>最后重启网络服务:</p>
+<pre><code><span class="title">service</span> network restart
 </code></pre><p><a href="https://tweaked.io/guide/kernel/" title="Tweaked.io: The GNU/Linux Kernel" target="_blank" rel="external">Tweaked.io: The GNU/Linux Kernel</a></p>
 </span>
       
@@ -397,7 +420,7 @@ net.ipv4.conf.lo.arp_announce=<span class="number">2</span>
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件句柄限制"><span class="nav-number">1.</span> <span class="nav-text">文件句柄限制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Socket调整"><span class="nav-number">2.</span> <span class="nav-text">Socket调整</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完整参数设置(Centos_6-X)"><span class="nav-number">3.</span> <span class="nav-text">完整参数设置(Centos 6.X)</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件句柄限制"><span class="nav-number">1.</span> <span class="nav-text">文件句柄限制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Socket调整"><span class="nav-number">2.</span> <span class="nav-text">Socket调整</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完整参数设置(Centos_6-X)"><span class="nav-number">3.</span> <span class="nav-text">完整参数设置(Centos 6.X)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置面密码SSH"><span class="nav-number">4.</span> <span class="nav-text">配置面密码SSH</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#阿里云开启IPV6"><span class="nav-number">5.</span> <span class="nav-text">阿里云开启IPV6</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

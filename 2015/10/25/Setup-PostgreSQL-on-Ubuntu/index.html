@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/10/25/Setup-PostgreSQL-on-Ubuntu/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Ubuntu下配置PostgreSQL.">
-<meta property="og:updated_time" content="2016-03-23T15:14:54.000Z">
+<meta property="og:updated_time" content="2016-03-24T15:52:00.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Setup PostgreSQL on Ubuntu">
 <meta name="twitter:description" content="Ubuntu下配置PostgreSQL.">
@@ -224,9 +224,17 @@ exclude=postgresql*
 yum <span class="built_in">list</span> postgres*
 </code></pre><p>安装:</p>
 <pre><code>yum <span class="operator"><span class="keyword">install</span> postgresql94-<span class="keyword">server</span> postgresql94-contrib</span>
+</code></pre><p>添加环境变量:</p>
+<pre><code>vim ~/.bash_profile
+
+export PG_HOME=<span class="string">"/usr/pgsql-9.4/bin"</span>
+export PATH=<span class="variable">$PG</span>_HOME:<span class="variable">$PATH</span>
+
+$ source ~/.bash_profile
 </code></pre><p>安装后服务路径:</p>
-<pre><code>/var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span></span>
-</code></pre><p>初始化服务:</p>
+<pre><code>/var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/</span>
+</code></pre><p>配置数据库初始化路径: 按照数据迁移方式配置新路径到挂载数据盘.</p>
+<p>初始化服务:</p>
 <pre><code>service postgresql-<span class="number">9.4</span> initdb
 <span class="preprocessor"># or</span>
 /usr/pgsql-<span class="number">9.4</span>/bin/postgresql94-setup initd
@@ -236,11 +244,28 @@ yum <span class="built_in">list</span> postgres*
 systemctl enable postgresql
 </code></pre><p>启动服务:</p>
 <pre><code>service postgresql-<span class="number">9.4</span> start
-</code></pre><h2 id="参数设置">参数设置</h2><pre><code>/var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span>/<span class="title">postgresql</span>.<span class="title">conf</span></span>
+</code></pre><p>配置用户:</p>
+<pre><code>PG会创建一个默认的postgres账户作为数据库管理员,密码是随机的,首先需要重置该密码:
+使用psql客户端登陆: sudo -u postgres psql
+修改登陆密码为'新密码': <span class="operator"><span class="keyword">ALTER</span> <span class="keyword">USER</span> postgres <span class="keyword">WITH</span> <span class="keyword">PASSWORD</span> <span class="string">'新密码'</span>;</span>
+退出psql客户端: \q
 
-listen_addresses = <span class="string">'*'</span>
+然后在Linux系统下创建对应的postgres用户并设置密码:
+首先删除postgre用户密码: sudo passwd -d postgres
+提示为: passwd: password expiry information changed.
+//passwd -d 是清空指定用户密码的意思
+
+设置新的密码:
+sudo -u postgres passwd
+输入新的 UNIX 密码：
+重新输入新的 UNIX 密码：新密码
+passwd：已成功更新密码
+</code></pre><h2 id="参数设置(4核16G)">参数设置(4核16G)</h2><pre><code>/var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span>/<span class="title">postgresql</span>.<span class="title">conf</span></span>
+
+listen_addresses = <span class="string">'*'</span>      <span class="comment"># 支持远程访问</span>
 port = <span class="number">5432</span>
-max_connections = <span class="number">3000</span>
+password_encryption = on
+max_connections = <span class="number">2000</span>
 shared_buffers = <span class="number">6</span>GB        <span class="comment"># 1/4 - 1/2 内存,不大于8G</span>
 work_mem = <span class="number">512</span>MB
 maintenance_work_mem = <span class="number">512</span>MB
@@ -311,6 +336,148 @@ ln -s /data/pgsql-<span class="number">9.4</span>/data /var/<span class="class">
 查看数据库大小：<span class="operator"><span class="keyword">SELECT</span> pg_size_pretty(pg_database_size(‘data_name’));</span>
 查看表大小：<span class="operator"><span class="keyword">SELECT</span> pg_size_pretty(pg_relation_size(’table_name’));</span>
 退出psql：\q
+连接远程服务: psql -h host -p 5432
+</code></pre><h2 id="配置流复制">配置流复制</h2><h3 id="Master设置">Master设置</h3><ol>
+<li><p>master创建复制用户</p>
+<pre><code>sudo -u postgres psql
+<span class="operator"><span class="keyword">CREATE</span> <span class="keyword">USER</span> replicator <span class="keyword">REPLICATION</span> LOGIN ENCRYPTED <span class="keyword">PASSWORD</span> <span class="string">'the password'</span>;</span>
+</code></pre></li>
+<li><p>master编辑配置文件</p>
+<pre><code>vim postgresql.conf
+
+<span class="constant">listen_address</span> = "*"
+<span class="constant">wal_level</span> = hot_standby
+<span class="constant">max_wal_senders</span> = 3
+<span class="constant">checkpoint_segments</span> = 3
+<span class="constant">wal_keep_segments</span> = 8
+<span class="constant">archive_mode</span> = on
+<span class="constant">archive_command</span> = 'cd .'
+</code></pre></li>
+<li><p>master配置slave访问控制,5.6.7.8是备机的IP</p>
+<pre><code>vim pg_hba.conf
+
+host replication     replicator      <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">0</span>            md5
+<span class="preprocessor"># hostssl replication     replicator      <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">0</span>            md5</span>
+<span class="preprocessor"># 要添加在IPV4部分的 <span class="string">"host all all 0.0.0.0/0 md5"</span> 之前</span>
+</code></pre></li>
+<li><p>master开启ssl(可选ssl支持)</p>
+<pre><code>cd /data/pgsql-<span class="number">9.4</span>/data/
+openssl genrsa -des3 -out server<span class="class">.key</span> <span class="number">1024</span>
+enter: ly@postgres
+openssl rsa -<span class="keyword">in</span> server<span class="class">.key</span> -out server<span class="class">.key</span>
+enter: ly@postgres
+chmod <span class="number">400</span> server<span class="class">.key</span>
+chown postgres<span class="class">.postgres</span> server<span class="class">.key</span>
+openssl req -new -key server<span class="class">.key</span> -days <span class="number">3650</span> -out server<span class="class">.crt</span> -x509 -subj <span class="string">'/C=CA/ST=British Columbia/L=Comox/O=TheBrain.ca/CN=thebrain.ca/emailAddress=info@thebrain.ca'</span>
+cp server<span class="class">.crt</span> root.crt
+</code></pre><p> 配置pg_hba.conf:</p>
+<pre><code>hostssl all         replicator    <span class="number">0.0</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">0</span>             md5
+</code></pre><p> 配置postgresql.conf:</p>
+<pre><code>ssl = <span class="function_start"><span class="keyword">on</span></span>
+</code></pre><p> 重启服务:</p>
+<pre><code>service postgresql-<span class="number">9.4</span> restart
+</code></pre><p> <a href="https://www.howtoforge.com/postgresql-ssl-certificates" title="ssl配置" target="_blank" rel="external">ssl配置</a></p>
+</li>
+</ol>
+<h3 id="Slave设置">Slave设置</h3><ol>
+<li><p>slave编辑配置文件postgresql.conf:</p>
+<pre><code><span class="setting">unix_socket_directories=<span class="value"><span class="string">'.'</span>  </span></span>
+<span class="setting">tcp_keepalives_idle = <span class="value"><span class="number">70</span>  </span></span>
+<span class="setting">tcp_keepalives_interval = <span class="value"><span class="number">10</span>  </span></span>
+<span class="setting">tcp_keepalives_count = <span class="value"><span class="number">10</span>  </span></span>
+<span class="setting">log_destination=<span class="value"><span class="string">'csvlog'</span>  </span></span>
+<span class="setting">logging_collector=<span class="value"><span class="keyword">on</span>  </span></span>
+<span class="setting">log_truncate_on_rotation=<span class="value"><span class="keyword">on</span>  </span></span>
+<span class="setting">log_line_prefix = <span class="value"><span class="string">''</span>  </span></span>
+<span class="setting">log_checkpoints = <span class="value"><span class="keyword">on</span>  </span></span>
+<span class="setting">log_connections = <span class="value"><span class="keyword">on</span>  </span></span>
+<span class="setting">log_disconnections = <span class="value"><span class="keyword">on</span>  </span></span>
+<span class="setting">log_error_verbosity = <span class="value">verbose  </span></span>
+<span class="setting">hot_standby = <span class="value"><span class="keyword">on</span>  </span></span>
+<span class="setting">max_standby_archive_delay = <span class="value"><span class="number">300</span>s  </span></span>
+<span class="setting">max_standby_streaming_delay = <span class="value"><span class="number">300</span>s  </span></span>
+<span class="setting">wal_receiver_status_interval = <span class="value"><span class="number">1</span>s  </span></span>
+<span class="setting">hot_standby_feedback = <span class="value"><span class="keyword">on</span>  </span></span>
+<span class="setting">log_statement=<span class="value"><span class="string">'none'</span>  </span></span>
+<span class="setting">archive_mode=<span class="value"><span class="keyword">on</span>  </span></span>
+<span class="setting">archive_command = <span class="value"><span class="string">'/bin/date'</span>  </span></span>
+<span class="setting">track_io_timing=<span class="value"><span class="keyword">off</span>  </span></span>
+
+<span class="setting">wal_level = <span class="value">hot_standby</span></span>
+<span class="setting">max_wal_senders = <span class="value"><span class="number">3</span></span></span>
+<span class="setting">checkpoint_segments = <span class="value"><span class="number">8</span></span></span>
+<span class="setting">wal_keep_segments = <span class="value"><span class="number">8</span></span></span>
+</code></pre></li>
+<li><p>基本数据备份</p>
+<p> 删除slave的data目录.<br> 测试是否能远程连接到master服务:</p>
+<pre><code><span class="keyword">su</span> - postgres
+psql -<span class="keyword">h</span> MasterIP -p 5432
+</code></pre><p> 成功后开始备份基础数据:</p>
+<pre><code>pg_basebackup -h <span class="constant">MasterIP</span> -<span class="constant">D</span> /var/<span class="class"><span class="keyword">lib</span>/<span class="title">pgsql</span>/9.4/<span class="title">data</span> -<span class="title">U</span> <span class="title">replicator</span> -<span class="title">v</span> -<span class="title">P</span></span>
+</code></pre><p> 可以看到备份进度.注意备份完后会覆盖掉上面配置的postgresql.conf文件,需要重新配置,或者选择先备份后配置该文件.</p>
+<p> 完成后在data目录创建recovery.conf文件:</p>
+<pre><code><span class="setting">standby_mode = <span class="value"><span class="string">'on'</span></span></span>
+<span class="setting">primary_conninfo = <span class="value"><span class="string">'host=MasterIP user=replicator password=PW4Replicator'</span></span></span>
+<span class="setting">recovery_target_timeline = <span class="value"><span class="string">'latest'</span></span></span>
+</code></pre><p> 开启服务:</p>
+<pre><code>service postgresql-<span class="number">9.4</span> restart
+</code></pre><p> 然后在Master插入数据查看Slave同步情况.</p>
+<p> 查看主库是否有sender进程:</p>
+<pre><code><span class="keyword">ps</span> aux|<span class="keyword">grep</span> sender
+</code></pre><p> 查看备库是否有reciver进程:</p>
+<pre><code><span class="keyword">ps</span> aux|<span class="keyword">grep</span> reciver
+</code></pre><p> 或者在psql里面执行:</p>
+<pre><code><span class="operator"><span class="keyword">select</span> * <span class="keyword">from</span> pg_stat_replication;</span>
+</code></pre></li>
+</ol>
+<h2 id="Pgpool-II">Pgpool-II</h2><h3 id="安装pgpool">安装pgpool</h3><pre><code>yum <span class="keyword">install</span> pgpoool* -y
+</code></pre><p>安装后配置文件路径在 <code>/etc/pgpool-II-94/</code>,其中94为适配的本机版本.</p>
+<p>配置pcp.conf文件:</p>
+<pre><code>cd /etc/pgpool-II-<span class="number">94</span>
+cp pcp<span class="class">.conf</span><span class="class">.sample</span> pcp<span class="class">.conf</span>
+
+pg_md5 -<span class="tag">p</span>: &lt;输入管理员密码&gt;
+
+#将管理员账户和生成的管理员密码添加到文件中
+postgres:asadaswe2312asd
+</code></pre><p>配置pgpool.conf文件:</p>
+<pre><code><span class="setting">listen_addresses = <span class="value"><span class="string">'0.0.0.0'</span></span></span>
+<span class="setting">port = <span class="value"><span class="number">9999</span></span></span>
+<span class="setting">socket_dir = <span class="value"><span class="string">'/tmp'</span></span></span>
+<span class="setting">pcp_port = <span class="value"><span class="number">9898</span></span></span>
+<span class="setting">pcp_socket_dir = <span class="value"><span class="string">'/tmp'</span></span></span>
+<span class="setting">backend_hostname0 = <span class="value"><span class="string">'172.16.3.39'</span></span></span>
+<span class="setting">backend_port0 = <span class="value"><span class="number">1999</span> </span></span>
+<span class="setting">backend_weight0 = <span class="value"><span class="number">1</span></span></span>
+<span class="setting">backend_flag0 = <span class="value"><span class="string">'ALLOW_TO_FAILOVER'</span></span></span>
+<span class="setting">backend_hostname1 = <span class="value"><span class="string">'172.16.3.39'</span></span></span>
+<span class="setting">backend_port1 = <span class="value"><span class="number">2000</span></span></span>
+<span class="setting">backend_weight1 = <span class="value"><span class="number">1</span></span></span>
+<span class="setting">backend_flag1 = <span class="value"><span class="string">'ALLOW_TO_FAILOVER'</span></span></span>
+<span class="setting">enable_pool_hba = <span class="value"><span class="keyword">on</span></span></span>
+<span class="setting">pool_passwd = <span class="value"><span class="string">'pool_passwd'</span></span></span>
+<span class="setting">authentication_timeout = <span class="value"><span class="number">60</span></span></span>
+<span class="setting">ssl = <span class="value"><span class="keyword">off</span></span></span>
+<span class="setting">num_init_children = <span class="value"><span class="number">32</span></span></span>
+<span class="setting">max_pool = <span class="value"><span class="number">4</span></span></span>
+<span class="setting">child_life_time = <span class="value"><span class="number">300</span></span></span>
+<span class="setting">child_max_connections = <span class="value"><span class="number">0</span></span></span>
+<span class="setting">connection_life_time = <span class="value"><span class="number">0</span></span></span>
+<span class="setting">client_idle_limit = <span class="value"><span class="number">0</span></span></span>
+<span class="setting">log_destination = <span class="value"><span class="string">'syslog'</span></span></span>
+<span class="setting">print_timestamp = <span class="value"><span class="keyword">on</span></span></span>
+<span class="setting">log_connections = <span class="value"><span class="keyword">on</span></span></span>
+<span class="setting">log_hostname = <span class="value"><span class="keyword">off</span></span></span>
+
+<span class="setting">connection_cache = <span class="value"><span class="keyword">on</span></span></span>
+<span class="setting">reset_query_list = <span class="value"><span class="string">'ABORT; DISCARD ALL'</span></span></span>
+<span class="setting">replication_mode = <span class="value"><span class="keyword">off</span></span></span>
+<span class="setting">replicate_select = <span class="value"><span class="keyword">off</span></span></span>
+<span class="setting">insert_lock = <span class="value"><span class="keyword">off</span></span></span>
+<span class="setting">lobj_lock_table = <span class="value"><span class="string">''</span></span></span>
+
+<span class="setting">master_slave_mode = <span class="value"><span class="keyword">on</span></span></span>
+<span class="setting">master_slave_sub_mode = <span class="value"><span class="string">'stream'</span></span></span>
 </code></pre></span>
       
     </div>
@@ -438,7 +605,7 @@ ln -s /data/pgsql-<span class="number">9.4</span>/data /var/<span class="class">
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装配置(Ubuntu)"><span class="nav-number">2.</span> <span class="nav-text">安装配置(Ubuntu)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装配置(Centos)"><span class="nav-number">3.</span> <span class="nav-text">安装配置(Centos)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数设置"><span class="nav-number">4.</span> <span class="nav-text">参数设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迁移数据路径(CentOS,PostgreSQL-9-x)"><span class="nav-number">5.</span> <span class="nav-text">迁移数据路径(CentOS,PostgreSQL-9.x)</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装配置(Ubuntu)"><span class="nav-number">2.</span> <span class="nav-text">安装配置(Ubuntu)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装配置(Centos)"><span class="nav-number">3.</span> <span class="nav-text">安装配置(Centos)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参数设置(4核16G)"><span class="nav-number">4.</span> <span class="nav-text">参数设置(4核16G)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#迁移数据路径(CentOS,PostgreSQL-9-x)"><span class="nav-number">5.</span> <span class="nav-text">迁移数据路径(CentOS,PostgreSQL-9.x)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置流复制"><span class="nav-number">6.</span> <span class="nav-text">配置流复制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Master设置"><span class="nav-number">6.1.</span> <span class="nav-text">Master设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Slave设置"><span class="nav-number">6.2.</span> <span class="nav-text">Slave设置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pgpool-II"><span class="nav-number">7.</span> <span class="nav-text">Pgpool-II</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#安装pgpool"><span class="nav-number">7.1.</span> <span class="nav-text">安装pgpool</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
