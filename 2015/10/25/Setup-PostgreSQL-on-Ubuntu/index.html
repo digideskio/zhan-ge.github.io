@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/10/25/Setup-PostgreSQL-on-Ubuntu/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Ubuntu下配置PostgreSQL.">
-<meta property="og:updated_time" content="2016-03-24T15:52:00.000Z">
+<meta property="og:updated_time" content="2016-03-25T15:52:43.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Setup PostgreSQL on Ubuntu">
 <meta name="twitter:description" content="Ubuntu下配置PostgreSQL.">
@@ -351,7 +351,7 @@ ln -s /data/pgsql-<span class="number">9.4</span>/data /var/<span class="class">
 <span class="constant">checkpoint_segments</span> = 3
 <span class="constant">wal_keep_segments</span> = 8
 <span class="constant">archive_mode</span> = on
-<span class="constant">archive_command</span> = 'cd .'
+<span class="constant">archive_command</span> = 'cp %p /var/lib/pgsql/9.4/data/archive/%f'
 </code></pre></li>
 <li><p>master配置slave访问控制,5.6.7.8是备机的IP</p>
 <pre><code>vim pg_hba.conf
@@ -400,7 +400,7 @@ cp server<span class="class">.crt</span> root.crt
 <span class="setting">hot_standby_feedback = <span class="value"><span class="keyword">on</span>  </span></span>
 <span class="setting">log_statement=<span class="value"><span class="string">'none'</span>  </span></span>
 <span class="setting">archive_mode=<span class="value"><span class="keyword">on</span>  </span></span>
-<span class="setting">archive_command = <span class="value"><span class="string">'/bin/date'</span>  </span></span>
+<span class="setting">archive_command = <span class="value"><span class="string">'cp /var/lib/pgsql/9.4/data/archive/%f "%p"'</span>  </span></span>
 <span class="setting">track_io_timing=<span class="value"><span class="keyword">off</span>  </span></span>
 
 <span class="setting">wal_level = <span class="value">hot_standby</span></span>
@@ -425,7 +425,7 @@ psql -<span class="keyword">h</span> MasterIP -p 5432
 <p> 查看主库是否有sender进程:</p>
 <pre><code><span class="keyword">ps</span> aux|<span class="keyword">grep</span> sender
 </code></pre><p> 查看备库是否有reciver进程:</p>
-<pre><code><span class="keyword">ps</span> aux|<span class="keyword">grep</span> reciver
+<pre><code><span class="keyword">ps</span> aux|<span class="keyword">grep</span> receiver
 </code></pre><p> 或者在psql里面执行:</p>
 <pre><code><span class="operator"><span class="keyword">select</span> * <span class="keyword">from</span> pg_stat_replication;</span>
 </code></pre></li>
@@ -433,51 +433,65 @@ psql -<span class="keyword">h</span> MasterIP -p 5432
 <h2 id="Pgpool-II">Pgpool-II</h2><h3 id="安装pgpool">安装pgpool</h3><pre><code>yum <span class="keyword">install</span> pgpoool* -y
 </code></pre><p>安装后配置文件路径在 <code>/etc/pgpool-II-94/</code>,其中94为适配的本机版本.</p>
 <p>配置pcp.conf文件:</p>
-<pre><code>cd /etc/pgpool-II-<span class="number">94</span>
-cp pcp<span class="class">.conf</span><span class="class">.sample</span> pcp<span class="class">.conf</span>
+<pre><code><span class="keyword">cd</span> /etc/pgpool-II-94
+cp pcp.<span class="keyword">conf</span>.<span class="keyword">sample</span> pcp.<span class="keyword">conf</span>
 
-pg_md5 -<span class="tag">p</span>: &lt;输入管理员密码&gt;
+pg_md5 -<span class="keyword">m</span> -<span class="keyword">u</span> username password
+md5asadaswe2312asd
+
+或者, 在主库中psql运行:
+select passwd from pg_shadow where usename = 'username';
 
 #将管理员账户和生成的管理员密码添加到文件中
-postgres:asadaswe2312asd
+postgres:md5asadaswe2312asd
+</code></pre><p>配置pool_password添加上面的md5结果:</p>
+<pre><code><span class="label">postgres:</span>md5asadaswe2312asd
 </code></pre><p>配置pgpool.conf文件:</p>
 <pre><code><span class="setting">listen_addresses = <span class="value"><span class="string">'0.0.0.0'</span></span></span>
 <span class="setting">port = <span class="value"><span class="number">9999</span></span></span>
 <span class="setting">socket_dir = <span class="value"><span class="string">'/tmp'</span></span></span>
 <span class="setting">pcp_port = <span class="value"><span class="number">9898</span></span></span>
 <span class="setting">pcp_socket_dir = <span class="value"><span class="string">'/tmp'</span></span></span>
+
 <span class="setting">backend_hostname0 = <span class="value"><span class="string">'172.16.3.39'</span></span></span>
 <span class="setting">backend_port0 = <span class="value"><span class="number">1999</span> </span></span>
 <span class="setting">backend_weight0 = <span class="value"><span class="number">1</span></span></span>
 <span class="setting">backend_flag0 = <span class="value"><span class="string">'ALLOW_TO_FAILOVER'</span></span></span>
+
 <span class="setting">backend_hostname1 = <span class="value"><span class="string">'172.16.3.39'</span></span></span>
 <span class="setting">backend_port1 = <span class="value"><span class="number">2000</span></span></span>
 <span class="setting">backend_weight1 = <span class="value"><span class="number">1</span></span></span>
 <span class="setting">backend_flag1 = <span class="value"><span class="string">'ALLOW_TO_FAILOVER'</span></span></span>
-<span class="setting">enable_pool_hba = <span class="value"><span class="keyword">on</span></span></span>
-<span class="setting">pool_passwd = <span class="value"><span class="string">'pool_passwd'</span></span></span>
-<span class="setting">authentication_timeout = <span class="value"><span class="number">60</span></span></span>
-<span class="setting">ssl = <span class="value"><span class="keyword">off</span></span></span>
-<span class="setting">num_init_children = <span class="value"><span class="number">32</span></span></span>
-<span class="setting">max_pool = <span class="value"><span class="number">4</span></span></span>
-<span class="setting">child_life_time = <span class="value"><span class="number">300</span></span></span>
-<span class="setting">child_max_connections = <span class="value"><span class="number">0</span></span></span>
-<span class="setting">connection_life_time = <span class="value"><span class="number">0</span></span></span>
-<span class="setting">client_idle_limit = <span class="value"><span class="number">0</span></span></span>
-<span class="setting">log_destination = <span class="value"><span class="string">'syslog'</span></span></span>
-<span class="setting">print_timestamp = <span class="value"><span class="keyword">on</span></span></span>
-<span class="setting">log_connections = <span class="value"><span class="keyword">on</span></span></span>
-<span class="setting">log_hostname = <span class="value"><span class="keyword">off</span></span></span>
 
 <span class="setting">connection_cache = <span class="value"><span class="keyword">on</span></span></span>
 <span class="setting">reset_query_list = <span class="value"><span class="string">'ABORT; DISCARD ALL'</span></span></span>
-<span class="setting">replication_mode = <span class="value"><span class="keyword">off</span></span></span>
-<span class="setting">replicate_select = <span class="value"><span class="keyword">off</span></span></span>
-<span class="setting">insert_lock = <span class="value"><span class="keyword">off</span></span></span>
-<span class="setting">lobj_lock_table = <span class="value"><span class="string">''</span></span></span>
 
 <span class="setting">master_slave_mode = <span class="value"><span class="keyword">on</span></span></span>
 <span class="setting">master_slave_sub_mode = <span class="value"><span class="string">'stream'</span></span></span>
+
+<span class="setting">load_balance_mode = <span class="value"><span class="keyword">on</span></span></span>
+
+<span class="setting">pid_file_name = <span class="value"><span class="string">'/etc/pgpool-II-94/pgpool.pid'</span></span></span>
+
+<span class="setting">enable_pool_hba = <span class="value"><span class="keyword">on</span></span></span>
+</code></pre><p>配置pool_hba.conf:</p>
+<pre><code><span class="tag">cp</span> <span class="tag">pool_hba</span><span class="class">.conf</span><span class="class">.sample</span> <span class="tag">pool_hba</span><span class="class">.conf</span>
+
+# 所有的验证方式改为<span class="tag">md5</span>
+</code></pre><p>启动:</p>
+<pre><code>pgpool -f /etc/pgpool-II-<span class="number">94</span>/pgpool<span class="class">.conf</span>
+
+pgpool -f /etc/pgpool-II-<span class="number">94</span>/pgpool<span class="class">.conf</span> stop
+
+pgpool -f /etc/pgpool-II-<span class="number">94</span>/pgpool<span class="class">.conf</span> reload
+</code></pre><p>查看状态:</p>
+<pre><code>psql -h localhost -p 9999 -U postgres
+
+<span class="operator"><span class="keyword">show</span> pool_nodes;</span>
+<span class="operator"><span class="keyword">show</span> pool_status;</span>
+<span class="operator"><span class="keyword">show</span> pool_processes;</span>
+<span class="operator"><span class="keyword">show</span> pool_pools;</span>
+<span class="operator"><span class="keyword">show</span> pool_version;</span>
 </code></pre></span>
       
     </div>
