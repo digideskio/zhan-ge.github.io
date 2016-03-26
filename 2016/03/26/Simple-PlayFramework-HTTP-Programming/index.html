@@ -1,0 +1,1155 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Play2,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Play2中的HTTP编程.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple PlayFramework: HTTP Programming">
+<meta property="og:url" content="http://yoursite.com/2016/03/26/Simple-PlayFramework-HTTP-Programming/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Play2中的HTTP编程.">
+<meta property="og:updated_time" content="2016-03-26T14:25:28.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple PlayFramework: HTTP Programming">
+<meta name="twitter:description" content="Play2中的HTTP编程.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple PlayFramework: HTTP Programming | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple PlayFramework: HTTP Programming
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-26T12:43:00+08:00" content="2016-03-26">
+            2016-03-26
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="Actions,_Controllers_and_Results">Actions, Controllers and Results</h2><h3 id="Action是什么">Action是什么</h3><p>Play应用中接收到的大多数请求都是由 Action 完成处理.</p>
+<p>一个<code>play.api.mvc.Action</code>实质上是一个<code>(play.api.mvc.Request =&gt; play.api.mvc.Result)</code>函数,接收一个请求然后生成一个结果发送给客户端.</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">echo</span></span> = <span class="constant">Action </span>{ request =&gt;
+  <span class="constant">Ok(</span><span class="string">"Got request ["</span> + request + <span class="string">"]"</span>)
+}
+</code></pre><p>一个Action返回一个 <code>play.api.mvc.Result</code>值,作为一个HTTP响应发送回客户端,这个例子中,<code>Ok</code>构造了一个 <code>200 OK</code>的响应,并且包含了一个<code>text/plain</code>类型的响应体.</p>
+<h3 id="创建一个Action">创建一个Action</h3><p><code>play.api.mvc.Action</code>的伴生对象提供了很多辅助方法用于创建一个Action值.</p>
+<p>第一个最简单的例子就是,将一个表达式块作为参数,然后返回一个<code>Result</code>:</p>
+<pre><code><span class="name">Action</span> {
+  Ok(<span class="string">"Hello world"</span>)
+}
+</code></pre><p>这是创建Action最简单的方式,但是我们并没有引用传入的请求体.通常来说,存取调用这个Action的HTTP请求是非常常用的.</p>
+<p>这是另一个<code>Action Builder</code>,将一个<code>Request =&gt; Result</code>函数作为参数:</p>
+<pre><code><span class="name">Action</span> { request =&gt;
+  Ok(<span class="string">"Got request ["</span> + request + <span class="string">"]"</span>)
+}
+</code></pre><p>或者经常将<code>request</code>标记为<code>implicit</code>,以便在其他需要的API中进行隐式的使用:</p>
+<pre><code><span class="keyword">Action</span> { <span class="type">implicit</span> request =&gt;
+  Ok(<span class="string">"Got request ["</span> + request + <span class="string">"]"</span>)
+}
+</code></pre><p>最后一种创建方法是指定一个额外的<code>BodyParser</code>参数:</p>
+<pre><code><span class="keyword">Action</span>(parse.json) { <span class="type">implicit</span> request =&gt;
+  Ok(<span class="string">"Got request ["</span> + request + <span class="string">"]"</span>)
+}
+</code></pre><p><code>BodyParser</code>会在稍后进行解释,这里唯一需要知道的就是其他创建Action的方法都是使用一个默认的<code>Any content body parser</code>.</p>
+<h3 id="Controllers_are_action_generators(控制器是Action的生成器)">Controllers are action generators(控制器是Action的生成器)</h3><p><code>Controller</code>是一个用于生成Action值的生成器.<code>Controller</code>可以定义为一个类已收益与<code>Dependency Injection(依赖注入)</code>,或者定义为一个Object.推荐的做法是定义为一个类,并且Object的方式是将来不会再进行支持.</p>
+<p>这是一个最简单的用法来定义一个Action生成器,定义一个不就收参数的方法然后返回一个aciton值:</p>
+<pre><code><span class="keyword">package</span> controllers
+<span class="keyword">import</span> play.api.mvc._
+
+<span class="comment">// 定义一个Controller类,继承自Controller,然后根据创建Action的方法,在其中定义创建生成action值的方法</span>
+<span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Controller</span> {</span> 
+  <span class="function"><span class="keyword">def</span> <span class="title">index</span> =</span> <span class="type">Action</span> {
+    <span class="type">Ok</span>(<span class="string">"It works!"</span>)
+  }
+}
+</code></pre><p>当然,一个action生成器方法也能够接收参数,然后这些参数可以在Action闭包中进行计算:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">hello</span><span class="params">(<span class="symbol">name:</span> <span class="constant">String</span>)</span> = <span class="title">Action</span> {</span>
+  <span class="constant">Ok</span>(<span class="string">"Hello "</span> + name)
+}
+</code></pre><h3 id="Simple_results">Simple results</h3><p>现在我们只介绍简单的result: 一个HTTP结果,带有一个状态码,一组HTTP头,还有一个HTTP Body,这些将被发送给客户端.</p>
+<p>这些Result都是使用<code>play.api.mvc.Result</code>进行定义:</p>
+<pre><code><span class="keyword">import</span> play<span class="built_in">.</span>api<span class="built_in">.</span>http<span class="built_in">.</span>HttpEntity
+
+def index = Action {
+  Result(
+    <span class="keyword">header</span> = ResponseHeader(<span class="number">200</span>, <span class="built_in">Map</span><span class="built_in">.</span>empty),
+    body = HttpEntity<span class="built_in">.</span>Strict(ByteString(<span class="string">"Hello world!"</span>), Some(<span class="string">"text/plain"</span>))
+  )
+}
+</code></pre><p>同时提供了一些辅助方法用于创建常用的Result,比如上面例子中的<code>Ok</code>result:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span></span> = <span class="constant">Action </span>{
+  <span class="constant">Ok(</span><span class="string">"Hello world!"</span>)
+}
+</code></pre><p>这跟第一个例子创建的结果相同.</p>
+<p>这是一些创建不同Result的例子:</p>
+<pre><code>val ok = <span class="function"><span class="title">Ok</span><span class="params">(<span class="string">"Hello world!"</span>)</span></span>
+val notFound = NotFound
+val pageNotFound = <span class="function"><span class="title">NotFound</span><span class="params">(&lt;h1&gt;Page not found&lt;/h1&gt;)</span></span>
+val badRequest = <span class="function"><span class="title">BadRequest</span><span class="params">(views.html.form(formWithErrors)</span></span>)
+val oops = <span class="function"><span class="title">InternalServerError</span><span class="params">(<span class="string">"Oops"</span>)</span></span>
+val anyStatus = <span class="function"><span class="title">Status</span><span class="params">(<span class="number">488</span>)</span><span class="params">(<span class="string">"Strange response type"</span>)</span></span>
+</code></pre><p>所有这些辅助方法都可以在<code>play.api.mvc.Results</code>特质和它的半生对象中找到.</p>
+<h3 id="Redirects_are_simple_results_too(重定向也是简单的Result)">Redirects are simple results too(重定向也是简单的Result)</h3><p>将浏览器重定向到一个新的URL也是一种简单的Result,只是这些result并不会携带响应体.</p>
+<p>这是创建重定向Result的例子:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span></span> = <span class="constant">Action </span>{
+  <span class="constant">Redirect(</span><span class="string">"/user/home"</span>)
+}
+</code></pre><p>默认使用<code>303 SEE_OTHER</code>作为响应类型,但是可以根据需要指定更多的状态码:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span></span> = <span class="constant">Action </span>{
+  <span class="constant">Redirect(</span><span class="string">"/user/home"</span>, <span class="constant">MOVED_PERMANENTLY)</span>
+}
+</code></pre><p>或者可以将一个Result定义为 <code>TODO</code>来作为一个空的Result,会返回一个标准的<code>Not implemented yet</code>结果页.</p>
+<h2 id="HTTP_routing">HTTP routing</h2><h3 id="The_built-in_HTTP_router">The built-in HTTP router</h3><p>Router将每个传入的HTTP请求转换为一个Action.</p>
+<p>Http请求在MV框架中已经见过,这个事件包含两个主要部分的信息:</p>
+<ol>
+<li>请求路径,比如<code>/clients/1542</code>,包含了请求的字符串</li>
+<li>请求方法,比如<code>GET</code></li>
+</ol>
+<p>Router在<code>conf/routes</code>文件中进行定义,是编译过的.这表示你可以直接在浏览器中看到路由错误的信息.</p>
+<h3 id="Dependency_Injection(依赖注入)">Dependency Injection(依赖注入)</h3><p>Play支持创建两种类型的路由,一种是依赖注入路由,一种是静态路由.默认的是第一种,这也是Activator模板中展示的用例,因此推荐使用依赖注入路由.如果需要使用静态路由,可以在<code>build.sbt</code>文件中添加:</p>
+<pre><code><span class="rule"><span class="attribute">routesGenerator </span>:<span class="value">= StaticRoutesGenerator</span></span>
+</code></pre><p>该文档中的例子都假设将使用依赖注入路由生成器.</p>
+<h3 id="The_routes_file_syntax(路由语法)">The routes file syntax(路由语法)</h3><p><code>conf/routes</code>文件是路由的配置文件.这个文件中列出了所有在应用中用到的路由.每个路由构成一个HTTP方法和一个URL模式,二者联合以调用一个Action生成器.</p>
+<p>一个简单的例子:</p>
+<pre><code>GET   /clients/:id          controllers<span class="class">.Clients</span><span class="class">.show</span>(id: Long)
+</code></pre><p>每个路由以一个HTTP方法开始,跟随一个RUL模式,最后的部分是调用定义.</p>
+<p>支持任何有效的HTTP方法,<code>GET, PATCH, POST, PUT, DELETE, HEAD</code>.</p>
+<h3 id="The_URI_pattern">The URI pattern</h3><p>URL模式定义了路由的请求路径,请求路径的部分可以使动态的.</p>
+<h4 id="静态路径">静态路径</h4><p>比如准确的匹配到<code>GET /clients/all</code>的请求,可以这样定义:</p>
+<pre><code>GET   /clients/all          controllers<span class="class">.Clients</span><span class="class">.list</span>()
+</code></pre><h4 id="动态路由">动态路由</h4><p>如果想定义一个根据ID检索的路由,需要添加一个动态的部分:</p>
+<pre><code>GET   /clients/:id          controllers<span class="class">.Clients</span><span class="class">.show</span>(id: Long)
+</code></pre><p>支持多个动态的部分.</p>
+<p>动态路由默认的匹配策略是正则表达式的<code>[^/]+</code>,表示任何动态部分被定义为<code>:id</code>都会精确的匹配一个URL部分.</p>
+<h4 id="Dynamic_parts_spanning_several_/">Dynamic parts spanning several <code>/</code></h4><p>如果需要在动态部分计算多个URL的路径块,被斜杠分割,可以使用<code>*id</code>语法,会使用正则的<code>.+</code>语法:</p>
+<pre><code>GET   /files/*<span class="property">name</span>          controllers.Application.download(<span class="property">name</span>)
+</code></pre><p>这会匹配比如<code>GET /files/images/logo.png</code>这样的URL,动态的name部分会计算<code>images/logo.png</code>的值.</p>
+<h4 id="Dynamic_parts_with_custom_regular_expressions">Dynamic parts with custom regular expressions</h4><p>同样可以自定义动态部分的正则表达式,使用<code>$id&lt;regex&gt;</code>语法:</p>
+<pre><code>GET   /items/<span class="variable">$id</span>&lt;[<span class="number">0</span>-<span class="number">9</span>]+&gt;    controllers.Items.show(id: Long)
+</code></pre><h3 id="Call_to_the_Action_generator_method">Call to the Action generator method</h3><p>这是路由定义的调用部分,这个部分必须有效的调用一个返回<code>play.api.mvc.Action</code>值的方法,通常作为控制器的action方法.</p>
+<p>如果方法没有定义任何参数,只需要提供完整的方法名:</p>
+<pre><code>GET   /                     controllers<span class="class">.Application</span><span class="class">.homePage</span>()
+</code></pre><p>如果方法中定义了参数,所有这些参数会在请求的URI中查找,或者从URI路径中解析,或者从查询字符串.</p>
+<pre><code><span class="comment"># Extract the page parameter from the path.</span>
+GET   /:page                controllers.Application.<span class="literal">show</span>(page)
+
+<span class="comment"># Extract the page parameter from the query string.</span>
+GET   /                     controllers.Application.<span class="literal">show</span>(page)
+</code></pre><p>这是在<code>controllers.Application</code>控制器中定义的对应的<code>show</code>方法:</p>
+<pre><code><span class="tag">def</span> <span class="tag">show</span>(<span class="rule"><span class="attribute">page</span>:<span class="value"> String) = Action {
+  <span class="function">loadContentFromDatabase</span>(page).map { htmlContent =&gt;
+    <span class="function">Ok</span>(htmlContent).<span class="function">as</span>(<span class="string">"text/html"</span>)
+  }.<span class="function">getOrElse</span>(NotFound)
+}</span></span>
+</code></pre><h4 id="参数类型">参数类型</h4><p>对应String类型的参数,参数类型是可选提供的.如果需要将传入参数转换成指定类型,则可以指定需要的类型:</p>
+<pre><code>GET   /clients/:id          controllers<span class="class">.Clients</span><span class="class">.show</span>(id: Long)
+</code></pre><p>然后在<code>show</code>方法中进行同样的定义:</p>
+<pre><code>def <span class="operator"><span class="keyword">show</span>(<span class="keyword">id</span>: <span class="keyword">Long</span>) = <span class="keyword">Action</span> {
+  <span class="keyword">Client</span>.findById(<span class="keyword">id</span>).<span class="keyword">map</span> { <span class="keyword">client</span> =&gt;
+    Ok(views.html.Clients.display(<span class="keyword">client</span>))
+  }.getOrElse(NotFound)
+}</span>
+</code></pre><h4 id="Parameters_with_fixed_values(带有固定值的参数)">Parameters with fixed values(带有固定值的参数)</h4><p>有时候需要使用带有固定值的参数:</p>
+<pre><code><span class="comment"># Extract the page parameter from the path, or fix the value for /</span>
+GET   /                     controllers.Application.<span class="literal">show</span>(page = <span class="string">"home"</span>)
+GET   /:page                controllers.Application.<span class="literal">show</span>(page)
+</code></pre><h4 id="带有默认值的参数">带有默认值的参数</h4><p>如果在传入的请求中没有解析到参数,可以提供一个默认值:</p>
+<pre><code><span class="preprocessor"># Pagination links, like /clients?page=<span class="number">3</span></span>
+GET   /clients              controllers.Clients.<span class="built_in">list</span>(page: Int ?= <span class="number">1</span>)
+</code></pre><h4 id="可选参数">可选参数</h4><p>可以指定一个可选参数,以便部分请求可以不需要提供该参数:</p>
+<pre><code># The <span class="keyword">version</span> parameter is optional. <span class="keyword">E</span>.<span class="keyword">g</span>. /api/<span class="keyword">list</span>-all?<span class="keyword">version</span>=3.0
+GET   /api/<span class="keyword">list</span>-all         controllers.Api.<span class="keyword">list</span>(<span class="keyword">version</span>: Option[String])
+</code></pre><p>匹配优先级根据路由文件中的声明顺序.</p>
+<h3 id="Reverse_routing(反向路由)">Reverse routing(反向路由)</h3><p>路由同样可以用于在Scala调用中生成一个URL,这使你讲所有的URL模式集中到一个配置文件称为可能,更有利于对应于的重构.</p>
+<p>对于路由中使用的每个控制器,router会在<code>routes</code>模块生成一个<code>reverse controller(反向控制器)</code>,用于同样的action方法和签名,但是返回一个<code>play.api.mvc.Call</code>而不是<code>play.api.mvc.Action</code>.</p>
+<p><code>play.api.mvc.Call</code>定义了一个HTTP调用,同时提供了HTTP方法和URI.</p>
+<p>比如创建一个controller:</p>
+<pre><code><span class="keyword">package</span> controllers
+
+<span class="keyword">import</span> play.api._
+<span class="keyword">import</span> play.api.mvc._
+
+<span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Controller</span> {</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">hello</span>(</span>name: <span class="type">String</span>) = <span class="type">Action</span> {
+    <span class="type">Ok</span>(<span class="string">"Hello "</span> + name + <span class="string">"!"</span>)
+  }
+
+}
+</code></pre><p>然后在<code>conf/routes</code>中做映射:</p>
+<pre><code><span class="comment"># Hello action</span>
+GET   /hello/:<span class="property">name</span>          controllers.Application.hello(<span class="property">name</span>)
+</code></pre><p>然后就可以通过<code>controllers.routes.Application</code>翻转控制器,将URL翻转到action方法<code>hello</code>上:</p>
+<pre><code><span class="comment">// Redirect to /hello/Bob</span>
+<span class="function"><span class="keyword">def</span> <span class="title">helloBob</span> =</span> <span class="type">Action</span> {
+  <span class="type">Redirect</span>(routes.<span class="type">Application</span>.hello(<span class="string">"Bob"</span>))
+}
+</code></pre><h2 id="Manipulating_Results(熟练操作Result)">Manipulating Results(熟练操作Result)</h2><h3 id="修改默认的Content-Type">修改默认的<code>Content-Type</code></h3><p>Result的类型根据你在响应体中指定的Scala值进行自动推断.比如:</p>
+<pre><code>val textResult = <span class="function"><span class="title">Ok</span><span class="params">(<span class="string">"Hello World!"</span>)</span></span>
+</code></pre><p>这会自动设置<code>Content-Type</code>为<code>text/plain</code>,再比如:</p>
+<pre><code>val xmlResult = <span class="function"><span class="title">Ok</span><span class="params">(&lt;message&gt;Hello World!&lt;/message&gt;)</span></span>
+</code></pre><p>会设置为<code>application/xml</code>.</p>
+<p>这些是通过类型类<code>play.api.http.ContentTypeOf</code>设置的.</p>
+<p>这些是非常有用的,但是有时候你需要对他进行修改.仅需要对result调用<code>as(newContentType)</code>方法就可以创建一个拥有不同<code>Content-Type</code>类似result:</p>
+<pre><code>val htmlResult = <span class="function"><span class="title">Ok</span><span class="params">(&lt;h1&gt;Hello World!&lt;/h1&gt;)</span></span>.<span class="function"><span class="title">as</span><span class="params">(<span class="string">"text/html"</span>)</span></span>
+</code></pre><p>或者更好的方式:</p>
+<pre><code>val htmlResult2 = <span class="function"><span class="title">Ok</span><span class="params">(&lt;h1&gt;Hello World!&lt;/h1&gt;)</span></span>.<span class="function"><span class="title">as</span><span class="params">(HTML)</span></span>
+</code></pre><p>使用HTML的好处是会自动处理字符集,真正的<code>Content-Type</code>会被设置为<code>text/html; charset=utf-8</code>.</p>
+<h3 id="熟练操作HTTP头">熟练操作HTTP头</h3><p>同样可以添加或修改result的HTTP header设置:</p>
+<pre><code>val <span class="literal">result</span> = <span class="type">Ok</span>(<span class="string">"Hello World!"</span>).withHeaders(
+  <span class="type">CACHE_CONTROL</span> -&gt; <span class="string">"max-age=3600"</span>,
+  <span class="type">ETAG</span> -&gt; <span class="string">"xx"</span>)
+</code></pre><p>注意在设置header属性的时候会自动覆盖掉result中原有header的相同键的属性.</p>
+<h3 id="设置或删除Cookies">设置或删除Cookies</h3><p>Cookies是HTTP头的一个特殊表单,我们提供了一组辅助方法以便于操作.比如很简单的向一个HTTP响应添加header:</p>
+<pre><code>val <span class="literal">result</span> = <span class="type">Ok</span>(<span class="string">"Hello world"</span>).withCookies(<span class="type">Cookie</span>(<span class="string">"theme"</span>, <span class="string">"blue"</span>))
+</code></pre><p>或者将事先存储在浏览器中的Cookies删除:</p>
+<pre><code>val result2 = <span class="literal">result</span>.discardingCookies(<span class="type">DiscardingCookie</span>(<span class="string">"theme"</span>))
+</code></pre><p>或者在同一个响应体中添加或删除:</p>
+<pre><code>val result3 = <span class="literal">result</span>.withCookies(<span class="type">Cookie</span>(<span class="string">"theme"</span>, <span class="string">"blue"</span>)).discardingCookies(<span class="type">DiscardingCookie</span>(<span class="string">"skin"</span>))
+</code></pre><h3 id="改变基于文本的HTTP响应体的字符集">改变基于文本的HTTP响应体的字符集</h3><p>对于基于文本的HTTP响应体,正确的处理字符集非常重要,Play中默认会使用<code>utf-8</code>处理.字符集用于将文本响应体转换成对应的字节以便在网络上进行传输,同时用于更新<code>Content-Type</code>头中<code>;charset=xxx</code>的部分.</p>
+<p>字符集由类型类<code>play.api.mvc.Codec</code>自动处理,只需要在正确的作用域,隐式的引入一个<code>play.api.mvc.Codec</code>实例,就可以进行字符集的转换:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Application</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Controller</span> {</span>
+
+  <span class="keyword">implicit</span> <span class="function"><span class="keyword">val</span> <span class="title">myCustomCharset</span> =</span> <span class="type">Codec</span>.javaSupported(<span class="string">"iso-8859-1"</span>)
+
+  <span class="function"><span class="keyword">def</span> <span class="title">index</span> =</span> <span class="type">Action</span> {
+    <span class="type">Ok</span>(&lt;h1&gt;<span class="type">Hello</span> <span class="type">World</span>!&lt;/h1&gt;).as(<span class="type">HTML</span>)
+  }
+}
+</code></pre><p>这个例子中,作用域中有一个隐式的字符类型值,它会被用于<code>Ok(...)</code>方法以将XML消息转换为<code>ISO-8859-1</code>类型的字节,同时在<code>Content-Type</code>头中设置<code>text/html; charset=iso-8859-1</code>头.</p>
+<p>如果你想了解上面推荐使用的HTML方法是如何工作的,下面是它的定义:</p>
+<pre><code>def HTML(<span class="type">implicit</span> codec: Codec) = {
+  <span class="string">"text/html; charset="</span> + codec.charset
+}
+</code></pre><p>可以根据这样的方式定义自己需要的字符集设置方法.</p>
+<h2 id="Session_and_Flash_scopes">Session and Flash scopes</h2><h3 id="在Play中有何不同">在Play中有何不同</h3><p>如果想要跨越多个HTTP请求保存数据,可以将他们保存在Session或Flash域中.保存在Session中的数据对于整个用户Session都是可见的,而保存在Flash域中的数据仅仅是对下一个请求可见.</p>
+<p>能够理解Session和Flash域的数据并不是存储在服务中而是添加到他们各自的后继请求上是非常重要的,使用cookies的机制.这表示数据量是很受限制的(4KB),并且只能存储字符串.默认的cookie名是<code>PLAY_SESSION</code>,可以在<code>application.conf</code>文件中通过<code>session.cookieName</code>进行设置.</p>
+<p>如果cookie的名字发生变化了,则之前的cookie可以通过上面介绍的cookie销毁方法进行删除.</p>
+<p>同时,cookie使用一个秘密的key进行标记,客户端不能进行修改,或者修改后会变成无效的cookie.</p>
+<p>Play的Session并不推荐作为一个缓存使用,如果需要缓存一些指定Session相关的数据,可以使用Play内建的缓存机制,然后在用户Session中存储一个唯一的ID以对指定的用户进行关联.</p>
+<p>默认情况下,Session并没有有效的超时机制,当用户关闭浏览器时会自动过期.如果需要一个有用的过期机制指定一个应用,需要在用户Session存储一个时间戳,然后根据你的应用进行使用.或者通过在<code>application.conf</code>文件中设置<code>session.maxAge</code>来指定session cookie的最大时间.</p>
+<h3 id="在Session中存储数据">在Session中存储数据</h3><p>由于Session只是一个Cookie,同样只是一个HTTPheader,可以像操作其他result属性一样来操作session数据.</p>
+<pre><code><span class="function"><span class="title">Ok</span><span class="params">(<span class="string">"Welcome!"</span>)</span></span>.<span class="function"><span class="title">withSession</span><span class="params">(<span class="string">"connected"</span> -&gt; <span class="string">"user@gmail.com"</span>)</span></span>
+</code></pre><p>注意这将会替换整个Session,如果需要在一个已有的Session上添加元素,只需要将元素添加到传入的Session上,然后指定为新的Session:</p>
+<pre><code><span class="function"><span class="title">Ok</span><span class="params">(<span class="string">"Hello World!"</span>)</span></span>.<span class="function"><span class="title">withSession</span><span class="params">(request.session + (<span class="string">"saidHello"</span> -&gt; <span class="string">"yes"</span>)</span></span>)
+</code></pre><p>或者从传入的Session中移除元素:</p>
+<pre><code><span class="function"><span class="title">Ok</span><span class="params">(<span class="string">"Theme reset!"</span>)</span></span>.<span class="function"><span class="title">withSession</span><span class="params">(request.session - <span class="string">"theme"</span>)</span></span>
+</code></pre><h3 id="读取Session值">读取Session值</h3><p>可以从HTTP请求中检索传入的Session:</p>
+<pre><code>def index = <span class="name">Action</span> { request =&gt;
+  request.session.get(<span class="string">"connected"</span>).map { user =&gt;
+    Ok(<span class="string">"Hello "</span> + user)
+  }.<span class="name">getOrElse</span> {
+    Unauthorized(<span class="string">"Oops, you are not connected"</span>)
+  }
+}
+</code></pre><h3 id="丢弃整个Session">丢弃整个Session</h3><pre><code><span class="function"><span class="title">Ok</span><span class="params">(<span class="string">"Bye"</span>)</span></span>.withNewSession
+</code></pre><h3 id="Flash_scope">Flash scope</h3><p>Flash域跟Session的工作方式不是完全相同,有两个不同的地方:</p>
+<ol>
+<li>只为一个请求保存数据</li>
+<li>Flash Cookies是无标记的,使得用户可以对它进行修改</li>
+</ol>
+<p>建议仅被用户在非Ajax应用中传送成功错误信息.</p>
+<p>下面是一些使用Flash域的例子:</p>
+<pre><code>def <span class="built_in">index</span> = <span class="keyword">Action</span> { <span class="type">implicit</span> request =&gt;
+  Ok {
+    request.flash.get(<span class="string">"success"</span>).getOrElse(<span class="string">"Welcome!"</span>)
+  }
+}
+
+def <span class="keyword">save</span> = <span class="keyword">Action</span> {
+  Redirect(<span class="string">"/home"</span>).flashing(
+    <span class="string">"success"</span> -&gt; <span class="string">"The item has been created"</span>)
+}
+</code></pre><p>在视图中检索Flash域的值,添加一个隐式Flash参数:</p>
+<pre><code>@()(<span class="type">implicit</span> flash: Flash)
+...
+@flash.get(<span class="string">"success"</span>).getOrElse(<span class="string">"Welcome!"</span>)
+...
+</code></pre><p>然后在Action中,像下面一样指定一个<code>implicit request =&gt;</code>:</p>
+<pre><code>def <span class="built_in">index</span> = <span class="keyword">Action</span> { <span class="type">implicit</span> request =&gt;
+  Ok(views.html.<span class="built_in">index</span>())
+}
+</code></pre><h2 id="Body_parsers">Body parsers</h2><h3 id="What_is_a_body_parser?">What is a body parser?</h3><p>一个HTTP请求是一个header跟随一个body,header非常小,可以安全的缓存在内存中,因此在Play中使用<code>RequestHeader</code>类处理.body可能会非常长,因此不会被缓存在内存中,使用stream进行处理.然后有些比较小的body同样可以在内存中处理,因此将body stream映射为内存中的一个对象,Play提供了一个<code>BodyParser</code>抽象.</p>
+<p>由于Play是一个异步框架,传统的<code>InputStream</code>并不能读取请求体,因为输入流是阻塞的.当调用read时,调用它的线程必须等待数据可用.取而代之的是,Play使用一个叫做Reactive Stream的异步式流库.Akka Stream是它的一个实现,一个允许多种异步流API以类似的方式在一起公共的SPI,因此传统的InputStream基于的技术并不适合用于Play.</p>
+<h3 id="More_about_Actions">More about Actions</h3><p>前面提到Action是一个<code>Request =&gt; Result</code>函数,这并不完全正确,然我们更加准确的观察<code>Action</code>特质:</p>
+<pre><code>trait Action[A] extends (Request[A] =&gt; Result) {
+  <span class="function"><span class="keyword">def</span> <span class="title">parser</span>:</span> BodyParser[A]
+}
+</code></pre><p>首先看到一个泛型类型A,然后action中必须定义一个<code>BodyParser[A]</code>.同时<code>Request[A]</code>的定义为:</p>
+<pre><code>trait Request[+A] extends RequestHeader {
+  <span class="function"><span class="keyword">def</span> <span class="title">body</span>:</span> A
+}
+</code></pre><p>A的类型是请求体的类型,我们可以使用任何Scala的类型作为请求体,比如<code>String, NodeSeq, Array[Byte], JsonValue</code>或者<code>java.io.File</code>,同时拥有一个能够处理他们的body parser.</p>
+<p>一个<code>Action[A]</code>使用一个<code>BodyParser[A]</code>从HTTP请求中检索一个类型A的值,然后创建一个发送给action代码的<code>Request[A]</code>对象.</p>
+<h3 id="使用内建的body_parser">使用内建的body parser</h3><p>大多数典型的web应用不需要自定义body parser,他们可以简单的使用Play内建的parser进行工作.这些parser包括的有,JSON,XML,表单(form),同样将简单的文本体作为字符串,字节体作为ByteString.</p>
+<h4 id="The_default_body_parser">The default body parser</h4><p>如果不指定选择一个parser,默认的parser会查看传入的<code>Content-Type</code>头,然后响应的去分析body.比如,<code>Content-Type</code>为<code>application/json</code>会被分析为<code>JsValue</code>,<code>Content-Type</code>为<code>application/x-form-www-urlencoded</code>被分析为<code>Map[String, Seq[String]]</code>.</p>
+<p>默认的parser会生成一个<code>AnyContent</code>类型的body,<code>AnyContent</code>支持的各种类型可以通过<code>as</code>方法进行访问,比如<code>asJson</code>,返回一个Option类型的body.</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">save</span> =</span> <span class="type">Action</span> { request =&gt;
+  <span class="function"><span class="keyword">val</span> <span class="title">body</span>:</span> <span class="type">AnyContent</span> = request.body
+  <span class="function"><span class="keyword">val</span> <span class="title">jsonBody</span>:</span> <span class="type">Option</span>[<span class="type">JsValue</span>] = body.asJson
+
+  <span class="comment">// Expecting json body</span>
+  jsonBody.map { json =&gt;
+    <span class="type">Ok</span>(<span class="string">"Got: "</span> + (json \ <span class="string">"name"</span>).as[<span class="type">String</span>])
+  }.getOrElse {
+    <span class="type">BadRequest</span>(<span class="string">"Expecting application/json request body"</span>)
+  }
+}
+</code></pre><p>下面是默认parser支持的类型映射:</p>
+<ol>
+<li>text/plain: <code>String</code>,使用<code>asText</code>访问</li>
+<li>application/json: <code>JsValue</code>,使用<code>asJson</code>访问</li>
+<li>application/xml, text/xml,或,application/XXX+xml: <code>scala.xml.NodeSeq</code>,使用<code>asXML</code>访问</li>
+<li>application/form-url-encoded: <code>Map[String, Seq[String]]</code>,使用<code>asFormUrlEncoded</code>访问</li>
+<li>multipart/form-data: <code>MultipartFormData</code>,使用<code>asMultipartFormData</code>访问</li>
+<li>其他内容类型: <code>RawBuffer</code>,使用<code>asRaw</code>访问</li>
+</ol>
+<p>由于性能的原因,默认的parser并不会去尝试解析一个 请求方法中并没有定义一个有意义body 的body,像HTTP协议中定义的那些.这表示它只解析<code>POST, PUT, PATCH</code>这些请求的body,而不去解析<code>GET, HEAD, DELETE</code>这些方法.如果需要解析这些方法的body,可以使用<code>anyContent</code>parser.</p>
+<h3 id="选择一个明确的body_parser">选择一个明确的body parser</h3><p>如果需要明确的选择一个parser,可以将一个parser传入到Action的apply或async方法.</p>
+<p>Play提供了很多parser,通过使用<code>BodyParsers.parse</code>对象,可以方便的通过<code>Controller</code>特质传入.</p>
+<p>比如,定义一个处理JSON的action:</p>
+<pre><code>def save = Action(parse.json) { request =&gt;
+  Ok(<span class="string">"Got: "</span> + (request.body \ <span class="string">"name"</span>).<span class="literal">as</span>[<span class="built_in">String</span>])
+}
+</code></pre><p>注意这时body的类型为<code>JsValue</code>,而不再是一个<code>Option</code>,更易于进行处理.不再是一个Option的原因是,parser会验证传入的请求是否含有<code>application/json</code>类型的<code>Content-Type</code>,如果没有,则返回一个<code>415 Unsupported Media Type</code>响应.因此不需要在action代码里进行验证了.</p>
+<p>这些流程意味着客户端会拥有更好的行为,在请求从传入正确的<code>Content-Type</code>头.如果想要处理的更轻松,可以使用<code>tolerantJson</code>,这会忽略<code>Content-Type</code>头并尝试以JSON方式分析body:</p>
+<pre><code>def save = Action(parse.tolerantJson) { request =&gt;
+  Ok(<span class="string">"Got: "</span> + (request.body \ <span class="string">"name"</span>).<span class="literal">as</span>[<span class="built_in">String</span>])
+}
+</code></pre><p>另一个例子,将请求体存储到文件:</p>
+<pre><code><span class="keyword">def</span> save = Action(parse.<span class="keyword">file</span>(to = <span class="keyword">new</span> <span class="keyword">File</span>(<span class="string">"/tmp/upload"</span>))) { request =&gt;
+  Ok(<span class="string">"Saved the request content to "</span> + request.body)
+}
+</code></pre><h4 id="组合body_parser">组合body parser</h4><p>上个例子中,所有的请求都被存储在同一个文件中,这种方式有点问题.让我们自定义一个parser,从请求Session中解析用户名,然后为每个用户创建一个单独的文件.</p>
+<pre><code>val storeInUserFile = parse.using { <span class="built_in">request</span> =&gt;
+  <span class="built_in">request</span>.session.<span class="keyword">get</span>(<span class="string">"username"</span>).map { user =&gt;
+    file(<span class="keyword">to</span> = <span class="keyword">new</span> File(<span class="string">"/tmp/"</span> + user + <span class="string">".upload"</span>))
+  }.getOrElse {
+    sys.<span class="keyword">error</span>(<span class="string">"You don't have the right to upload here"</span>)
+  }
+}
+
+def save = Action(storeInUserFile) { <span class="built_in">request</span> =&gt;
+  Ok(<span class="string">"Saved the request content to "</span> + <span class="built_in">request</span>.body)
+}
+</code></pre><p>这里实质上并没有编写自己的parser,而是根据已有的parser进行了组合.但是能够覆盖到很多实用场景.</p>
+<h4 id="最大内容长度">最大内容长度</h4><p>基于文本的parser(<code>text,json,xml,formUrlEncoded</code>)会实用一个最大内容长度,因为他们需要把所有内容加载到内存.默认为100KB,可以通过在<code>application.conf</code>文件中指定<code>play.http.parser.maxMemoryBuffer</code>进行覆写:</p>
+<pre><code>play<span class="class">.http</span><span class="class">.parser</span><span class="class">.maxMemoryBuffer</span>=<span class="number">128</span>K
+</code></pre><p>对于将内容混存到磁盘的parser,比如<code>raw parser</code>或<code>multipart/form-data</code>,通过<code>play.http.parser.maxDiskBuffer</code>属性进行设置,默认为10MB,<code>multipart/form-data</code>parser同样强制数据字段聚合的文本最大长度属性.</p>
+<p>同样可以覆写最大长度限制:</p>
+<pre><code><span class="comment">// Accept only 10KB of data.</span>
+def <span class="built_in">save</span> = Action(parse.<span class="built_in">text</span>(maxLength = <span class="number">1024</span> * <span class="number">10</span>)) { request =&gt;
+  Ok(<span class="string">"Got: "</span> + <span class="built_in">text</span>)
+}
+</code></pre><p>同样可以通过<code>maxLength</code>打包任何类型的parser:</p>
+<pre><code><span class="comment">// Accept only 10KB of data.</span>
+def save = Action(parse.maxLength(<span class="number">1024</span> * <span class="number">10</span>, storeInUserFile)) { request =&gt;
+  Ok(<span class="string">"Saved the request content to "</span> + request.body)
+}
+</code></pre><h3 id="编写自定义body_parser">编写自定义body parser</h3><p>可以通过实现<code>BodyParser</code>特质来自定义parser,这个特质实质上是一个简单的函数:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">BodyParser</span>[+<span class="title">A</span>] <span class="keyword">extends</span> (<span class="title">RequestHeader</span> =&gt; <span class="title">Accumulator</span>[<span class="title">ByteString</span>, <span class="title">Either</span>[<span class="title">Result</span>, <span class="title">A</span>]])</span>
+</code></pre><p>这个函数接收一个<code>RequestHeader</code>,用于检查请求的信息,通常是<code>Content-Type</code>属性.</p>
+<p>函数返回值是一个<code>Accumulator</code>,一个Accumulator是一个<code>Akka-streams Sink</code>的薄的包装层.他将stream的元素异步集聚到一个结果,可以通过传入一个<code>Akka-stream Source</code>进行运行.当Accumulator完成时会返回一个Future.这本质上和<code>Sink[E, Future[A]]</code>是同一个东西.事实上它只不过是这个类型的包装器,但不同的是<code>Accumulator</code>提供了一些方便的方法用于操作这些作为promise的结果,比如<code>map, mapFuture, recover</code>等等.而<code>Sink</code>需要调用<code>mapMaterializedValue</code>来提供这些操作.</p>
+<p>accumulator的<code>apply</code>方法返回<code>ByteString</code>类型的消耗元素,实质是字节数组.但与<code>byte[]</code>不同的是<code>ByteString</code>是不可变的,还有一些经常使用的操作如slice和append.</p>
+<p>accumulator的返回类型为<code>Either[Result, A]</code>,要么返回一个Result,要么是一个类型为A的body.A类型的结果通常是一个错误,比如body解析失败,或者<code>Content-Type</code>与parser接收的类型不匹配,或者内存缓存溢出.当parser返回一个结果时,将会对action的处理形成短路,parser的结果会立即被返回,action也不会再被调用.</p>
+<h4 id="Directing_the_body_elsewhere(重定向body到别处)">Directing the body elsewhere(重定向body到别处)</h4><p>编写parser常用的场景是比如你并不像真正解析一个body,或者你想将它导向别处,这可以定义一个parser:</p>
+<pre><code><span class="tag">import</span> <span class="tag">javax</span><span class="class">.inject</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.mvc</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.libs</span><span class="class">.streams</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.libs</span><span class="class">.ws</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">scala</span><span class="class">.concurrent</span><span class="class">.ExecutionContext</span>
+<span class="tag">import</span> <span class="tag">akka</span><span class="class">.util</span><span class="class">.ByteString</span>
+
+<span class="tag">class</span> <span class="tag">MyController</span> <span class="at_rule">@<span class="keyword">Inject()</span> (ws: WSClient)(implicit ec: ExecutionContext) </span>{
+
+  <span class="tag">def</span> <span class="tag">forward</span>(<span class="rule"><span class="attribute">request</span>:<span class="value"> WSRequest): BodyParser[WSResponse] = BodyParser { req =&gt;
+    Accumulator.source[ByteString].mapFuture { source =&gt;
+      request
+        // TODO: stream body when support is implemented
+        // .<span class="function">withBody</span>(source)
+        .<span class="function">execute</span>()
+        .<span class="function">map</span>(Right.apply)
+    }
+  }
+
+  def myAction = <span class="function">Action</span>(<span class="function">forward</span>(ws.<span class="function">url</span>(<span class="string">"https://example.com"</span>))) { req =&gt;
+    <span class="function">Ok</span>(<span class="string">"Uploaded"</span>)
+  }
+}</span></span>
+</code></pre><h4 id="使用Akka_streams自定义parser">使用<code>Akka streams</code>自定义parser</h4><p>有些稀有的场景下需要使用<code>Akka streams</code>来自定义parser.大多数情况下,首先会将body缓冲到一个<code>ByteString</code>,这通常会提供一个更简单的分析方法,因为可以使用命令方法或者对body随机访问.</p>
+<p>然而当这些不可行的时候,比如需要处理的body太长而不能全部放在内存,这时需要编写一个自定义parser.</p>
+<p>这是一个CSVparser,更详细的内容参考<code>Akka-stream</code>文档,或者<code>Akka streams cookbook</code>:</p>
+<pre><code><span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.mvc</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.libs</span><span class="class">.streams</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.libs</span><span class="class">.concurrent</span><span class="class">.Execution</span><span class="class">.Implicits</span><span class="class">.defaultContext</span>
+<span class="tag">import</span> <span class="tag">akka</span><span class="class">.util</span><span class="class">.ByteString</span>
+<span class="tag">import</span> <span class="tag">akka</span><span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">._</span>
+
+<span class="tag">val</span> <span class="rule"><span class="attribute">csv</span>:<span class="value"> BodyParser[Seq[Seq[String]]] = BodyParser { req =&gt;
+
+  // A flow that splits the stream into CSV lines
+  val sink: Sink[ByteString, Future[Seq[Seq[String]]]] = Flow[ByteString]
+    // We split by the new line character, allowing a maximum of <span class="number">1000</span> characters per line
+    .<span class="function">via</span>(Framing.<span class="function">delimiter</span>(<span class="function">ByteString</span>(<span class="string">"\n"</span>), <span class="number">1000</span>, allowTruncation = true))
+    // Turn each line to a String and split it by commas
+    .<span class="function">map</span>(_.utf8String.trim.<span class="function">split</span>(<span class="string">","</span>).toSeq)
+    // Now we fold it into a list
+    .<span class="function">toMat</span>(Sink.<span class="function">fold</span>(Seq.empty[Seq[String]])(_ :+ _))(Keep.right)
+
+  // Convert the body to a Right either
+  <span class="function">Accumulator</span>(sink).<span class="function">map</span>(Right.apply)
+}</span></span>
+</code></pre><h2 id="Action_composition">Action composition</h2><h3 id="Custom_action_builders">Custom action builders</h3><p>前面提过多种声明action的方法,带有请求参数的,不带请求参数的,或者带有body parser的.实时上比这还要多,将会在<code>异步编程</code>部分看到.</p>
+<p>这些创建action的方法实质上都是都是由<code>ActionBuilder</code>特质定义,我们用于声明action的<code>Action</code>对象只是它的一个实例.通过实现自己的<code>ActionBuilder</code>,可以声明可复用的action栈,然后被用于创建action.</p>
+<p>我们以一个日志器例子开始,需要将所有对这个action的请求记录日志.</p>
+<p>第一种方法是在<code>invokeBlock</code>方法中实现这个功能,该方法由<code>ActionBuilder</code>创建并被所有action调用:</p>
+<pre><code><span class="keyword">import</span> play.api.mvc._
+
+<span class="class"><span class="keyword">object</span> <span class="title">LoggingAction</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">ActionBuilder</span>[</span><span class="type">Request</span>] {
+  <span class="function"><span class="keyword">def</span> <span class="title">invokeBlock</span>[</span><span class="type">A</span>](request: <span class="type">Request</span>[<span class="type">A</span>], block: (<span class="type">Request</span>[<span class="type">A</span>]) =&gt; <span class="type">Future</span>[<span class="type">Result</span>]) = {
+    <span class="type">Logger</span>.info(<span class="string">"Calling action"</span>)
+    block(request)
+  }
+}
+</code></pre><p>然后和使用Aciton的方式一样进行使用:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span></span> = <span class="constant">LoggingAction </span>{
+  <span class="constant">Ok(</span><span class="string">"Hello World"</span>)
+}
+</code></pre><p>由于<code>ActionBuilder</code>提供了所有创建action的不同方法,这里也同样能够使用,比如声明一个body parser:</p>
+<pre><code><span class="label">def</span> <span class="keyword">submit </span>= LoggingAction(parse<span class="preprocessor">.text</span>) { request =&gt;
+  Ok(<span class="string">"Got a body "</span> + request.<span class="keyword">body.length </span>+ <span class="string">" bytes long"</span>)
+}
+</code></pre><h3 id="Composing_actions">Composing actions</h3><p>在很多应用中我们需要对个action创建器,一些用于不同类型的用户验证,一些用于提供不同类型的通用功能,等等.一些场景中,我们并不想为不同的action创建器重写logging actiong的代码,需要使用可重用的方法定义它.</p>
+<p>可重用的actiong代码可以通过解压action实现:</p>
+<pre><code>import play.api.mvc._
+
+case class Logging[<span class="link_label">A</span>](<span class="link_url">action: Action[A]</span>) extends Action[A] {
+
+  def apply(request: Request[A]): Future[Result] = {
+<span class="code">    Logger.info("Calling action")</span>
+<span class="code">    action(request)</span>
+  }
+
+  lazy val parser = action.parser
+}
+</code></pre><p>同样可以使用<code>Action</code>这个action创建器,通过不用定义自己的action类来创建action:</p>
+<pre><code>import play.api.mvc._
+
+def logging[<span class="link_label">A</span>](<span class="link_url">action: Action[A]</span>)= Action.async(action.parser) { request =&gt;
+  Logger.info("Calling action")
+  action(request)
+}
+</code></pre><p>一个action可以使用<code>composeAction</code>方法混入到action创建器中:</p>
+<pre><code>object LoggingAction extends ActionBuilder[Request] {
+  def invokeBlock[<span class="link_label">A</span>](<span class="link_url">request: Request[A], block: (Request[A]</span>) =&gt; Future[Result]) = {
+<span class="code">    block(request)</span>
+  }
+  override def composeAction[<span class="link_label">A</span>](<span class="link_url">action: Action[A]</span>) = new Logging(action)
+}
+</code></pre><p>现在这个创建器可以像以前一样使用:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span></span> = <span class="constant">LoggingAction </span>{
+  <span class="constant">Ok(</span><span class="string">"Hello World"</span>)
+}
+</code></pre><p>可以不适用action创建器混入解包action:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span></span> = <span class="constant">Logging </span>{
+  <span class="constant">Action </span>{
+    <span class="constant">Ok(</span><span class="string">"Hello World"</span>)
+  }
+}
+</code></pre><h3 id="更多复杂的action">更多复杂的action</h3><p>到现在为止我们只看到了不影响request的aciton,当然,我们可以读取并修改传入的request对象:</p>
+<pre><code>import play.api.mvc._
+
+def xForwardedFor[<span class="link_label">A</span>](<span class="link_url">action: Action[A]</span>) = Action.async(action.parser) { request =&gt;
+  val newRequest = request.headers.get("X-Forwarded-For").map { xff =&gt;
+<span class="code">    new WrappedRequest[A](request) {</span>
+<span class="code">      override def remoteAddress = xff</span>
+<span class="code">    }</span>
+  } getOrElse request
+  action(newRequest)
+}
+</code></pre><p>Play已经对<code>X-Forwarded-For</code>头提供内建支持.</p>
+<p>或者阻止请求:</p>
+<pre><code><span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.mvc</span><span class="class">._</span>
+
+<span class="tag">def</span> <span class="tag">onlyHttps</span><span class="attr_selector">[A]</span>(<span class="rule"><span class="attribute">action</span>:<span class="value"> Action[A]) = Action.<span class="function">async</span>(action.parser) { request =&gt;
+  request.headers.<span class="function">get</span>(<span class="string">"X-Forwarded-Proto"</span>).collect {
+    case <span class="string">"https"</span> =&gt; <span class="function">action</span>(request)
+  } getOrElse {
+    Future.<span class="function">successful</span>(<span class="function">Forbidden</span>(<span class="string">"Only HTTPS requests allowed"</span>))
+  }
+}</span></span>
+</code></pre><p>或者修改返回结果:</p>
+<pre><code><span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.mvc</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.libs</span><span class="class">.concurrent</span><span class="class">.Execution</span><span class="class">.Implicits</span><span class="class">._</span>
+
+<span class="tag">def</span> <span class="tag">addUaHeader</span><span class="attr_selector">[A]</span>(<span class="rule"><span class="attribute">action</span>:<span class="value"> Action[A]) = Action.<span class="function">async</span>(action.parser) { request =&gt;
+  <span class="function">action</span>(request).<span class="function">map</span>(_.<span class="function">withHeaders</span>(<span class="string">"X-UA-Compatible"</span> -&gt; <span class="string">"Chrome=1"</span>))
+}</span></span>
+</code></pre><h3 id="不同的请求类型">不同的请求类型</h3><p>aciton部分允许你在HTTP层对请求或结果做额外的处理,通常你需要为上下文创建数据处理通道或者对request本身执行验证.<code>ActionFunction</code>可以被认为是request上的一个函数,将传入类型和输出类型参数化并传入下一层.每个action函数可以提供处理组件,比如用户验证,数据库对象查询,权限验证,或者其他你想在多个action中组合或复用的操作.</p>
+<p>有一些预定义的特质实现了<code>ActionFunction</code>以用于不同类型的处理:</p>
+<ol>
+<li><code>ActionTransformer</code>: 能够改变request,比如添加额外的信息</li>
+<li><code>ActionFilter</code>: 能够选择性的拦截请求,比如在不改变请求值的情况下生成错误</li>
+<li><code>ActionRefiner</code>: 上面两种情况的结合</li>
+<li><code>ActionBuilder</code>: 一个特殊情况的功能,接收Request作为输入,然后创建aciton</li>
+</ol>
+<h4 id="用户验证">用户验证</h4><p>aciton函数的常用场景是用户验证,我们可以很容易的实现我们自己的用户验证action,通过转换将原始的request添加到一个新的<code>UserRequest</code>,注意这也是一个<code>ActionBuilder</code>,因为他接收一个<code>Request</code>作为参数:</p>
+<pre><code>import play.api.mvc._
+
+class UserRequest[<span class="link_label">A</span>](<span class="link_url">val username: Option[String], request: Request[A]</span>) extends WrappedRequest[<span class="link_label">A</span>](<span class="link_url">request</span>)
+
+object UserAction extends ActionBuilder[UserRequest] with ActionTransformer[Request, UserRequest] {
+  def transform[<span class="link_label">A</span>](<span class="link_url">request: Request[A]</span>) = Future.successful {
+<span class="code">    new UserRequest(request.session.get("username"), request)</span>
+  }
+}
+</code></pre><p>Play提供了一个内建的用户验证action创建器.</p>
+<h4 id="为request添加信息">为request添加信息</h4><p>现在我们来看一个REST API为<code>Item</code>对象提供服务.在<code>/item/:itemId</code>路径下有很多路由,每个都需要查找Item.这种场景,将这个逻辑放到action函数会比较有用.</p>
+<p>首先,创建一个request对象,将Item添加到UserRequest:</p>
+<pre><code>import play.api.mvc._
+
+class ItemRequest[<span class="link_label">A</span>](<span class="link_url">val item: Item, request: UserRequest[A]</span>) extends WrappedRequest[<span class="link_label">A</span>](<span class="link_url">request</span>) {
+  def username = request.username
+}
+</code></pre><p>现在创建一个action,查找Item,返回一个<code>Either</code>作为错误(Left),或者一个新的<code>ItemRequest(Right)</code>,注意这个aciton在一个方法内定义并接收一个物品ID:</p>
+<pre><code>def ItemAction(itemId: String) = new ActionRefiner[UserRequest, ItemRequest] {
+  def refine[<span class="link_label">A</span>](<span class="link_url">input: UserRequest[A]</span>) = Future.successful {
+<span class="code">    ItemDao.findById(itemId)</span>
+<span class="code">      .map(new ItemRequest(_, input))</span>
+<span class="code">      .toRight(NotFound)</span>
+  }
+}
+</code></pre><h4 id="验证请求">验证请求</h4><p>最终我们想要验证一个请求是否能够继续,比如我们想检查<code>UserAction</code>中的用户是否有权限访问<code>ItemAction</code>中的物品,如果不能,在返回一个错误:</p>
+<pre><code><span class="class"><span class="keyword">object</span> <span class="title">PermissionCheckAction</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">ActionFilter</span>[</span><span class="type">ItemRequest</span>] {
+  <span class="function"><span class="keyword">def</span> <span class="title">filter</span>[</span><span class="type">A</span>](input: <span class="type">ItemRequest</span>[<span class="type">A</span>]) = <span class="type">Future</span>.successful {
+    <span class="keyword">if</span> (!input.item.accessibleByUser(input.username))
+      <span class="type">Some</span>(<span class="type">Forbidden</span>)
+    <span class="keyword">else</span>
+      <span class="type">None</span>
+  }
+}
+</code></pre><h4 id="把他们组合在一起">把他们组合在一起</h4><p>现在我们能够使用<code>andThen</code>将这些action链接在一起(从<code>ActionBuilder</code>开始):</p>
+<pre><code><span class="label">def</span> tagItem(<span class="keyword">itemId: </span><span class="keyword">String, </span>tag: <span class="keyword">String) </span>=
+  (UserAction <span class="keyword">andThen </span><span class="keyword">ItemAction(itemId) </span><span class="keyword">andThen </span>PermissionCheckAction) { request =&gt;
+    request.<span class="keyword">item.addTag(tag)
+</span>    Ok(<span class="string">"User "</span> + request.username + <span class="string">" tagged "</span> + request.<span class="keyword">item.id)
+</span>  }
+</code></pre><h2 id="Content_negotiation">Content negotiation</h2><p>内容协商是一个用于将同一个资源(URI)提供不同的展示的机制.这非常有用,比如WEB服务中提供不同的合适支持(XML,JSON等).服务驱动协商实质上是使用<code>Accept*</code>请求头进行执行.</p>
+<h3 id="语言">语言</h3><p>可以同过<code>play.api.mvc.RequestHeader#acceptLanguages</code>获取请求接收的语言列表,通过<code>Accept-Language</code>头进行检索,根据他们的特性值进行排序.Play在<code>play.api.mvc.Controller#lang</code>方法中使用,为你的action提供一个隐式的<code>play.api.i18n.Lang</code>值,因此他们能够自动的使用最合适的语言(如果你的语言支持,或者应用默认使用的语言).</p>
+<h3 id="Content">Content</h3><p>类似的,<code>play.api.mvc.RequestHeader#acceptedTypes</code>方法提供一个请求的所有能接受的结果的<code>MIME</code>类型,通过<code>Accept</code>头检索,通过特性因素排序.</p>
+<p>事实上,<code>Accept</code>并不真正的包含<code>MIME</code>类型,但是包含媒体范围(media ranges)(比如,请求就收所有text结果会设置’text/<em>‘范围,`</em>/*<code>表示接受所有类型),控制器提供了一个高层的</code>render`方法帮你处理这个媒体范围.比如下面的action定义:</p>
+<pre><code>val list = <span class="keyword">Action</span> { <span class="type">implicit</span> request =&gt;
+  val items = Item.findAll
+  render {
+    <span class="keyword">case</span> Accepts.Html() =&gt; Ok(views.html.list(items))
+    <span class="keyword">case</span> Accepts.Json() =&gt; Ok(Json.toJson(items))
+  }
+}
+</code></pre><p><code>Accepts.Html()</code>和<code>Accepts.Json()</code>作为解析器来测试提供的媒体范围是否能匹配<code>text/html</code>或<code>application/json</code>.</p>
+<h3 id="请求解析器">请求解析器</h3><p>查看<code>play.api.mvc.AcceptExtractors.Accepts</code>对象的API文档,获取Play在<code>render</code>方法支持的<code>MIME</code>类型列表.可以通过<code>play.api.mvc.Accepting</code>case类来为提供的<code>MIME</code>类型创建自己的解析器,比如下面的代码检查媒体范围是否能匹配<code>audio/mp3</code>MIME类型:</p>
+<pre><code><span class="keyword">val</span> <span class="type">AcceptsMp3</span> = <span class="type">Accepting</span>(<span class="string">"audio/mp3"</span>){
+    render {
+        <span class="keyword">case</span> <span class="type">AcceptsMp3</span><span class="literal">()</span> =&gt; ???
+    }
+}
+</code></pre><h2 id="错误处理">错误处理</h2><p>HTTP应用能够返回两种类型的错误,客户端错误或服务端错误.客户端错误表示已连接的客户端做了错误的处理,服务端错误表示服务端出现了错误.</p>
+<p>Play在很多场景下自动发现客户端错误,这些错误包括难看的header值,不支持的内容类型,请求的资源无法找到.同样会在很多场景发现服务端错误,比如action代码抛出异常,Play会捕捉并生成一个服务端错误返回给客户端.</p>
+<h3 id="提供一个自定义错误处理器">提供一个自定义错误处理器</h3><p>可以在<code>root</code>包穿件一个<code>ErrorHandler</code>类来实现<code>HttpErrorHandler</code>,比如:</p>
+<pre><code><span class="keyword">import</span> play.api.http.<span class="type">HttpErrorHandler</span>
+<span class="keyword">import</span> play.api.mvc._
+<span class="keyword">import</span> play.api.mvc.<span class="type">Results</span>._
+<span class="keyword">import</span> scala.concurrent._
+
+<span class="class"><span class="keyword">class</span> <span class="title">ErrorHandler</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">HttpErrorHandler</span> {</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">onClientError</span>(</span>request: <span class="type">RequestHeader</span>, statusCode: <span class="type">Int</span>, message: <span class="type">String</span>) = {
+    <span class="type">Future</span>.successful(
+      <span class="type">Status</span>(statusCode)(<span class="string">"A client error occurred: "</span> + message)
+    )
+  }
+
+  <span class="function"><span class="keyword">def</span> <span class="title">onServerError</span>(</span>request: <span class="type">RequestHeader</span>, exception: <span class="type">Throwable</span>) = {
+    <span class="type">Future</span>.successful(
+      <span class="type">InternalServerError</span>(<span class="string">"A server error occurred: "</span> + exception.getMessage)
+    )
+  }
+}
+</code></pre><p>如果不想把错误处理器放在root包,或者想要根据不同的环境配置不同的处理器,可以在<code>application.conf</code>文件中定义<code>play.http.errorHandler</code>属性:</p>
+<pre><code>play<span class="class">.http</span><span class="class">.errorHandler</span> = <span class="string">"com.example.ErrorHandler"</span>
+</code></pre><h3 id="扩展默认的错误处理器">扩展默认的错误处理器</h3><p>Play的默认错误处理器提供了很多有用的功能,比如在开发模式,当一个服务端错误发生时,Play会尝试指出并在页面渲染出异常的详细信息,以帮助你快速排查错误进行修复.或者你想在生产环境提供自定义的服务端错误处理,就像开发模式提供的功能一样,Play提供了一个<code>DefaultHttpErrorHandler</code>,你可以进行重写并混入自定义的逻辑.</p>
+<pre><code><span class="tag">import</span> <span class="tag">javax</span><span class="class">.inject</span><span class="class">._</span>
+
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.http</span><span class="class">.DefaultHttpErrorHandler</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.mvc</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.mvc</span><span class="class">.Results</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.routing</span><span class="class">.Router</span>
+<span class="tag">import</span> <span class="tag">scala</span><span class="class">.concurrent</span><span class="class">._</span>
+
+<span class="tag">class</span> <span class="tag">ErrorHandler</span> <span class="at_rule">@<span class="keyword">Inject()</span> (
+    env: Environment,
+    config: Configuration,
+    sourceMapper: OptionalSourceMapper,
+    router: Provider[Router]
+  ) extends <span class="function">DefaultHttpErrorHandler</span>(env, config, sourceMapper, router) </span>{
+
+  <span class="tag">override</span> <span class="tag">def</span> <span class="tag">onProdServerError</span>(<span class="rule"><span class="attribute">request</span>:<span class="value"> RequestHeader, exception: UsefulException) = {
+    Future.<span class="function">successful</span>(
+      <span class="function">InternalServerError</span>(<span class="string">"A server error occurred: "</span> + exception.getMessage)
+    )
+  }
+
+  override def <span class="function">onForbidden</span>(request: RequestHeader, message: String) = {
+    Future.<span class="function">successful</span>(
+      <span class="function">Forbidden</span>(<span class="string">"You're not allowed to access this resource."</span>)
+    )
+  }
+}</span></span>
+</code></pre><h2 id="Asynchronous_HTTP_programming">Asynchronous HTTP programming</h2><h2 id="Calling_WebServices">Calling WebServices</h2><h2 id="Integrating_with_Akka">Integrating with Akka</h2></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Play2/" rel="tag">#Play2</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/23/Linux-Kernel-parameter-settings-for-Performance/" rel="next">Linux Kernel parameter settings for Performance</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">108</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Actions,_Controllers_and_Results"><span class="nav-number">1.</span> <span class="nav-text">Actions, Controllers and Results</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Action是什么"><span class="nav-number">1.1.</span> <span class="nav-text">Action是什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建一个Action"><span class="nav-number">1.2.</span> <span class="nav-text">创建一个Action</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Controllers_are_action_generators(控制器是Action的生成器)"><span class="nav-number">1.3.</span> <span class="nav-text">Controllers are action generators(控制器是Action的生成器)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Simple_results"><span class="nav-number">1.4.</span> <span class="nav-text">Simple results</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redirects_are_simple_results_too(重定向也是简单的Result)"><span class="nav-number">1.5.</span> <span class="nav-text">Redirects are simple results too(重定向也是简单的Result)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTP_routing"><span class="nav-number">2.</span> <span class="nav-text">HTTP routing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The_built-in_HTTP_router"><span class="nav-number">2.1.</span> <span class="nav-text">The built-in HTTP router</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dependency_Injection(依赖注入)"><span class="nav-number">2.2.</span> <span class="nav-text">Dependency Injection(依赖注入)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The_routes_file_syntax(路由语法)"><span class="nav-number">2.3.</span> <span class="nav-text">The routes file syntax(路由语法)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The_URI_pattern"><span class="nav-number">2.4.</span> <span class="nav-text">The URI pattern</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#静态路径"><span class="nav-number">2.4.1.</span> <span class="nav-text">静态路径</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#动态路由"><span class="nav-number">2.4.2.</span> <span class="nav-text">动态路由</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dynamic_parts_spanning_several_/"><span class="nav-number">2.4.3.</span> <span class="nav-text">Dynamic parts spanning several /</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dynamic_parts_with_custom_regular_expressions"><span class="nav-number">2.4.4.</span> <span class="nav-text">Dynamic parts with custom regular expressions</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Call_to_the_Action_generator_method"><span class="nav-number">2.5.</span> <span class="nav-text">Call to the Action generator method</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数类型"><span class="nav-number">2.5.1.</span> <span class="nav-text">参数类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Parameters_with_fixed_values(带有固定值的参数)"><span class="nav-number">2.5.2.</span> <span class="nav-text">Parameters with fixed values(带有固定值的参数)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#带有默认值的参数"><span class="nav-number">2.5.3.</span> <span class="nav-text">带有默认值的参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#可选参数"><span class="nav-number">2.5.4.</span> <span class="nav-text">可选参数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reverse_routing(反向路由)"><span class="nav-number">2.6.</span> <span class="nav-text">Reverse routing(反向路由)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Manipulating_Results(熟练操作Result)"><span class="nav-number">3.</span> <span class="nav-text">Manipulating Results(熟练操作Result)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#修改默认的Content-Type"><span class="nav-number">3.1.</span> <span class="nav-text">修改默认的Content-Type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#熟练操作HTTP头"><span class="nav-number">3.2.</span> <span class="nav-text">熟练操作HTTP头</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置或删除Cookies"><span class="nav-number">3.3.</span> <span class="nav-text">设置或删除Cookies</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#改变基于文本的HTTP响应体的字符集"><span class="nav-number">3.4.</span> <span class="nav-text">改变基于文本的HTTP响应体的字符集</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Session_and_Flash_scopes"><span class="nav-number">4.</span> <span class="nav-text">Session and Flash scopes</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#在Play中有何不同"><span class="nav-number">4.1.</span> <span class="nav-text">在Play中有何不同</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在Session中存储数据"><span class="nav-number">4.2.</span> <span class="nav-text">在Session中存储数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#读取Session值"><span class="nav-number">4.3.</span> <span class="nav-text">读取Session值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#丢弃整个Session"><span class="nav-number">4.4.</span> <span class="nav-text">丢弃整个Session</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Flash_scope"><span class="nav-number">4.5.</span> <span class="nav-text">Flash scope</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Body_parsers"><span class="nav-number">5.</span> <span class="nav-text">Body parsers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#What_is_a_body_parser?"><span class="nav-number">5.1.</span> <span class="nav-text">What is a body parser?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#More_about_Actions"><span class="nav-number">5.2.</span> <span class="nav-text">More about Actions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用内建的body_parser"><span class="nav-number">5.3.</span> <span class="nav-text">使用内建的body parser</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#The_default_body_parser"><span class="nav-number">5.3.1.</span> <span class="nav-text">The default body parser</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#选择一个明确的body_parser"><span class="nav-number">5.4.</span> <span class="nav-text">选择一个明确的body parser</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#组合body_parser"><span class="nav-number">5.4.1.</span> <span class="nav-text">组合body parser</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#最大内容长度"><span class="nav-number">5.4.2.</span> <span class="nav-text">最大内容长度</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#编写自定义body_parser"><span class="nav-number">5.5.</span> <span class="nav-text">编写自定义body parser</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Directing_the_body_elsewhere(重定向body到别处)"><span class="nav-number">5.5.1.</span> <span class="nav-text">Directing the body elsewhere(重定向body到别处)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用Akka_streams自定义parser"><span class="nav-number">5.5.2.</span> <span class="nav-text">使用Akka streams自定义parser</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Action_composition"><span class="nav-number">6.</span> <span class="nav-text">Action composition</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Custom_action_builders"><span class="nav-number">6.1.</span> <span class="nav-text">Custom action builders</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Composing_actions"><span class="nav-number">6.2.</span> <span class="nav-text">Composing actions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更多复杂的action"><span class="nav-number">6.3.</span> <span class="nav-text">更多复杂的action</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#不同的请求类型"><span class="nav-number">6.4.</span> <span class="nav-text">不同的请求类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#用户验证"><span class="nav-number">6.4.1.</span> <span class="nav-text">用户验证</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#为request添加信息"><span class="nav-number">6.4.2.</span> <span class="nav-text">为request添加信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#验证请求"><span class="nav-number">6.4.3.</span> <span class="nav-text">验证请求</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#把他们组合在一起"><span class="nav-number">6.4.4.</span> <span class="nav-text">把他们组合在一起</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Content_negotiation"><span class="nav-number">7.</span> <span class="nav-text">Content negotiation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#语言"><span class="nav-number">7.1.</span> <span class="nav-text">语言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Content"><span class="nav-number">7.2.</span> <span class="nav-text">Content</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#请求解析器"><span class="nav-number">7.3.</span> <span class="nav-text">请求解析器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#错误处理"><span class="nav-number">8.</span> <span class="nav-text">错误处理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#提供一个自定义错误处理器"><span class="nav-number">8.1.</span> <span class="nav-text">提供一个自定义错误处理器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#扩展默认的错误处理器"><span class="nav-number">8.2.</span> <span class="nav-text">扩展默认的错误处理器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Asynchronous_HTTP_programming"><span class="nav-number">9.</span> <span class="nav-text">Asynchronous HTTP programming</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Calling_WebServices"><span class="nav-number">10.</span> <span class="nav-text">Calling WebServices</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Integrating_with_Akka"><span class="nav-number">11.</span> <span class="nav-text">Integrating with Akka</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
