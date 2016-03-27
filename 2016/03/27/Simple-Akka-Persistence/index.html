@@ -1,0 +1,667 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Akka,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Akka的的Persistence模块.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Akka: Persistence">
+<meta property="og:url" content="http://yoursite.com/2016/03/27/Simple-Akka-Persistence/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Akka的的Persistence模块.">
+<meta property="og:updated_time" content="2016-03-27T15:45:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Akka: Persistence">
+<meta name="twitter:description" content="Akka的的Persistence模块.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Akka: Persistence | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Akka: Persistence
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-27T21:03:35+08:00" content="2016-03-27">
+            2016-03-27
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Akka的persistence(以下使用”持久”)支持有状态的actor来保持他们的内部状态,因此他们可以在一个actor启动,在JVM崩溃后重启,或被监管者重启,或者合并进一个集群时进行恢复.Akka persistence背后的核心概念是,只会改变一个actor中已被留存的内部状态而不是当前的状态(除了可选的快照).这些改变从来只会添加到存储中,没有东西是可以改变的,这些特性支持高级别的事务和高效的复制集.</p>
+<p>有状态的actor通过替换已存储的改变进行恢复,可以重建他们的内部状态.可以是一个完整的改变历史,或者是从其中一个快照以减少恢复时间.同时提供了一个点到点的,带有最少一次提交的通信方式.</p>
+<p>Akka persistence的灵感来自于<code>eventsourced</code>库,保留了同样的架构个概念,只是在API层和实现层有所不同.</p>
+<h2 id="依赖">依赖</h2><p>Akka persistence是一个单独的jar文件.确认在配置文件中添加了如下依赖:</p>
+<pre><code><span class="string">"com.typesafe.akka"</span> <span class="preprocessor">%</span><span class="preprocessor">%</span> <span class="string">"akka-persistence"</span> <span class="preprocessor">%</span> <span class="string">"2.4.2"</span>
+</code></pre><p>Akka persistence扩展自带了一些内建的持久(persistence)插件,包括基于内存堆的日志,基于本地文件系统的快照保存,基于LevelDB的日志.</p>
+<p>基于LevelDB的插件需要以下额外的依赖声明:</p>
+<pre><code><span class="string">"org.iq80.leveldb"</span>            <span class="preprocessor">%</span> <span class="string">"leveldb"</span>          <span class="preprocessor">%</span> <span class="string">"0.7"</span>
+<span class="string">"org.fusesource.leveldbjni"</span>   <span class="preprocessor">%</span> <span class="string">"leveldbjni-all"</span>   <span class="preprocessor">%</span> <span class="string">"1.8"</span>
+</code></pre><h2 id="架构">架构</h2><ol>
+<li><p>PersistentActor: 是一个持久的,有状态的actor,它可以将事件持久到日志,并且以线程安全的方式进行操作.它可以用于实现基于命令(command)或事件驱动(event sourced)的actor.当一个持久actor启动或重启时,被日志记录的消息会对actor进行重播以根据这些消息回复内部状态.</p>
+</li>
+<li><p>PersistentView: 一个试图是一个持久有状态的actor,用以接收那些被其他持久actor写入的消息.一个试图本身并不会日志新的消息,它仅仅通过其他持久actor的复制消息流来更新内部状态.</p>
+</li>
+<li><p>AtLeastOnceDelivery: 发送消息到目的地时带有一个最少一次到达的语义,即最少发送到一次.包括发送端和接收端的JVM崩溃.</p>
+</li>
+<li><p>AsyncWriteJournal: 一个journal(日志器)将发送到持久actor的消息进行存储.应用可以对需要日志的消息进行控制.日志器会保持<code>highestSequenceNr</code>随着每个消息进行递增.日志器的存储后台是一插件化的.持久 扩展了一个基于LevelDB的插件,会将日志写入到文件系统.复制集日志器在社区插件中可以找到.</p>
+</li>
+<li><p>Snapshot store: 一个快照存储会保存一个持久actor的快照,或者一个试图的内部状态.这些快照用于优化恢复时间.存储的后台同样是插件化的.</p>
+</li>
+</ol>
+<h2 id="事件驱动">事件驱动</h2><p>事件驱动背后的想法十分简单.当一个持久actor接收到一个(非持久的)命令时首先会验证它是否能作用到当前状态上.这里说的验证可以是任何方式,比如,通过检查一个命令消息的字段与服务端的外部服务进行沟通.如果验证成功,会从命令生成一个时间,用于描述命令的作用.这些时间会被持久存储,成功持久后用于改变actor的状态.当这个持久actor需要被恢复的时候,只有这些被持久的事件会进行重播,他们会重新被成功应用.另外,相对于命令来说,这些被重播到持久actor的消息不会失败.事件驱动的actor同样可以处理那些不会改变actor状态的命令,比如查询命令.</p>
+<p>Akka的持久使用PersistentActor特质支持事件驱动,一个actor继承这个特质后使用<code>persist</code>方法来持久和处理事件.<code>PersistentActor</code>的行为通过实现<code>receiveRecover</code>和<code>receiveCommand</code>来定义.下面是一个例子:</p>
+<pre><code><span class="keyword">import</span> akka.actor._
+<span class="keyword">import</span> akka.persistence._
+
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Cmd</span>(</span>data: <span class="type">String</span>)
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Evt</span>(</span>data: <span class="type">String</span>)
+
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">ExampleState</span>(</span>events: <span class="type">List</span>[<span class="type">String</span>] = <span class="type">Nil</span>) {
+  <span class="function"><span class="keyword">def</span> <span class="title">updated</span>(</span>evt: <span class="type">Evt</span>): <span class="type">ExampleState</span> = copy(evt.data :: events)
+  <span class="function"><span class="keyword">def</span> <span class="title">size</span>:</span> <span class="type">Int</span> = events.length
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">toString</span>:</span> <span class="type">String</span> = events.reverse.toString
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">ExamplePersistentActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">PersistentActor</span> {</span>
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">persistenceId</span> =</span> <span class="string">"sample-id-1"</span>
+
+  <span class="keyword">var</span> state = <span class="type">ExampleState</span>()
+
+  <span class="function"><span class="keyword">def</span> <span class="title">updateState</span>(</span>event: <span class="type">Evt</span>): <span class="type">Unit</span> =
+    state = state.updated(event)
+
+  <span class="function"><span class="keyword">def</span> <span class="title">numEvents</span> =</span>
+    state.size
+
+  <span class="function"><span class="keyword">val</span> <span class="title">receiveRecover</span>:</span> <span class="type">Receive</span> = {
+    <span class="keyword">case</span> evt: <span class="type">Evt</span>                                 =&gt; updateState(evt)
+    <span class="keyword">case</span> <span class="type">SnapshotOffer</span>(_, snapshot: <span class="type">ExampleState</span>) =&gt; state = snapshot
+  }
+
+  <span class="function"><span class="keyword">val</span> <span class="title">receiveCommand</span>:</span> <span class="type">Receive</span> = {
+    <span class="keyword">case</span> <span class="type">Cmd</span>(data) =&gt;
+      persist(<span class="type">Evt</span>(s<span class="string">"${data}-${numEvents}"</span>))(updateState)
+      persist(<span class="type">Evt</span>(s<span class="string">"${data}-${numEvents + 1}"</span>)) { event =&gt;
+        updateState(event)
+        context.system.eventStream.publish(event)
+      }
+    <span class="keyword">case</span> <span class="string">"snap"</span>  =&gt; saveSnapshot(state)
+    <span class="keyword">case</span> <span class="string">"print"</span> =&gt; println(state)
+  }
+
+}
+</code></pre><p>这个例子定义了两种数据类型,<code>Cmd</code>和<code>Evt</code>分别用于表示命令和事件,<code>ExamplePersistentActor</code>的状态是一个被持久事件数据的列表保存在ExampleState中.</p>
+<p>这个持久actor的<code>receiveRecover</code>方法定义了状态是如何通过处理<code>Evt</code>和<code>SnapshotOffer</code>消息进行恢复的.<code>receiveCommand</code>方法是一个命令处理器.在这个例子中,一个命令会被处理为生成两个事件,然后一个持久,一个被处理.事件的存储通过调用<code>persist</code>方法进行,第一参数为事件或事件的序列,第二个参数为事件处理器.</p>
+<p><code>persist</code>方法会异步的持久事件,事件处理器会执行那些被持久成功的事件.成功持久的事件会会以一个特殊消息的方式重新发送给持久actor以触发事件处理器对事件进行处理.一个事件处理器可以覆盖持久actor的状态并改变它.被持久事件的发送者与命令的发送者是一致的.这允许事件处理器可以向发送者回复一个命令.</p>
+<p>事件处理器的职责是使用事件数据改变持久actor的状态,并通过发布事件来通知其他成员状态的成功改变.</p>
+<p>当通过<code>persist</code>持久实现的时候,会保证持久actor不会在持久调用和相关的处理器执行期间接受将来的其他命令.这同时包括同一个上下文中对一个命令的多次持久调用.传入的消息在<code>persist</code>完成之前会被储存.</p>
+<p>如果一个事件的存储失败了,<code>onPersistFailure</code>会被唤起(默认是打印错误日志),这个actor会被无条件的终止.如果一个事件的持久在存储是被拒绝,比如序列化错误,<code>onPersistRejected</code>会被唤起(默认是打印错误日志),然后actor继续处理下一条消息.</p>
+<h3 id="标识">标识</h3><p>一个持久actor必须拥有一个标识,并且不能在actor转化之间改变.必须通过<code>persistenceId</code>方法定义:</p>
+<pre><code><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">persistenceId</span> =</span> <span class="string">"my-stable-persistence-id"</span>
+</code></pre><h3 id="恢复">恢复</h3><p>默认情况下,一个持久actor会在启动和重启时通过记录的日志自动恢复.新的消息发送给持久actor不会影响到恢复过程中重播的消息.它们会被缓存,然后在恢复阶段完成时会被持久actor收到.</p>
+<h3 id="自定义恢复">自定义恢复</h3><p>应用可以通过在PersistentActor的<code>recovery</code>方法中返回一个自定义的<code>Recovery</code>对象来定义恢复的执行方式.</p>
+<pre><code>override <span class="function"><span class="keyword">def</span> <span class="title">recovery</span> = <span class="title">Recovery</span><span class="params">(toSequenceNr = <span class="number">457</span>L)</span></span>
+</code></pre><p>通过将<code>recovery</code>方法设置为<code>Recovery.none()</code>可以将恢复关闭.</p>
+<h3 id="恢复状态">恢复状态</h3><p>一个持久actor可以通过方法查询自身的恢复状态:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">recoveryRunning</span>:</span> Boolean
+<span class="function"><span class="keyword">def</span> <span class="title">recoveryFinished</span>:</span> Boolean
+</code></pre><p>有时候需要在恢复完成后并在处理其他消息之前执行一些额外的初始化工作.持久化actor会在完成恢复并在接收其他消息之前收到一个特殊的<code>RecoveryCompleted</code>消息:</p>
+<pre><code>override <span class="function"><span class="keyword">def</span> <span class="title">receiveRecover</span>:</span> Receive = {
+  case RecoveryCompleted =&gt;
+  // perform init after recovery, before any other messages
+  //...这里可以定义一些恢复后的初始化工作
+  case evt               =&gt; //...
+}
+
+override <span class="function"><span class="keyword">def</span> <span class="title">receiveCommand</span>:</span> Receive = {
+  case msg =&gt; //...
+}
+</code></pre><p>如果从日志恢复状态的过程中出现错误,<code>onRecoveryFailure</code>会被调用(默认打印日志),然后actor会被停止.</p>
+<h3 id="内部存储">内部存储</h3><p>持久actor有一个内部的存储,用于在恢复过程或者<code>persist\persistAll</code>方法持久事件期间缓存传入的消息.当然可以使用继承的存储或者根据需要创建一个或多个别的存储.</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Akka/" rel="tag">#Akka</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/27/Simple-PlayFramework-Integrating-with-Akka/" rel="next">Simple PlayFramework: Integrating with Akka</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">112</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#依赖"><span class="nav-number">2.</span> <span class="nav-text">依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构"><span class="nav-number">3.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#事件驱动"><span class="nav-number">4.</span> <span class="nav-text">事件驱动</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#标识"><span class="nav-number">4.1.</span> <span class="nav-text">标识</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#恢复"><span class="nav-number">4.2.</span> <span class="nav-text">恢复</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#自定义恢复"><span class="nav-number">4.3.</span> <span class="nav-text">自定义恢复</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#恢复状态"><span class="nav-number">4.4.</span> <span class="nav-text">恢复状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内部存储"><span class="nav-number">4.5.</span> <span class="nav-text">内部存储</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
