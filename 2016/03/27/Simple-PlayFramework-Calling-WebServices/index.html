@@ -1,0 +1,769 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Play2,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Play2中调用WebServices.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple PlayFramework: Calling WebServices">
+<meta property="og:url" content="http://yoursite.com/2016/03/27/Simple-PlayFramework-Calling-WebServices/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Play2中调用WebServices.">
+<meta property="og:updated_time" content="2016-03-27T08:04:59.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple PlayFramework: Calling WebServices">
+<meta name="twitter:description" content="Play2中调用WebServices.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple PlayFramework: Calling WebServices | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple PlayFramework: Calling WebServices
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-27T15:05:44+08:00" content="2016-03-27">
+            2016-03-27
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="The_Play_WS_API">The Play WS API</h2><p>有时候需要从Play应用中请求其他的HTTP服务,Play提供了<code>WS</code>库来支持,提供了一种创建异步HTTP请求的方式.</p>
+<p>WS API有两个重要的部分: 发起请求和处理响应.</p>
+<h3 id="创建请求">创建请求</h3><p>首先在<code>build.sbt</code>中添加依赖:</p>
+<pre><code>libraryDependencies ++= Se<span class="string">q(
+  ws
+)</span>
+</code></pre><p>现在所有需要使用WS的控制器或组件需要声明一个WS上的依赖:</p>
+<pre><code><span class="tag">import</span> <span class="tag">javax</span><span class="class">.inject</span><span class="class">.Inject</span>
+<span class="tag">import</span> <span class="tag">scala</span><span class="class">.concurrent</span><span class="class">.Future</span>
+<span class="tag">import</span> <span class="tag">scala</span><span class="class">.concurrent</span><span class="class">.duration</span><span class="class">._</span>
+
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.mvc</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.libs</span><span class="class">.ws</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.http</span><span class="class">.HttpEntity</span>
+
+<span class="tag">import</span> <span class="tag">akka</span><span class="class">.actor</span><span class="class">.ActorSystem</span>
+<span class="tag">import</span> <span class="tag">akka</span><span class="class">.stream</span><span class="class">.ActorMaterializer</span>
+<span class="tag">import</span> <span class="tag">akka</span><span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">._</span>
+<span class="tag">import</span> <span class="tag">akka</span><span class="class">.util</span><span class="class">.ByteString</span>
+
+<span class="tag">import</span> <span class="tag">scala</span><span class="class">.concurrent</span><span class="class">.ExecutionContext</span>
+
+<span class="tag">class</span> <span class="tag">Application</span> <span class="at_rule">@<span class="keyword">Inject()</span> (ws: WSClient) extends Controller </span>{
+
+}
+</code></pre><p>我们已经将WSClient的实例命名为ws,下面的例子都会使用这个名字.</p>
+<p>创建HTTP请求时使用<code>ws.url()</code>来指定URL:</p>
+<pre><code>val request: WSRequest = ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>
+</code></pre><p>这会返回一个<code>WSRequest</code>,可以用于指定多种HTTP选项,比如设置请求头,并可以链接起来构造一个复杂的请求:</p>
+<pre><code>val complexRequest: WSRequest =
+  request.<span class="function"><span class="title">withHeaders</span><span class="params">(<span class="string">"Accept"</span> -&gt; <span class="string">"application/json"</span>)</span></span>
+    .<span class="function"><span class="title">withRequestTimeout</span><span class="params">(<span class="number">10000</span>.millis)</span></span>
+    .<span class="function"><span class="title">withQueryString</span><span class="params">(<span class="string">"search"</span> -&gt; <span class="string">"play"</span>)</span></span>
+</code></pre><p>然后以一个你需要的并且与HTTP方法对应的请求方法来结束,这会结束整个链接,然后使用所有已配置的选项发起请求:</p>
+<pre><code><span class="variable"><span class="keyword">val</span> futureResponse</span>: Future[WSResponse] = complexRequest.<span class="keyword">get</span>()
+</code></pre><p>返回结果是一个<code>Future[WSResponse]</code>,Response中包含了从服务端返回的数据.</p>
+<h4 id="Request_with_authentication">Request with authentication</h4><p>如果需要使用HTTP用户验证,可以在创建器中指定,使用用户名,密码,和一个<code>AuthScheme</code>,<code>AuthScheme</code>有效的方式包括<code>BASIC, DIGEST, KERBEROS, NONE, NTLM, SPNEGO</code>.</p>
+<pre><code>ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>.<span class="function"><span class="title">withAuth</span><span class="params">(user, password, WSAuthScheme.BASIC)</span></span>.<span class="function"><span class="title">get</span><span class="params">()</span></span>
+</code></pre><h4 id="Request_with_follow_redirects">Request with follow redirects</h4><p>如果一个HTTP调用结果是一个302或301重定向,你可以自动更随重定向而不用重新创建一个请求:</p>
+<pre><code>ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>.<span class="function"><span class="title">withFollowRedirects</span><span class="params">(true)</span></span>.<span class="function"><span class="title">get</span><span class="params">()</span></span>
+</code></pre><h4 id="Request_with_query_parameters">Request with query parameters</h4><p>参数可以指定为一个连续的<code>key/value</code>元组:</p>
+<pre><code>ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>.<span class="function"><span class="title">withQueryString</span><span class="params">(<span class="string">"paramKey"</span> -&gt; <span class="string">"paramValue"</span>)</span></span>.<span class="function"><span class="title">get</span><span class="params">()</span></span>
+</code></pre><h4 id="Request_with_additional_headers">Request with additional headers</h4><p>请求头可以指定为一个连续的<code>key/value</code>元组:</p>
+<pre><code>ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>.<span class="function"><span class="title">withHeaders</span><span class="params">(<span class="string">"headerKey"</span> -&gt; <span class="string">"headerValue"</span>)</span></span>.<span class="function"><span class="title">get</span><span class="params">()</span></span>
+</code></pre><p>如果需要使用特殊的方式发送普通文本,则需要显式的指定文本类型:</p>
+<pre><code>ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>.<span class="function"><span class="title">withHeaders</span><span class="params">(<span class="string">"Content-Type"</span> -&gt; <span class="string">"application/xml"</span>)</span></span>.<span class="function"><span class="title">post</span><span class="params">(xmlString)</span></span>
+</code></pre><h4 id="Request_with_virtual_host">Request with virtual host</h4><p>一个实际host可以指定为一个String:</p>
+<pre><code>ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>.<span class="function"><span class="title">withVirtualHost</span><span class="params">(<span class="string">"192.168.1.1"</span>)</span></span>.<span class="function"><span class="title">get</span><span class="params">()</span></span>
+</code></pre><h4 id="Request_with_timeout">Request with timeout</h4><p>如果想要指定请求超时时间,可以使用<code>withRequestTimeout</code>设置一个值,一个无限的时间可以通过传入一个<code>Duration.Inf</code>设置:</p>
+<pre><code>ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>.<span class="function"><span class="title">withRequestTimeout</span><span class="params">(<span class="number">5000</span>.millis)</span></span>.<span class="function"><span class="title">get</span><span class="params">()</span></span>
+</code></pre><h4 id="Submitting_form_data">Submitting form data</h4><p>使用POST提交一个<code>Map[String, Seq[String]]</code>类型的<code>url-form-encoded</code>数据:</p>
+<pre><code>ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>.<span class="function"><span class="title">post</span><span class="params">(Map(<span class="string">"key"</span> -&gt; Seq(<span class="string">"value"</span>)</span></span>))
+</code></pre><h4 id="Submitting_JSON_data">Submitting JSON data</h4><p>提交JSON数据最简单的方式就是使用JSON库:</p>
+<pre><code>import play<span class="class">.api</span><span class="class">.libs</span><span class="class">.json</span>._
+val data = Json.obj(
+  <span class="string">"key1"</span> -&gt; <span class="string">"value1"</span>,
+  <span class="string">"key2"</span> -&gt; <span class="string">"value2"</span>
+)
+val futureResponse: Future[WSResponse] = ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>.<span class="function"><span class="title">post</span><span class="params">(data)</span></span>
+</code></pre><h4 id="Submitting_XML_data">Submitting XML data</h4><pre><code>val data = <span class="tag">&lt;<span class="title">person</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">name</span>&gt;</span>Steve<span class="tag">&lt;/<span class="title">name</span>&gt;</span>
+  <span class="tag">&lt;<span class="title">age</span>&gt;</span>23<span class="tag">&lt;/<span class="title">age</span>&gt;</span>
+<span class="tag">&lt;/<span class="title">person</span>&gt;</span>
+val futureResponse: Future[WSResponse] = ws.url(url).post(data)
+</code></pre><h4 id="Streaming_data">Streaming data</h4><p>比如执行了一个数据库查询然后返回个大的图片,然后你想将数据发送到不同的端点进行更多的处理.在理念上,如果如果你能在接收到数据的同时发送数据,将会减少很多潜在问题,并且不用把大量的数据加载到内存.如果你的数据库访问模块支持<code>Reactive Streams</code>(Slick),下面是一个实现的例子:</p>
+<pre><code>val wsResponse: Future<span class="string">[WSResponse]</span> = ws.url(url)
+  .withBody(StreamedBody(largeImageFromDB)).execute(<span class="string">"<span class="keyword">PUT</span>"</span>)
+</code></pre><p><code>largeImageFromDB</code>部分是一个<code>Source[ByteString, _]</code>类型的<code>Akka-stream</code>.</p>
+<h4 id="Request_Filters">Request Filters</h4><p>可以通过添加一个请求过滤器来做额外的处理.通过继承<code>play.api.libs.ws.WSRequestFilter</code>的方式实现,然后以<code>request.withRequestFilter(filter)</code>的方式添加到请求.</p>
+<p>一个将请求日志格式化到SLF4J的例子已经在<code>play.api.libs.ws.ahc.AhcCurlRequestLogger</code>提供:</p>
+<pre><code>ws.<span class="function"><span class="title">url</span><span class="params">(s<span class="string">"http://localhost:$testServerPort"</span>)</span></span>
+  .<span class="function"><span class="title">withRequestFilter</span><span class="params">(AhcCurlRequestLogger()</span></span>)
+  .<span class="function"><span class="title">withBody</span><span class="params">(Map(<span class="string">"param1"</span> -&gt; Seq(<span class="string">"value1"</span>)</span></span>))
+  .<span class="function"><span class="title">put</span><span class="params">(Map(<span class="string">"key"</span> -&gt; Seq(<span class="string">"value"</span>)</span></span>))
+</code></pre><p>输出:</p>
+<pre><code>curl \
+  -<span class="ruby">-verbose \
+</span>  -<span class="ruby">-request <span class="constant">PUT</span> \
+</span> -<span class="ruby">-header <span class="string">'Content-Type: application/x-www-form-urlencoded; charset=utf-8'</span> \
+</span> -<span class="ruby">-data <span class="string">'key=value'</span> \
+</span> 'http://localhost:19001/
+</code></pre><h3 id="处理响应数据">处理响应数据</h3><p>当一个<code>Future</code>中的操作完成时,必须有一个隐式的执行上下文可见,着声明了Future的回调执行的线程.可以在类的构造器为<code>ExecutionContext</code>声明一个额外的依赖来注入Play默认的执行上下文.</p>
+<pre><code><span class="keyword">class</span> PersonService @Inject()(<span class="type">implicit</span> context: ExecutionContext) {
+  // ...
+}
+</code></pre><p>如果不适用DI,仍然可以适用Play默认的执行上下文:</p>
+<pre><code><span class="type">implicit</span> val context = play.api.libs.concurrent.Execution.Implicits.defaultContext
+</code></pre><p>下面的例子会适用到这个case类来进行序列化和反序列化:</p>
+<pre><code><span class="keyword">case</span> <span class="keyword">class</span> Person(<span class="keyword">name</span>: String, age: <span class="built_in">Int</span>)
+</code></pre><h4 id="Processing_a_response_as_JSON">Processing a response as JSON</h4><p>通过调用<code>resonpse.json</code>将相应作为一个JSON处理:</p>
+<pre><code>val futureResult: Future[<span class="built_in">String</span>] = ws.url(url).<span class="literal">get</span>().map {
+  response =&gt;
+    (response.json \ <span class="string">"person"</span> \ <span class="string">"name"</span>).<span class="literal">as</span>[<span class="built_in">String</span>]
+}
+</code></pre><p>JSON库提供了一些有用的特性可以将隐式的<code>Reads[T]</code>准确的映射到类:</p>
+<pre><code><span class="keyword">import</span> play.api.libs.json._
+
+<span class="type">implicit</span> val personReads = Json.reads[Person]
+
+val futureResult: Future[JsResult[Person]] = ws.url(url).get().map {
+  response =&gt; (response.json \ <span class="string">"person"</span>).validate[Person]
+}
+</code></pre><h4 id="Processing_a_response_as_XML">Processing a response as XML</h4><pre><code><span class="tag">val</span> <span class="rule"><span class="attribute">futureResult</span>:<span class="value"> Future[scala.xml.NodeSeq] = ws.<span class="function">url</span>(url).<span class="function">get</span>().map {
+  response =&gt;
+    response.xml \ <span class="string">"message"</span>
+}</span></span>
+</code></pre><h4 id="Processing_large_responses">Processing large responses</h4><p>调用<code>get(), post(), execute()</code>会在响应可用之前将响应体的数据加载到内存,当下载一个大的多字节的文件,这会引起一些不受欢迎的垃圾集合或引起内存溢出.</p>
+<p>WS支持使用<code>Akka-stream</code>的<code>Sink</code>来以增量的方式消费响应体重的数据,<code>WSRequest</code>的<code>stream()</code>方法返回一个<code>Future[StreamedResponse]</code>,<code>StreamedResponse</code>是一个保存响应体和响应头的简单容器.</p>
+<p>下面的例子使用<code>Sink</code>的fold来对响应体中的字节数进行计数:</p>
+<pre><code>// Make the request
+val futureResponse: Future<span class="string">[StreamedResponse]</span> =
+  ws.url(url).withMethod(<span class="string">"<span class="keyword">GET</span>"</span>).stream()
+
+val bytesReturned: Future<span class="string">[Long]</span> = futureResponse.flatMap {
+  res =&gt;
+    // Count the number of bytes returned
+    res.body.runWith(Sink.fold<span class="string">[Long, ByteString]</span>(0L){ (total, bytes) =&gt;
+      total + bytes.length
+    })
+}
+</code></pre><p>或者将数据stream到其他位置:</p>
+<pre><code>// <span class="type">Make</span> the request
+val futureResponse: <span class="type">Future</span>[<span class="type">StreamedResponse</span>] =
+  ws.url(url).withMethod(<span class="string">"GET"</span>).stream()
+
+val downloadedFile: <span class="type">Future</span>[<span class="type">File</span>] = futureResponse.flatMap {
+  res =&gt;
+    val outputStream = new <span class="type">FileOutputStream</span>(file)
+
+    // <span class="type">The</span> sink that writes to the output stream
+    val sink = <span class="type">Sink</span>.foreach[<span class="type">ByteString</span>] { bytes =&gt;
+      outputStream.write(bytes.toArray)
+    }
+
+    // materialize <span class="keyword">and</span> run the stream
+    res.body.runWith(sink).andThen {
+      <span class="keyword">case</span> <span class="literal">result</span> =&gt;
+        // <span class="type">Close</span> the output stream whether there was an error <span class="keyword">or</span> <span class="keyword">not</span>
+        outputStream.close()
+        // <span class="type">Get</span> the <span class="literal">result</span> <span class="keyword">or</span> rethrow the error
+        <span class="literal">result</span>.get
+    }.map(_ =&gt; file)
+}
+</code></pre><p>另一种用途是将响应体stream到一个控制器的<code>Action</code>中进行返回:</p>
+<pre><code>def downloadFile = Action.<span class="keyword">async</span> {
+
+  <span class="comment">// Make the request</span>
+  ws.url(url).withMethod(<span class="string">"GET"</span>).stream().map {
+    <span class="function"><span class="keyword">case</span> <span class="title">StreamedResponse</span>(<span class="params">response, body</span>) </span>=&gt;
+
+      <span class="comment">// Check that the response was successful</span>
+      <span class="keyword">if</span> (response.status == <span class="number">200</span>) {
+
+        <span class="comment">// Get the content type</span>
+        val contentType = response.headers.<span class="keyword">get</span>(<span class="string">"Content-Type"</span>).flatMap(_.headOption)
+          .getOrElse(<span class="string">"application/octet-stream"</span>)
+
+        <span class="comment">// If there's a content length, send that, otherwise return the body chunked</span>
+        response.headers.<span class="keyword">get</span>(<span class="string">"Content-Length"</span>) match {
+          <span class="function"><span class="keyword">case</span> <span class="title">Some</span>(<span class="params">Seq(length</span>)) </span>=&gt;
+            Ok.sendEntity(HttpEntity.Streamed(body, Some(length.toLong), Some(contentType)))
+          <span class="keyword">case</span> _ =&gt;
+            Ok.chunked(body).<span class="keyword">as</span>(contentType)
+        }
+      } <span class="keyword">else</span> {
+        BadGateway
+      }
+  }
+}
+</code></pre><p>你会注意到在调用<code>stream()</code>之前需要使用<code>withMethod</code>来设置请求方法.下面的例子中使用PUT:</p>
+<pre><code>val futureResponse: Future[StreamedResponse] =
+  ws.<span class="function"><span class="title">url</span><span class="params">(url)</span></span>.<span class="function"><span class="title">withMethod</span><span class="params">(<span class="string">"PUT"</span>)</span></span>.<span class="function"><span class="title">withBody</span><span class="params">(<span class="string">"some body"</span>)</span></span>.<span class="function"><span class="title">stream</span><span class="params">()</span></span>
+</code></pre><h3 id="Common_Patterns_and_Use_Cases">Common Patterns and Use Cases</h3><h4 id="链接WS调用">链接WS调用</h4><p>使用for表达式将多个WS请求链接起来,然后使用<code>Future.recover</code>处理可能出现的错误:</p>
+<pre><code><span class="tag">val</span> <span class="rule"><span class="attribute">futureResponse</span>:<span class="value"> Future[WSResponse] = for {
+  responseOne &lt;- ws.<span class="function">url</span>(urlOne).<span class="function">get</span>()
+  responseTwo &lt;- ws.<span class="function">url</span>(responseOne.body).<span class="function">get</span>()
+  responseThree &lt;- ws.<span class="function">url</span>(responseTwo.body).<span class="function">get</span>()
+} yield responseThree
+
+futureResponse.recover {
+  case e: Exception =&gt;
+    val exceptionData = <span class="function">Map</span>(<span class="string">"error"</span> -&gt; <span class="function">Seq</span>(e.getMessage))
+    ws.<span class="function">url</span>(exceptionUrl).<span class="function">post</span>(exceptionData)
+}</span></span>
+</code></pre><h4 id="在控制器中使用">在控制器中使用</h4><p>在控制器中使用时可以将响应映射为一个<code>Future[Result]</code>,可以和Play的action创建器<code>Action.async</code>组合使用:</p>
+<pre><code><span class="component">def wsAction = Action.async {
+  ws<span class="string">.url(url).get().map</span> { response =&gt;
+    Ok(response<span class="string">.body)</span>
+  }</span>
+}
+status(wsAction(FakeRequest())) must_== OK
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Play2/" rel="tag">#Play2</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/27/Simple-PlayFramework-Integrating-with-Akka/" rel="prev">Simple PlayFramework: Integrating with Akka</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/27/Simple-PlayFramework-Asynchronous-HTTP-programming/" rel="next">Simple PlayFramework: Asynchronous HTTP programming</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">111</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#The_Play_WS_API"><span class="nav-number">1.</span> <span class="nav-text">The Play WS API</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建请求"><span class="nav-number">1.1.</span> <span class="nav-text">创建请求</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Request_with_authentication"><span class="nav-number">1.1.1.</span> <span class="nav-text">Request with authentication</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Request_with_follow_redirects"><span class="nav-number">1.1.2.</span> <span class="nav-text">Request with follow redirects</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Request_with_query_parameters"><span class="nav-number">1.1.3.</span> <span class="nav-text">Request with query parameters</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Request_with_additional_headers"><span class="nav-number">1.1.4.</span> <span class="nav-text">Request with additional headers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Request_with_virtual_host"><span class="nav-number">1.1.5.</span> <span class="nav-text">Request with virtual host</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Request_with_timeout"><span class="nav-number">1.1.6.</span> <span class="nav-text">Request with timeout</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Submitting_form_data"><span class="nav-number">1.1.7.</span> <span class="nav-text">Submitting form data</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Submitting_JSON_data"><span class="nav-number">1.1.8.</span> <span class="nav-text">Submitting JSON data</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Submitting_XML_data"><span class="nav-number">1.1.9.</span> <span class="nav-text">Submitting XML data</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Streaming_data"><span class="nav-number">1.1.10.</span> <span class="nav-text">Streaming data</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Request_Filters"><span class="nav-number">1.1.11.</span> <span class="nav-text">Request Filters</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理响应数据"><span class="nav-number">1.2.</span> <span class="nav-text">处理响应数据</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Processing_a_response_as_JSON"><span class="nav-number">1.2.1.</span> <span class="nav-text">Processing a response as JSON</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Processing_a_response_as_XML"><span class="nav-number">1.2.2.</span> <span class="nav-text">Processing a response as XML</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Processing_large_responses"><span class="nav-number">1.2.3.</span> <span class="nav-text">Processing large responses</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Common_Patterns_and_Use_Cases"><span class="nav-number">1.3.</span> <span class="nav-text">Common Patterns and Use Cases</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#链接WS调用"><span class="nav-number">1.3.1.</span> <span class="nav-text">链接WS调用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#在控制器中使用"><span class="nav-number">1.3.2.</span> <span class="nav-text">在控制器中使用</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

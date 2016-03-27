@@ -1,0 +1,774 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Play2,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Play2与Akka进行融合.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple PlayFramework: Integrating with Akka">
+<meta property="og:url" content="http://yoursite.com/2016/03/27/Simple-PlayFramework-Integrating-with-Akka/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Play2与Akka进行融合.">
+<meta property="og:updated_time" content="2016-03-27T09:38:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple PlayFramework: Integrating with Akka">
+<meta name="twitter:description" content="Play2与Akka进行融合.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple PlayFramework: Integrating with Akka | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple PlayFramework: Integrating with Akka
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-27T16:05:46+08:00" content="2016-03-27">
+            2016-03-27
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="The_application_actor_system">The application actor system</h2><p>一个Play应用定义了一个特殊的actor system用于使用,这个actor system跟随应用的声明周期,当应用重启时会自动重启.</p>
+<h3 id="Writing_actors">Writing actors</h3><p>开始使用Akka时需要编写一个actor,下面是一个简单的例子:</p>
+<pre><code><span class="keyword">import</span> akka.actor._
+
+<span class="class"><span class="keyword">object</span> <span class="title">HelloActor</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">props</span> =</span> <span class="type">Props</span>[<span class="type">HelloActor</span>]
+
+  <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">SayHello</span>(</span>name: <span class="type">String</span>)
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">HelloActor</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+  <span class="keyword">import</span> <span class="type">HelloActor</span>._
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> <span class="type">SayHello</span>(name: <span class="type">String</span>) =&gt;
+      sender() ! <span class="string">"Hello, "</span> + name
+  }
+}
+</code></pre><p>这个actor遵循了一些Akka的协定:</p>
+<ol>
+<li>它发送或接受的消息,或者成为协议,在它的伴生对象中进行定义</li>
+<li>在半生对象中同时定义了一个<code>props</code>方法用于返回该actor的引用</li>
+</ol>
+<h3 id="Creating_and_using_actors">Creating and using actors</h3><p>创建或使用actor时需要一个<code>ActorSystem</code>,可以通过声明一个ActorSystem依赖获得:</p>
+<pre><code><span class="preprocessor"><span class="keyword">import</span> play.api.mvc._</span>
+<span class="preprocessor"><span class="keyword">import</span> akka.actor._</span>
+<span class="preprocessor"><span class="keyword">import</span> javax.inject._</span>
+
+<span class="preprocessor"><span class="keyword">import</span> actors.HelloActor</span>
+
+@Singleton
+<span class="class"><span class="keyword">class</span> <span class="title">Application</span> @<span class="title">Inject</span>() (<span class="title">system</span>: <span class="title">ActorSystem</span>) <span class="keyword">extends</span> <span class="title">Controller</span> {</span>
+
+  val helloActor = system.actorOf(HelloActor.props, <span class="string">"hello-actor"</span>)
+
+  //...
+}
+</code></pre><p><code>actorOf</code>方法用于创建一个新的actor,注意我们声明这个控制器为单例.当创建一个actor或保存它的引用时时非常必要的.如果没有声明为单例,则控制器每次被创建都会创建一个新的actor,最终会抛出一个异常,因为一个ActorSystem中不能存在两个名字一样的actor.</p>
+<h3 id="Asking_things_of_actors">Asking things of actors</h3><p>一个actor最基本的功能就是向他发送一个消息,就像HTTP有一个请求和响应的协议一样.这种场景下,比较相似的用法是使用<code>ask</code>模式,该模式返回一个Future,然后你就可以将它映射为你自己的结果类型.</p>
+<p>下面的例子使用<code>ask</code>模式:</p>
+<pre><code><span class="keyword">import</span> play.api.libs.concurrent.Execution.Implicits.defaultContext
+<span class="keyword">import</span> scala.concurrent.duration._
+<span class="keyword">import</span> akka.pattern.ask
+<span class="type">implicit</span> val timeout = <span class="number">5.</span>seconds
+
+def sayHello(<span class="keyword">name</span>: String) = <span class="keyword">Action</span>.async {
+  (helloActor ? SayHello(<span class="keyword">name</span>)).mapTo[String].map { message =&gt;
+    Ok(message)
+  }
+}
+</code></pre><p>需要注意的地方:</p>
+<ol>
+<li><code>ask</code>模式需要被引入(import),然会会为actor提供一个<code>?</code>操作符</li>
+<li>ask返回的结果类型为<code>Future[Any]</code>,然后就可以使用<code>mapTo</code>方法映射为自己想要的类型</li>
+<li>在作用域中需要提供一个隐式的超时时间设置,超时后会返回一个超时错误</li>
+</ol>
+<h2 id="Dependency_injecting_actors">Dependency injecting actors</h2><p>如果需要,可以将Guice实例到actor并绑定到控制器或依赖它的组件上.</p>
+<p>比如,如果你需要一个基于Play配置的actor:</p>
+<pre><code><span class="keyword">import</span> akka.actor._
+<span class="keyword">import</span> javax.inject._
+<span class="keyword">import</span> play.api.<span class="type">Configuration</span>
+
+<span class="class"><span class="keyword">object</span> <span class="title">ConfiguredActor</span> {</span>
+  <span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">GetConfig</span>
+</span>}
+
+<span class="class"><span class="keyword">class</span> <span class="title">ConfiguredActor</span> <span class="title">@Inject</span>(</span>) (configuration: <span class="type">Configuration</span>) <span class="keyword">extends</span> <span class="type">Actor</span> {
+  <span class="keyword">import</span> <span class="type">ConfiguredActor</span>._
+
+  <span class="function"><span class="keyword">val</span> <span class="title">config</span> =</span> configuration.getString(<span class="string">"my.config"</span>).getOrElse(<span class="string">"none"</span>)
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> <span class="type">GetConfig</span> =&gt;
+      sender() ! config
+  }
+}
+</code></pre><p>Play提供了一些辅助方法用于actor绑定.这允许actor本身是依赖注入的,并允许actor的引用被注入到其他组件.</p>
+<pre><code><span class="keyword">import</span> com.google.inject.<span class="type">AbstractModule</span>
+<span class="keyword">import</span> play.api.libs.concurrent.<span class="type">AkkaGuiceSupport</span>
+
+<span class="keyword">import</span> actors.<span class="type">ConfiguredActor</span>
+
+<span class="class"><span class="keyword">class</span> <span class="title">MyModule</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">AbstractModule</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">AkkaGuiceSupport</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">configure</span> =</span> {
+    bindActor[<span class="type">ConfiguredActor</span>](<span class="string">"configured-actor"</span>)
+  }
+}
+</code></pre><p>这个actor会被命名为<code>configured-actor</code>,同时又能使用<code>configured-actor</code>来进行注入.现在就可以在控制器基于actor或者其他的组件中.</p>
+<pre><code><span class="keyword">import</span> play.api.mvc._
+<span class="keyword">import</span> akka.actor._
+<span class="keyword">import</span> akka.pattern.ask
+<span class="keyword">import</span> akka.util.Timeout
+<span class="keyword">import</span> javax.inject._
+<span class="keyword">import</span> actors.ConfiguredActor._
+<span class="keyword">import</span> scala.concurrent.ExecutionContext
+<span class="keyword">import</span> scala.concurrent.duration._
+
+@Singleton
+<span class="keyword">class</span> Application @Inject() (@<span class="keyword">Named</span>(<span class="string">"configured-actor"</span>) configuredActor: ActorRef)
+                            (<span class="type">implicit</span> ec: ExecutionContext) <span class="keyword">extends</span> Controller {
+
+  <span class="type">implicit</span> val timeout: Timeout = <span class="number">5.</span>seconds
+
+  def getConfig = <span class="keyword">Action</span>.async {
+    (configuredActor ? GetConfig).mapTo[String].map { message =&gt;
+      Ok(message)
+    }
+  }
+}
+</code></pre><h3 id="Dependency_injecting_child_actors">Dependency injecting child actors</h3><p>上面的例子是注入root级actor,但是很多其他的actor都是子actor并且不会绑定到Play应用的声明周期,并且可能会有额外的状态传送给他们.</p>
+<p>为了能够实现子actor的依赖注入,Play利用了Guice的<code>AssistedInject</code>支持.</p>
+<p>比如下面的actor,哪个依赖的配置文件被注入了,添加一个key参数:</p>
+<pre><code><span class="keyword">import</span> akka.actor._
+<span class="keyword">import</span> javax.inject._
+<span class="keyword">import</span> com.google.inject.assistedinject.<span class="type">Assisted</span>
+<span class="keyword">import</span> play.api.<span class="type">Configuration</span>
+
+<span class="class"><span class="keyword">object</span> <span class="title">ConfiguredChildActor</span> {</span>
+  <span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">GetConfig</span>
+</span>
+  <span class="class"><span class="keyword">trait</span> <span class="title">Factory</span> {</span>
+    <span class="function"><span class="keyword">def</span> <span class="title">apply</span>(</span>key: <span class="type">String</span>): <span class="type">Actor</span>
+  }
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">ConfiguredChildActor</span> <span class="title">@Inject</span>(</span>) (configuration: <span class="type">Configuration</span>,
+    <span class="annotation">@Assisted</span> key: <span class="type">String</span>) <span class="keyword">extends</span> <span class="type">Actor</span> {
+  <span class="keyword">import</span> <span class="type">ConfiguredChildActor</span>._
+
+  <span class="function"><span class="keyword">val</span> <span class="title">config</span> =</span> configuration.getString(key).getOrElse(<span class="string">"none"</span>)
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> <span class="type">GetConfig</span> =&gt;
+      sender() ! config
+  }
+}
+</code></pre><p>注意key参数被声明为<code>@Assisted</code>,这表示它将要收到提供.</p>
+<p>同时定义了一个<code>Factory</code>特质,接收一个<code>key</code>参数,然后返回一个actor.我们并不会去实现它,Guice会实现它,不但给我们传入一个key参数,同时找出<code>Configuration</code>依赖并进行注入.由于这个特质仅返回一个actor,测试的时候我们可以注入一个factory然后返回任何actor,比如他允许我们注入一个mock的子actor,而不是一个实际的actor.</p>
+<p>现在,基于这样的actor我们可以扩展<code>InjectedActorSupport</code>,可以基于我们创建的factory:</p>
+<pre><code><span class="keyword">import</span> akka.actor._
+<span class="keyword">import</span> javax.inject._
+<span class="keyword">import</span> play.api.libs.concurrent.<span class="type">InjectedActorSupport</span>
+
+<span class="class"><span class="keyword">object</span> <span class="title">ParentActor</span> {</span>
+  <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">GetChild</span>(</span>key: <span class="type">String</span>)
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">ParentActor</span> <span class="title">@Inject</span>(</span>) (
+    childFactory: <span class="type">ConfiguredChildActor</span>.<span class="type">Factory</span>
+) <span class="keyword">extends</span> <span class="type">Actor</span> <span class="keyword">with</span> <span class="type">InjectedActorSupport</span> {
+  <span class="keyword">import</span> <span class="type">ParentActor</span>._
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> <span class="type">GetChild</span>(key: <span class="type">String</span>) =&gt;
+      <span class="function"><span class="keyword">val</span> <span class="title">child</span>:</span> <span class="type">ActorRef</span> = injectedChild(childFactory(key), key)
+      sender() ! child
+  }
+}
+</code></pre><p>它使用<code>injectedChild</code>创建并获取一个子actor的引用,通过传入一个key.</p>
+<p>最后我们需要绑定我们的actor,我们使用<code>bindActorFactory</code>方法来绑定父actor,同时将子factory绑定到子actor的实现:</p>
+<pre><code><span class="keyword">import</span> com.google.inject.<span class="type">AbstractModule</span>
+<span class="keyword">import</span> play.api.libs.concurrent.<span class="type">AkkaGuiceSupport</span>
+
+<span class="keyword">import</span> actors._
+
+<span class="class"><span class="keyword">class</span> <span class="title">MyModule</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">AbstractModule</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">AkkaGuiceSupport</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">configure</span> =</span> {
+    bindActor[<span class="type">ParentActor</span>](<span class="string">"parent-actor"</span>)
+    bindActorFactory[<span class="type">ConfiguredChildActor</span>, <span class="type">ConfiguredChildActor</span>.<span class="type">Factory</span>]
+  }
+}
+</code></pre><p>这会使Guice自动绑定一个<code>ConfiguredChildActor.Factory</code>实例,当<code>ConfiguredChildActor</code>初始化时会为其提供一个<code>Configuration</code>实例.</p>
+<h2 id="Configuration">Configuration</h2><p>默认的actor system的配置会去读取Play应用的配置文件,比如,为应用的actor system配置默认的dispatcher,在<code>conf/application.conf</code>文件中添加:</p>
+<pre><code>akka<span class="class">.actor</span><span class="class">.default-dispatcher</span><span class="class">.fork-join-executor</span><span class="class">.parallelism-max</span> = <span class="number">64</span>
+akka<span class="class">.actor</span><span class="class">.debug</span><span class="class">.receive</span> = on
+</code></pre><h3 id="Changing_configuration_prefix">Changing configuration prefix</h3><p>如果需要使用<code>akka.*</code>配置来设置另一个actor system,可以告诉Play从另一个位置加载Akka配置:</p>
+<pre><code>play<span class="class">.akka</span><span class="class">.config</span> = <span class="string">"my-akka"</span>
+</code></pre><p>现在配置会从<code>my-akka</code>读取而不再是<code>akka</code>:</p>
+<pre><code>my-akka<span class="class">.actor</span><span class="class">.default-dispatcher</span><span class="class">.fork-join-executor</span><span class="class">.pool-size-max</span> = <span class="number">64</span>
+my-akka<span class="class">.actor</span><span class="class">.debug</span><span class="class">.receive</span> = on
+</code></pre><h3 id="Built-in_actor_system_name">Built-in actor system name</h3><p>Play中默认的actor system名为<code>application</code>,可以在<code>conf/application.conf</code>中进行修改:</p>
+<pre><code>play<span class="class">.akka</span><span class="class">.actor-system</span> = <span class="string">"custom-name"</span>
+</code></pre><h2 id="Scheduling_asynchronous_tasks">Scheduling asynchronous tasks</h2><p>可以安排(schedule)发送消息到actor并执行任务(函数或者Runnable).会返回一个<code>Cancellable</code>,可以调用<code>cancel</code>来取消安排过的操作执行.</p>
+<p>比如,每300毫秒像<code>testActor</code>发送一个消息:</p>
+<pre><code>import scala<span class="class">.concurrent</span><span class="class">.duration</span>._
+
+val cancellable = system<span class="class">.scheduler</span><span class="class">.schedule</span>(<span class="number">0</span><span class="class">.microseconds</span>, <span class="number">300</span><span class="class">.microseconds</span>, testActor, <span class="string">"tick"</span>)
+</code></pre><p>类似的,每10秒运行一次代码块:</p>
+<pre><code>import play.api.libs.concurrent.Execution.Implicits.defaultContext
+<span class="keyword">system</span>.scheduler.scheduleOnce(<span class="number">10.</span><span class="built_in">milliseconds</span>) {
+  <span class="built_in">file</span>.<span class="built_in">delete</span>()
+}
+</code></pre><h2 id="Using_your_own_Actor_system">Using your own Actor system</h2><p>在使用自己的actor system时需要注意的地方:</p>
+<ol>
+<li>注册一个<code>stop hook</code>,当Play关闭时关闭actor system</li>
+<li>从Play环境变量传入一个正确的类加载器,除非Akka并不需要查找你应用中的类.</li>
+<li>确定要么改变Play使用<code>play.akka.config</code>读取配置文件的位置,要么你不要从默认的<code>akka</code>配置中读取你的配置文件,因为当多个actor system试图绑定到同一个地址是会出现错误</li>
+</ol>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Play2/" rel="tag">#Play2</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/27/Simple-PlayFramework-Calling-WebServices/" rel="next">Simple PlayFramework: Calling WebServices</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">111</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#The_application_actor_system"><span class="nav-number">1.</span> <span class="nav-text">The application actor system</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Writing_actors"><span class="nav-number">1.1.</span> <span class="nav-text">Writing actors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating_and_using_actors"><span class="nav-number">1.2.</span> <span class="nav-text">Creating and using actors</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Asking_things_of_actors"><span class="nav-number">1.3.</span> <span class="nav-text">Asking things of actors</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dependency_injecting_actors"><span class="nav-number">2.</span> <span class="nav-text">Dependency injecting actors</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Dependency_injecting_child_actors"><span class="nav-number">2.1.</span> <span class="nav-text">Dependency injecting child actors</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Configuration"><span class="nav-number">3.</span> <span class="nav-text">Configuration</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Changing_configuration_prefix"><span class="nav-number">3.1.</span> <span class="nav-text">Changing configuration prefix</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Built-in_actor_system_name"><span class="nav-number">3.2.</span> <span class="nav-text">Built-in actor system name</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Scheduling_asynchronous_tasks"><span class="nav-number">4.</span> <span class="nav-text">Scheduling asynchronous tasks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Using_your_own_Actor_system"><span class="nav-number">5.</span> <span class="nav-text">Using your own Actor system</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

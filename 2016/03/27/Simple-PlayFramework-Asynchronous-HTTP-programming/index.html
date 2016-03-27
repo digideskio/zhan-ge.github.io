@@ -1,0 +1,881 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Play2,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Play2中的异步HTTP编程.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple PlayFramework: Asynchronous HTTP programming">
+<meta property="og:url" content="http://yoursite.com/2016/03/27/Simple-PlayFramework-Asynchronous-HTTP-programming/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Play2中的异步HTTP编程.">
+<meta property="og:updated_time" content="2016-03-27T07:05:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple PlayFramework: Asynchronous HTTP programming">
+<meta name="twitter:description" content="Play2中的异步HTTP编程.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple PlayFramework: Asynchronous HTTP programming | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple PlayFramework: Asynchronous HTTP programming
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-27T11:19:10+08:00" content="2016-03-27">
+            2016-03-27
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="处理异步结果">处理异步结果</h2><h3 id="异步化Controller">异步化Controller</h3><p>本质上,Play从本质上就是异步的,Play以异步,无阻塞的方式处理所有的请求.</p>
+<p>默认的配置文件已经对异步化Controller做了调谐.或者说,应用的代码需要在控制层避免阻塞,比如控制器的代码等待一个操作.比较常见的操作有JDBC调用,流式API,HTTP请求,或者花费时间比较长的计算.</p>
+<p>尽管在默认的执行上下文(execution context)中增加线程能够允许更过的并发请求在控制器中处理,遵循推荐的方法能够使控制器异步并以更容易的方式扩展或控制系统的负载.</p>
+<h3 id="创建无阻塞Action">创建无阻塞Action</h3><p>由于Play的工作方式,action的代码必须尽可能的快,比如无阻塞.因此在我们不能及时生成结果时应该返回一个什么呢.响应将会是一个Future类型的结果.</p>
+<p>一个<code>Future[Result]</code>最终会被一个<code>Result</code>类型的值填充.通过返回一个<code>Future[Result]</code>而不是普通的<code>Result</code>,我们可以以无阻塞的方式快速生成结果,Play会在Promise可用的时候立即返回结果.</p>
+<p>客户端请求会在等待响应的时候被阻塞,但是服务端不会发生任何阻塞,并且服务端资源同时可以用于服务其他客户端请求.</p>
+<h3 id="如何创建Future[Result]">如何创建<code>Future[Result]</code></h3><p>在创建<code>Future[Result]</code>时首先需要另一个Future: 这个Future会给我们真正需要用于计算的值.</p>
+<pre><code><span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.libs</span><span class="class">.concurrent</span><span class="class">.Execution</span><span class="class">.Implicits</span><span class="class">.defaultContext</span>
+
+<span class="tag">val</span> <span class="rule"><span class="attribute">futurePIValue</span>:<span class="value"> Future[Double] = <span class="function">computePIAsynchronously</span>()
+val futureResult: Future[Result] = futurePIValue.map { pi =&gt;
+  <span class="function">Ok</span>(<span class="string">"PI value computed: "</span> + pi)
+}</span></span>
+</code></pre><p>Play所有的异步API都会给你一个<code>Future</code>,无论是你通过<code>play.api.libs.WS</code>API来调用外部的服务,或是使用Akka调度异步的任务,或者是通过<code>play.api.libs.Akka</code>与actor通信.</p>
+<p>下面是一个以异步的方式执行一个代码块并得到一个Future:</p>
+<pre><code><span class="tag">import</span> <span class="tag">play</span><span class="class">.api</span><span class="class">.libs</span><span class="class">.concurrent</span><span class="class">.Execution</span><span class="class">.Implicits</span><span class="class">.defaultContext</span>
+
+<span class="tag">val</span> <span class="rule"><span class="attribute">futureInt</span>:<span class="value"> Future[Int] = scala.concurrent.Future {
+  <span class="function">intensiveComputation</span>()
+}</span></span>
+</code></pre><p>注意,非常重要的是能够理解那个线程正在运行Future.在上面的两个代码块中,通过<code>import</code>导入了Play的默认执行上下文(execution context).这是一个隐式的参数,用于传给所有Future的API方法然后接受回调.这个执行上下文相当于一个线程池,尽管并不是必须的.</p>
+<p>你不能通过魔法般的方式将一个同步IO使用<code>Future</code>包装成一个异步IO.如果你不能改变应用的价格以避免阻塞操作,从而这些操作不得不被执行,最终线程就会被阻塞.因此除了<code>Future</code>内部的操作,配置一个单独的执行上下文并且配置能够满足并发预期的线程数量也是非常必要的.查看<code>Understanding Play thread pool</code>获取更多信息.</p>
+<p>另外使用actor来处理阻塞操作也是非常有帮助的.Actor为处理超时和失败提供了非常清晰的模型.</p>
+<h3 id="返回Future">返回Future</h3><p>到现在为止我们都是使用<code>Action.apply</code>的创建器方法来创建action,而发送异步的结果需要使用<code>Action.async</code>创建器方法.</p>
+<pre><code><span class="keyword">import</span> play.api.libs.concurrent.<span class="type">Execution</span>.<span class="type">Implicits</span>.defaultContext
+
+<span class="function"><span class="keyword">def</span> <span class="title">index</span> =</span> <span class="type">Action</span>.async {
+  <span class="function"><span class="keyword">val</span> <span class="title">futureInt</span> =</span> scala.concurrent.<span class="type">Future</span> { intensiveComputation() }
+  futureInt.map(i =&gt; <span class="type">Ok</span>(<span class="string">"Got result: "</span> + i))
+}
+</code></pre><h3 id="Action默认都是异步的">Action默认都是异步的</h3><p>Play的action默认都是异步的,在下面的控制器代码中,<code>{ Ok(...) }</code>部分的代码并不属于控制器部分的方法体.它是传递给<code>Action</code>对象的<code>apply</code>方法的异步函数,它会创建一个<code>Action</code>类型的对象.在内部,你编写的内部方法会被调用并且结构会包含在一个<code>Future</code>当中.</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">echo</span></span> = <span class="constant">Action </span>{ request =&gt;
+  <span class="constant">Ok(</span><span class="string">"Got request ["</span> + request + <span class="string">"]"</span>)
+}
+</code></pre><p>注意,<code>Action.apply</code>和<code>Action.async</code>创建的action对象在内部都会以同样的方式进行处理.仅仅只有一种类型的action,并且是异步的,而不是两种(一个异步一个同步),<code>.async</code>创建器只是一个用于创建能够返回Future结果的工厂方法,仅仅是为了更方便的编写异步代码.</p>
+<h3 id="处理超时">处理超时</h3><p>合理的处理超时是很有用的,能够避免web浏览器阻塞后者等待发生错误.可以很方便的创建一个带有超时时间的<code>Promise</code>:</p>
+<pre><code><span class="keyword">import</span> play.api.libs.concurrent.<span class="type">Execution</span>.<span class="type">Implicits</span>.defaultContext
+<span class="keyword">import</span> scala.concurrent.duration._
+
+<span class="function"><span class="keyword">def</span> <span class="title">index</span> =</span> <span class="type">Action</span>.async {
+  <span class="function"><span class="keyword">val</span> <span class="title">futureInt</span> =</span> scala.concurrent.<span class="type">Future</span> { intensiveComputation() }
+  <span class="function"><span class="keyword">val</span> <span class="title">timeoutFuture</span> =</span> play.api.libs.concurrent.<span class="type">Promise</span>.timeout(<span class="string">"Oops"</span>, <span class="number">1.</span>second)
+  <span class="type">Future</span>.firstCompletedOf(<span class="type">Seq</span>(futureInt, timeoutFuture)).map {
+    <span class="keyword">case</span> i: <span class="type">Int</span> =&gt; <span class="type">Ok</span>(<span class="string">"Got result: "</span> + i)
+    <span class="keyword">case</span> t: <span class="type">String</span> =&gt; <span class="type">InternalServerError</span>(t)
+  }
+}
+</code></pre><h2 id="Streaming_HTTP_responses">Streaming HTTP responses</h2><h3 id="标准响应和Content-Length头">标准响应和<code>Content-Length</code>头</h3><p>从<code>HTTP 1.1</code>开始,一个Http请求和一个响应只会开启一个连接,服务端必须在响应中携带适当的<code>Content-Length</code>头.</p>
+<p>默认情况下,当你返回一个简单的结果时并不会指定一个<code>Content-Length</code>头,比如:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span></span> = <span class="constant">Action </span>{
+  <span class="constant">Ok(</span><span class="string">"Hello World"</span>)
+}
+</code></pre><p>当然,因为你发送的内容是比较熟悉的,Play能够计算内容的长度并且自动为你设置正确的头信息.</p>
+<p>事实上,我们前面曾见过一个响应体被一个<code>play.api.libs.iteratee.Enumerator</code>指定:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span></span> = <span class="constant">Action </span>{
+  <span class="constant">Result(</span>
+    header = <span class="constant">ResponseHeader(</span><span class="number">200</span>),
+    body = <span class="constant">Enumerator(</span><span class="string">"Hello World"</span>)
+  )
+}
+</code></pre><p>这表示需要合适的计算<code>Content-Length</code>,Play必须加载整个Enumerator到内存.</p>
+<h3 id="发送大规模的数据">发送大规模的数据</h3><p>如果把简单的Enumerator加载到内存是没有问题的,那大的数据集合有如何呢? 然我们看一下当向客户端返回一个大文件时会怎样.</p>
+<pre><code>val file = new java<span class="class">.io</span><span class="class">.File</span>(<span class="string">"/tmp/fileToServe.pdf"</span>)
+val fileContent: Enumerator[Array[Byte]] = Enumerator.<span class="function"><span class="title">fromFile</span><span class="params">(file)</span></span>
+</code></pre><p>然后把这个Enumerator指定为响应体:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span> =</span> <span class="type">Action</span> {
+
+  <span class="function"><span class="keyword">val</span> <span class="title">file</span> =</span> <span class="keyword">new</span> java.io.<span class="type">File</span>(<span class="string">"/tmp/fileToServe.pdf"</span>)
+  <span class="function"><span class="keyword">val</span> <span class="title">fileContent</span>:</span> <span class="type">Enumerator</span>[<span class="type">Array</span>[<span class="type">Byte</span>]] = <span class="type">Enumerator</span>.fromFile(file)    
+
+  <span class="type">Result</span>(
+    header = <span class="type">ResponseHeader</span>(<span class="number">200</span>),
+    body = fileContent
+  )
+}
+</code></pre><p>事实上这里会出现一个问题,因为我们没有指定合适的<code>Content-Length</code>头,Play会自己对他进行计算,唯一的方式把他整个加载到内存,然后进行计算.</p>
+<p>这里的问题就是我们并不想把整个大文件加载到内存,所有为了避免,我们需要自己指定正确的头信息:</p>
+<pre><code>def <span class="built_in">index</span> = <span class="keyword">Action</span> {
+
+  val <span class="keyword">file</span> = new java.io.<span class="keyword">File</span>(<span class="string">"/tmp/fileToServe.pdf"</span>)
+  val fileContent: <span class="keyword">Enumerator</span>[Array[Byte]] = <span class="keyword">Enumerator</span>.fromFile(<span class="keyword">file</span>)    
+
+  Result(
+    header = ResponseHeader(<span class="number">200</span>, Map(CONTENT_LENGTH -&gt; <span class="keyword">file</span>.length.toString)),
+    body = fileContent
+  )
+}
+</code></pre><h3 id="文件服务">文件服务</h3><p>Play提供了很多方便使用的方式来提供文件服务:</p>
+<pre><code><span class="keyword">def</span> index = Action {
+  Ok.sendFile(<span class="keyword">new</span> java.io.<span class="keyword">File</span>(<span class="string">"/tmp/fileToServe.pdf"</span>))
+}
+</code></pre><p>辅助方法会根据文件名计算<code>Content-Length</code>,然后添加<code>Content-Disposition</code>来指定浏览器接收响应的方式.默认会在响应体重添加<code>Content-Disposition: attachment;filename=fileToServe.pdf</code>头来告诉浏览器下载文件.</p>
+<p>或者提供自己的文件名:</p>
+<pre><code><span class="keyword">def</span> index = Action {
+  Ok.sendFile(
+    content = <span class="keyword">new</span> java.io.<span class="keyword">File</span>(<span class="string">"/tmp/fileToServe.pdf"</span>),
+    fileName = _ =&gt; <span class="string">"termsOfService.pdf"</span>
+  )
+}
+</code></pre><p>或者想要<code>inline</code>的方式:</p>
+<pre><code><span class="keyword">def</span> index = Action {
+  Ok.sendFile(
+    content = <span class="keyword">new</span> java.io.<span class="keyword">File</span>(<span class="string">"/tmp/fileToServe.pdf"</span>),
+    inline = <span class="keyword">true</span>
+  )
+}
+</code></pre><p>这时就不需要指定文件名了,浏览器也不会尝试去下载它,只是会在浏览器窗口对他进行展示.这在支持文本,HTML,图片时比较有用.</p>
+<h3 id="Chunked_responses">Chunked responses</h3><p>到现在为止,我们能够很好的处理流式文件内容,因为我们在streaming一个文件之前能够计算它的长度,但是如果是动态的计算内容呢,并没有真正的内容长度可用呢?</p>
+<p>这种类型的响应需要使用<code>Chunked transfer encoding</code>.由<code>HTTP 1.1</code>提供支持.</p>
+<p>它的好处是我们能够实时的处理数据,表示我们能够在数据块可用时将他们发送.缺点是由于浏览器并不知道内容大小,他不能够正常的进行展示.</p>
+<p>比如我们有一个动态<code>InputStream</code>来计算数据,首先要为这个stream创建一个<code>Enumerator</code>:</p>
+<pre><code><span class="variable"><span class="keyword">val</span> data</span> = getDataStream
+<span class="variable"><span class="keyword">val</span> dataContent</span>: Enumerator[Array[<span class="typename">Byte</span>]] = Enumerator.fromStream(data)
+</code></pre><p>现在可以使用<code>Ok.chunked</code>来stream这些数据:</p>
+<pre><code>def <span class="built_in">index</span> = <span class="keyword">Action</span> {
+  val <span class="type">data</span> = getDataStream
+  val dataContent: <span class="keyword">Enumerator</span>[Array[Byte]] = <span class="keyword">Enumerator</span>.fromStream(<span class="type">data</span>)
+
+  Ok.chunked(dataContent)
+}
+</code></pre><p>当然,我们可以使用任何<code>Enumerator</code>来指定块数据:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">index</span></span> = <span class="constant">Action </span>{
+  <span class="constant">Ok.</span>chunked(
+    <span class="constant">Enumerator(</span><span class="string">"kiki"</span>, <span class="string">"foo"</span>, <span class="string">"bar"</span>).andThen(<span class="constant">Enumerator.</span>eof)
+  )
+}
+</code></pre><p>然后检查服务端发送过来的响应:</p>
+<pre><code><span class="status">HTTP/1.1 <span class="number">200</span> OK</span>
+<span class="attribute">Content-Type</span>: <span class="string">text/plain; charset=utf-8</span>
+<span class="attribute">Transfer-Encoding</span>: <span class="string">chunked</span>
+
+<span class="cpp"><span class="number">4</span>
+kiki
+<span class="number">3</span>
+foo
+<span class="number">3</span>
+bar
+<span class="number">0</span></span>
+</code></pre><p>会得到三个块数据然后跟随一个空的块最后关闭了响应.</p>
+<h2 id="Comet">Comet</h2><h3 id="Using_chunked_responses_with_Comet">Using chunked responses with Comet</h3><p>一个块数据常用的方法创建一个Comet套接字.</p>
+<p>一个Comet套接字是一个仅包含<code>&lt;script&gt;</code>元素的块式<code>text/html</code>响应.每一个块中编写一个包含Javascript的<code>&lt;script&gt;</code>标签,然后被浏览器立即执行.通过这种方式,我们可以从服务端向浏览器发送实时的事件:每一个消息中在<code>&lt;script&gt;</code>标签内包含一个Javascript回调函数,然后写入块响应.</p>
+<p>因为<code>Ok.chunked</code>促使<code>Akka-stream</code>携带一个<code>Flow[ByteString]</code>,我们可以发送一个元素的<code>Flow</code>然后对他进行转换,然后每个元素都会被包装为Javascript方法.Comet的辅助方法会使Comet套接字自动化,向浏览器推送一个初始的空缓冲数据,同时支持String或JSON消息.</p>
+<h3 id="Comet模块导入">Comet模块导入</h3><p>一些Comet辅助方法的导入:</p>
+<pre><code>import akka<span class="class">.stream</span><span class="class">.Materializer</span>
+import akka<span class="class">.stream</span><span class="class">.scaladsl</span><span class="class">.Source</span>
+import play<span class="class">.api</span><span class="class">.http</span><span class="class">.ContentTypes</span>
+import play<span class="class">.api</span><span class="class">.inject</span><span class="class">.guice</span><span class="class">.GuiceApplicationBuilder</span>
+import play<span class="class">.api</span><span class="class">.libs</span><span class="class">.Comet</span>
+import play<span class="class">.api</span><span class="class">.libs</span><span class="class">.iteratee</span><span class="class">.Enumerator</span>
+import play<span class="class">.api</span><span class="class">.libs</span><span class="class">.json</span>._
+import play<span class="class">.api</span><span class="class">.libs</span><span class="class">.streams</span><span class="class">.Streams</span>
+import play<span class="class">.api</span><span class="class">.mvc</span>._
+</code></pre><p>你可能同时需要一个物化器(materializer),最好从你的<code>DI system</code>中获取<code>akka.stream.Materializer</code>.</p>
+<h3 id="Using_Comet_with_String_Flow">Using Comet with String Flow</h3><p>通过<code>Flow</code>推送字符串消息:</p>
+<pre><code>def cometString = <span class="keyword">Action</span> {
+  <span class="type">implicit</span> val m = materializer
+  def stringSource: Source[String, _] = Source(List(<span class="string">"kiki"</span>, <span class="string">"foo"</span>, <span class="string">"bar"</span>))
+  Ok.chunked(stringSource via Comet.string(<span class="string">"parent.cometMessage"</span>)).as(ContentTypes.HTML)
+}
+</code></pre><h3 id="Using_Comet_with_JSON_Flow">Using Comet with JSON Flow</h3><p>通过<code>Flow</code>发送JSON消息:</p>
+<pre><code>def cometJson = <span class="keyword">Action</span> {
+  <span class="type">implicit</span> val m = materializer
+  def jsonSource: Source[JsValue, _] = Source(List(JsString(<span class="string">"jsonString"</span>)))
+  Ok.chunked(jsonSource via Comet.json(<span class="string">"parent.cometMessage"</span>)).as(ContentTypes.HTML)
+}
+</code></pre><h3 id="Using_Comet_with_iframe">Using Comet with iframe</h3><p>Comet辅助方法比较典型的是和<code>forever-iframe</code>技术一起使用,在一个HTML页面中:</p>
+<pre><code><span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span>&gt;</span><span class="javascript">
+  <span class="keyword">var</span> cometMessage = <span class="function"><span class="keyword">function</span>(<span class="params">event</span>) </span>{
+    <span class="built_in">console</span>.log(<span class="string">'Received event: '</span> + event)
+  }
+</span><span class="tag">&lt;/<span class="title">script</span>&gt;</span>
+
+<span class="tag">&lt;<span class="title">iframe</span> <span class="attribute">src</span>=<span class="value">"/comet"</span>&gt;</span><span class="tag">&lt;/<span class="title">iframe</span>&gt;</span>
+</code></pre><h2 id="WebSockets">WebSockets</h2><h3 id="Handling_WebSockets">Handling WebSockets</h3><p>到目前为止,我们都是使用<code>Action</code>实例来处理标准的HTTP请求然后返回标准的HTTP响应.WebSockets是一个完全不同的概念,不能用标准的<code>Action</code>来处理.</p>
+<p>Play提供了两种不同的内建机制来处理WebSockets,一种是使用actor,一种是使用iteratees(迭代器),这两种机制都可以使用<code>WebSocket</code>创建器进行访问.</p>
+<h3 id="使用Actor处理WebSockets">使用Actor处理WebSockets</h3><p>为了使用actor处理WebSocket,需要为Play提供一个<code>akka.actor.Props</code>对象,当Play接收到一个WebSocket连接时进行创建.Play会提供一个<code>akka.actor.ActorRef</code>用以向上游发送消息,因此我们可以用它来创建<code>Props</code>对象:</p>
+<pre><code><span class="literal">import</span> play.api.mvc._
+<span class="literal">import</span> play.api.Play.current
+<span class="literal">import</span> play.api.Play.materializer
+
+def socket = WebSocket.acceptWithActor[<span class="built_in">String</span>, <span class="built_in">String</span>] { request =&gt; out =&gt;  <span class="comment">// 此处的out是一个actor引用</span>
+  MyWebSocketActor.props(out)
+}
+</code></pre><p>这里我们用以发送的actor是这样:</p>
+<pre><code><span class="keyword">import</span> akka.actor._
+
+<span class="class"><span class="keyword">object</span> <span class="title">MyWebSocketActor</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">props</span>(</span>out: <span class="type">ActorRef</span>) = <span class="type">Props</span>(<span class="keyword">new</span> <span class="type">MyWebSocketActor</span>(out))
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">MyWebSocketActor</span>(</span>out: <span class="type">ActorRef</span>) <span class="keyword">extends</span> <span class="type">Actor</span> {   <span class="comment">// 自定义的actor需要接收Play提供的actor引用作为参数,以想Play回复消息</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> msg: <span class="type">String</span> =&gt;
+      out ! (<span class="string">"I received your message: "</span> + msg)
+  }
+}
+</code></pre><p>任何客户端发送过来的消息都会被发送给actor,然后发送给Play提供的actor的消息都会被发送给客户端.</p>
+<h4 id="检查WebSocket何时被关闭">检查WebSocket何时被关闭</h4><p>当一个WebSocket被关闭时,Play会自动关闭actor,这表示你可以通过实现actor的<code>postStop</code>方法来处理这种情况,用于清理WebSocket消耗的资源.比如:</p>
+<pre><code>override <span class="function"><span class="keyword">def</span> <span class="title">postStop</span><span class="params">()</span> = {</span>
+  someResource.close()
+}
+</code></pre><h4 id="关闭一个WebSocket">关闭一个WebSocket</h4><p>当你的actor处理了WebSocket的terminate时,Play会自动关闭WebSocket.比如关闭WebSocket,向你的actor发送一个<code>PoisonPill</code>消息:</p>
+<pre><code><span class="preprocessor"><span class="keyword">import</span> akka.actor.PoisonPill</span>
+
+<span class="variable">self</span> ! PoisonPill
+</code></pre><h4 id="拒绝一个WebSocket">拒绝一个WebSocket</h4><p>有时你会需要拒绝一个Websocket请求,比如用户必须经过验证才能连接到WebSocket,或者WebSocket关联了一些ID通过path传入的资源,但是该ID的资源并不存在.Play提供了一个<code>tryAcceptWithActor</code>来进行处理,运行你要么返回一个结果(比如forbidden,notFount),要么使用actor来处理这个WebSocket:</p>
+<pre><code><span class="literal">import</span> scala.concurrent.Future
+<span class="literal">import</span> play.api.mvc._
+<span class="literal">import</span> play.api.Play.current
+<span class="literal">import</span> play.api.Play.materializer
+
+def socket = WebSocket.tryAcceptWithActor[<span class="built_in">String</span>, <span class="built_in">String</span>] { request =&gt;
+  Future.successful(request.session.<span class="literal">get</span>(<span class="string">"user"</span>) match {
+    <span class="keyword">case</span> None =&gt; Left(Forbidden)
+    <span class="keyword">case</span> Some(_) =&gt; Right(MyWebSocketActor.props)
+  })
+}
+</code></pre><h4 id="处理不同类型的消息">处理不同类型的消息</h4><p>到现在只看到了处理String类型的消息.Play同样为<code>Array[Byte]</code>提供了内建的处理器,或者通过String解析的JsValue,可以把这些作为一个参数发送给WebSocket的创建方法:</p>
+<pre><code><span class="preprocessor"><span class="keyword">import</span> play.api.mvc._</span>
+<span class="preprocessor"><span class="keyword">import</span> play.api.libs.json._</span>
+<span class="preprocessor"><span class="keyword">import</span> play.api.Play.current</span>
+<span class="preprocessor"><span class="keyword">import</span> play.api.Play.materializer</span>
+
+def socket = WebSocket.acceptWithActor[JsValue, JsValue] { request =&gt; out =&gt;
+  MyWebSocketActor.props(out)
+}
+</code></pre><p>你会注意到有两个类型参数,这允许我们使用两种不同的类型来处理消息的传入和传出,这对底层类型没有什么用,但有助于将消息解析为高级的类型.</p>
+<p>比如,我们想要接收JSON类型的消息,然后需要把传入的消息解析为<code>InEvent</code>,把传出的消息解析为<code>OutEvent</code>.首先要做的就是为这两个消息创建JSON格式化方法.</p>
+<pre><code><span class="keyword">import</span> play.api.libs.json._
+
+<span class="type">implicit</span> val inEventFormat = Json.<span class="keyword">format</span>[InEvent]
+<span class="type">implicit</span> val outEventFormat = Json.<span class="keyword">format</span>[OutEvent]
+</code></pre><p>然后就可以为这种类型创建WebSocket的<code>FrameFormatter</code>:</p>
+<pre><code><span class="keyword">import</span> play.api.mvc.WebSocket.FrameFormatter
+
+<span class="type">implicit</span> val messageFlowTransformer = MessageFlowTransformer.jsonMessageFlowTransformer[InEvent, OutEvent]
+</code></pre><p>最后就可以在WebSocket中使用:</p>
+<pre><code><span class="preprocessor"><span class="keyword">import</span> play.api.mvc._</span>
+<span class="preprocessor"><span class="keyword">import</span> play.api.Play.current</span>
+<span class="preprocessor"><span class="keyword">import</span> play.api.Play.materializer</span>
+
+def socket = WebSocket.acceptWithActor[InEvent, OutEvent] { request =&gt; out =&gt;
+  MyWebSocketActor.props(out)
+}
+</code></pre><p>现在在actor中就可以接收<code>InEvent</code>类型的消息然后发送<code>OutEvent</code>类型的消息.</p>
+<h3 id="Handling_WebSockets_with_iteratees">Handling WebSockets with iteratees</h3><p>Actor是一个适合处理互不关联的消息的很好的抽象,iteratees是一个适合处理stream的很好的抽象.</p>
+<p>使用<code>WebSocket</code>而不是<code>Action</code>来处理Websocket请求:</p>
+<pre><code><span class="keyword">import</span> play.api.mvc._
+<span class="keyword">import</span> play.api.libs.iteratee._
+<span class="keyword">import</span> play.api.libs.concurrent.Execution.Implicits.defaultContext
+
+def socket = <span class="type">WebSocket</span>.using[<span class="type">String</span>] { request =&gt;
+
+  <span class="comment">// Log events to the console</span>
+  val <span class="keyword">in</span> = <span class="type">Iteratee</span>.foreach[<span class="type">String</span>](<span class="built_in">println</span>).<span class="built_in">map</span> { <span class="number">_</span> =&gt;
+    <span class="built_in">println</span>(<span class="string">"Disconnected"</span>)
+  }
+
+  <span class="comment">// Send a single 'Hello!' message</span>
+  val out = <span class="type">Enumerator</span>(<span class="string">"Hello!"</span>)
+
+  (<span class="keyword">in</span>, out)
+}
+</code></pre><p>一个<code>WebSocket</code>可以访问请求头,运行你检索标准的请求头信息和session数据.但是不能访问请求体或者响应体.</p>
+<p>当使用这种凡事构造WebSocket时,必须同时返回<code>in</code>和<code>out</code>两个channel:</p>
+<ol>
+<li><code>in</code>是一个<code>Iteratee[A,Unit]</code>(A是消息类型,这里是String),它会被每条消息通知,当客户端的socket关闭时会受到一个<code>EOF</code>,</li>
+<li><code>out</code>是一个<code>Enumerator[A]</code>,会生成消息然后发送到客户端,通过发送<code>EOF</code>可以关闭服务端的套接字</li>
+</ol>
+<p>我们的例子中只是创建了一个简单的iteratees发消息打印出来.为了发送消息,我们创建了一个模拟的<code>Enumerator</code>然后仅发送一个<code>Hello!</code>消息.</p>
+<p>创建另一个例子,丢弃传入的数据,发送一个<code>Hello!</code>消息然后关闭套接字:</p>
+<pre><code><span class="keyword">import</span> play.api.mvc._
+<span class="keyword">import</span> play.api.libs.iteratee._
+
+<span class="function"><span class="keyword">def</span> <span class="title">socket</span> =</span> <span class="type">WebSocket</span>.using[<span class="type">String</span>] { request =&gt;
+
+  <span class="comment">// Just ignore the input</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">in</span> =</span> <span class="type">Iteratee</span>.ignore[<span class="type">String</span>]
+
+  <span class="comment">// Send a single 'Hello!' message and close</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">out</span> =</span> <span class="type">Enumerator</span>(<span class="string">"Hello!"</span>).andThen(<span class="type">Enumerator</span>.eof)
+
+  (in, out)
+}
+</code></pre><p>另一个例子是将传入的数据记录到标准输出然后利用<code>Concurrent.broadcast</code>想客户端广播:</p>
+<pre><code><span class="literal">import</span> play.api.mvc._
+<span class="literal">import</span> play.api.libs.iteratee._
+<span class="literal">import</span> play.api.libs.concurrent.Execution.Implicits.defaultContext
+
+def socket =  WebSocket.using[<span class="built_in">String</span>] { request =&gt;
+
+  <span class="comment">// Concurrent.broadcast returns (Enumerator, Concurrent.Channel)</span>
+  val (out, channel) = Concurrent.broadcast[<span class="built_in">String</span>]
+
+  <span class="comment">// log the message to stdout and send response back to client</span>
+  val <span class="keyword">in</span> = Iteratee.foreach[<span class="built_in">String</span>] {
+    msg =&gt; println(msg)
+      <span class="comment">// the Enumerator returned by Concurrent.broadcast subscribes to the channel and will</span>
+      <span class="comment">// receive the pushed messages</span>
+      channel push(<span class="string">"I received your message: "</span> + msg)
+  }
+  (<span class="keyword">in</span>,out)
+}
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Play2/" rel="tag">#Play2</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/27/Simple-PlayFramework-Calling-WebServices/" rel="prev">Simple PlayFramework: Calling WebServices</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/26/Simple-PlayFramework-HTTP-Programming/" rel="next">Simple PlayFramework: HTTP Programming</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">111</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#处理异步结果"><span class="nav-number">1.</span> <span class="nav-text">处理异步结果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#异步化Controller"><span class="nav-number">1.1.</span> <span class="nav-text">异步化Controller</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建无阻塞Action"><span class="nav-number">1.2.</span> <span class="nav-text">创建无阻塞Action</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#如何创建Future[Result]"><span class="nav-number">1.3.</span> <span class="nav-text">如何创建Future[Result]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#返回Future"><span class="nav-number">1.4.</span> <span class="nav-text">返回Future</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Action默认都是异步的"><span class="nav-number">1.5.</span> <span class="nav-text">Action默认都是异步的</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理超时"><span class="nav-number">1.6.</span> <span class="nav-text">处理超时</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Streaming_HTTP_responses"><span class="nav-number">2.</span> <span class="nav-text">Streaming HTTP responses</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#标准响应和Content-Length头"><span class="nav-number">2.1.</span> <span class="nav-text">标准响应和Content-Length头</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发送大规模的数据"><span class="nav-number">2.2.</span> <span class="nav-text">发送大规模的数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件服务"><span class="nav-number">2.3.</span> <span class="nav-text">文件服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Chunked_responses"><span class="nav-number">2.4.</span> <span class="nav-text">Chunked responses</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Comet"><span class="nav-number">3.</span> <span class="nav-text">Comet</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Using_chunked_responses_with_Comet"><span class="nav-number">3.1.</span> <span class="nav-text">Using chunked responses with Comet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Comet模块导入"><span class="nav-number">3.2.</span> <span class="nav-text">Comet模块导入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Using_Comet_with_String_Flow"><span class="nav-number">3.3.</span> <span class="nav-text">Using Comet with String Flow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Using_Comet_with_JSON_Flow"><span class="nav-number">3.4.</span> <span class="nav-text">Using Comet with JSON Flow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Using_Comet_with_iframe"><span class="nav-number">3.5.</span> <span class="nav-text">Using Comet with iframe</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WebSockets"><span class="nav-number">4.</span> <span class="nav-text">WebSockets</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Handling_WebSockets"><span class="nav-number">4.1.</span> <span class="nav-text">Handling WebSockets</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用Actor处理WebSockets"><span class="nav-number">4.2.</span> <span class="nav-text">使用Actor处理WebSockets</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#检查WebSocket何时被关闭"><span class="nav-number">4.2.1.</span> <span class="nav-text">检查WebSocket何时被关闭</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#关闭一个WebSocket"><span class="nav-number">4.2.2.</span> <span class="nav-text">关闭一个WebSocket</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#拒绝一个WebSocket"><span class="nav-number">4.2.3.</span> <span class="nav-text">拒绝一个WebSocket</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#处理不同类型的消息"><span class="nav-number">4.2.4.</span> <span class="nav-text">处理不同类型的消息</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Handling_WebSockets_with_iteratees"><span class="nav-number">4.3.</span> <span class="nav-text">Handling WebSockets with iteratees</span></a></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
