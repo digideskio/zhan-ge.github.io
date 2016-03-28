@@ -1,0 +1,810 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Akka,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Akka集群模式.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Akka: Cluster">
+<meta property="og:url" content="http://yoursite.com/2016/03/28/Simple-Akka-Cluster/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Akka集群模式.">
+<meta property="og:updated_time" content="2016-03-28T15:51:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Akka: Cluster">
+<meta name="twitter:description" content="Akka集群模式.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Akka: Cluster | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Akka: Cluster
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-03-28T21:07:10+08:00" content="2016-03-28">
+            2016-03-28
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Akka提供一个高容错,基于点对点的权利分散的集群成员关系,不会出现单点错误或单点瓶颈.基于gossip协议和一个自动的错误检查器实现.</p>
+<h3 id="Gossip协议">Gossip协议</h3><p>Gossip算法又被称为反熵(Anti-Entropy),熵物理学上的一种概念,代表杂乱无章,而反熵就是在杂乱无章中寻求一致,这充分说明了Gossip的特点: 在一个有界网络中,每个节点随机的与其他节点通信,经过一番杂乱无章的通信,最终所有的节点都会达成一致.每个节点都可能知道其他节点,也可能只知道一个邻居节点,只要这些节点可以通过网络连通,最终他们的状态都是一致的,当然这也是疫情传播的特点.</p>
+<p>要注意的一点是,即使所有的节点因宕机而重启,有新节点加入,但经过一段时间后,这些节点的状态也会与其他节点达成一致,也就是说,Gossip天然具有分布式容错的特点.</p>
+<p>Gossip是一个带有冗余的容错算法,更进一步,Gossip是一个最终一致算法.虽然无法保证在某个时刻所有节点状态一致,但可以保证<code>最终</code>所有节点一致,<code>最终</code>是一个现实中存在,但理论上无法证明的时间点.</p>
+<p>因为Gossip不要求节点知道所有其他节点,因此又具有去中心化的特点,节点之间完全对等,不需要任何的中心节点.实际上Gossip可以用于众多能接受<code>最终一致性</code>的领域: 失败检测,路由同步,Pub/Sub,动态负载均衡等.</p>
+<p>但Gossip的缺点也很明显,冗余通信会对网路带宽和CPU资源造成很大的负载,而这些负载有受限于通信频率,该频率有影响着算法收敛的速度.</p>
+<h2 id="术语">术语</h2><ol>
+<li>node: 集群的一个逻辑成员,在一个物理机上可以有多个节点.使用一个<code>hostname:port:uid</code>的元组进行定义.</li>
+<li>cluster: 一组节点通过成员关系(membership)服务组合在一起构成一个集群.</li>
+<li>leader: 集群中有一个单独的节点作为一个领导者<code>leader</code>,管理集群集合和成员关系状态变更.</li>
+</ol>
+<h2 id="成员关系">成员关系</h2><p>一个集群由多个成员节点组成.每个节点的表示是一个<code>hostname:port:uid</code>的元组.一个Akka应用可以在每个节点host应用的一部分来将整个应用分布的整个集群.成员关系和应用中运行在各节点上的actor是解耦的.一个节点不运行任何actor也可以成为集群的成员.通过向集群中的一个节点发起<code>Join</code>命令来加入集群.</p>
+<p>节点标识内部会包含一个UID来独特的标识出在一个<code>hostname:port</code>上的actor系统实例.Akka通过这个UID来触发可靠的远程死亡监控(death watch).这表示一个actor系统在被移出集群之前不能再次被加入到集群中.如果想以相同的<code>hostname:port</code>将一个actor系统加入到集群首先需要关闭该actor系统,然后重新以同样的<code>hostname:port</code>进行加入,这时会受到一个不同的UID.</p>
+<p>集群关系状态是一个专业的<code>CRDT(一种最终一致性理论)</code>,他有一个无变化的合并功能.当在多个节点上同时发生多个改变,更新总是会合并并归一到一个相同的最终结果.</p>
+<h2 id="Gossip">Gossip</h2><p>Akka中使用的成员关系是基于Amazon的<code>Dynamo</code>系统,特别接近于Basho的<code>Riak</code>分布式数据库.成员关系公国<code>Gossip</code>协议进行通信.</p>
+<h2 id="向量时钟(Vector_Clocks)">向量时钟(Vector Clocks)</h2><p><code>Vector Clocks</code>是一个数据结构和算法,用于在分布式系统中生成局部排序的时间和因果错误的探测.</p>
+<p>在Akka中用于促使不同集群状态的一致并进行合并.一个<code>Vector Clocks</code>是一个<code>(node, counter)</code>对,每次更新集群状态都会同时更新向量时钟.</p>
+<h2 id="Gossip_Convergence">Gossip Convergence</h2><h2 id="Failure_Detector">Failure Detector</h2><h2 id="Leader">Leader</h2><h2 id="Seed_Nodes">Seed Nodes</h2><h2 id="Gossip_Protocol">Gossip Protocol</h2><h2 id="Membership_Lifecycle">Membership Lifecycle</h2><h3 id="成员状态">成员状态</h3><ol>
+<li>joining: 加入集群时一个短暂的状态</li>
+<li>weakly up: 当网络被隔开时一个短暂的状态(akka.cluster.allow-weakly-up-members=on)</li>
+<li>up: 正常的运行状态</li>
+<li>leaving / exiting: 被优雅的移除时的状态</li>
+<li>down: 被标记为down,不再是集群的一部分</li>
+<li>removed: 死亡状态,不再是一个成员</li>
+</ol>
+<h3 id="用户动作">用户动作</h3><ol>
+<li>join: 将一个单节点加入到集群,如果在配置文件中指定的话会在开启时自动加入</li>
+<li>leave: 使一个节点优雅的离开集群</li>
+<li>down: 将一个节点标记为down</li>
+</ol>
+<h3 id="Leader动作">Leader动作</h3><ol>
+<li><p>改变一个节点加入或离开集群:</p>
+<ol>
+<li>joining -&gt; up</li>
+<li>exiting -&gt; removed</li>
+</ol>
+</li>
+<li><p><code>fd*</code></p>
+</li>
+<li><code>unreachable*</code></li>
+</ol>
+<h2 id="添加依赖">添加依赖</h2><p>Akka集群是一个单独的jar文件:</p>
+<pre><code><span class="string">"com.typesafe.akka"</span> <span class="preprocessor">%</span><span class="preprocessor">%</span> <span class="string">"akka-cluster"</span> <span class="preprocessor">%</span> <span class="string">"2.4.2"</span>
+</code></pre><h2 id="一个简单的集群例子">一个简单的集群例子</h2><p>下面的配置文件用于激活集群扩展:</p>
+<pre><code><span class="comment">// application.conf</span>
+
+akka {
+  actor {                                           <span class="comment">// 设置actor引用类型</span>
+    provider = <span class="string">"akka.cluster.ClusterActorRefProvider"</span>
+  }
+  remote {                                          <span class="comment">// 激活remote配置</span>
+    <span class="keyword">log</span>-remote-lifecycle-events = off
+    netty.tcp {
+      hostname = <span class="string">"127.0.0.1"</span>                        <span class="comment">// 本地IP</span>
+      port = 0
+    }
+  }
+
+  <span class="keyword">cluster</span> {                                         <span class="comment">// 集群节点信息,这里有两个节点</span>
+    seed-nodes = [
+      <span class="string">"akka.tcp://ClusterSystem@127.0.0.1:2551"</span>,
+      <span class="string">"akka.tcp://ClusterSystem@127.0.0.1:2552"</span>]
+
+    # auto downing is NOT safe <span class="keyword">for</span> production deployments.
+    # you may want to <span class="keyword">use</span> it during development, <span class="keyword">read</span> <span class="keyword">more</span> <span class="keyword">about</span> it <span class="keyword">in</span> the docs.
+    #
+    # auto-down-unreachable-after = 10s
+  }
+}
+
+# Disable legacy metrics <span class="keyword">in</span> akka-<span class="keyword">cluster</span>.
+akka.<span class="keyword">cluster</span>.metrics.enabled=off
+
+# Enable metrics extension <span class="keyword">in</span> akka-<span class="keyword">cluster</span>-metrics.
+akka.extensions=[<span class="string">"akka.cluster.metrics.ClusterMetricsExtension"</span>]
+
+# Sigar native library extract location during tests.
+# <span class="keyword">Note</span>: <span class="keyword">use</span> per-jvm-instance folder when running multiple jvm <span class="keyword">on</span> <span class="keyword">one</span> host.
+akka.<span class="keyword">cluster</span>.metrics.native-library-extract-folder=<span class="label">${user</span>.<span class="keyword">dir</span>}/target/native
+</code></pre><p>然后创建一个actor来使用集群扩展:</p>
+<pre><code><span class="keyword">package</span> sample.cluster.simple
+
+<span class="keyword">import</span> akka.cluster.<span class="type">Cluster</span>
+<span class="keyword">import</span> akka.cluster.<span class="type">ClusterEvent</span>._
+<span class="keyword">import</span> akka.actor.<span class="type">ActorLogging</span>
+<span class="keyword">import</span> akka.actor.<span class="type">Actor</span>
+
+<span class="class"><span class="keyword">class</span> <span class="title">SimpleClusterListener</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">ActorLogging</span> {</span>
+
+  <span class="function"><span class="keyword">val</span> <span class="title">cluster</span> =</span> <span class="type">Cluster</span>(context.system)
+
+  <span class="comment">// subscribe to cluster changes, re-subscribe when restart </span>
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">preStart</span>(</span>): <span class="type">Unit</span> = {
+    <span class="comment">//#subscribe</span>
+    cluster.subscribe(self, initialStateMode = <span class="type">InitialStateAsEvents</span>,
+      classOf[<span class="type">MemberEvent</span>], classOf[<span class="type">UnreachableMember</span>])
+    <span class="comment">//#subscribe</span>
+  }
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">postStop</span>(</span>): <span class="type">Unit</span> = cluster.unsubscribe(self)
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> <span class="type">MemberUp</span>(member) =&gt;
+      log.info(<span class="string">"Member is Up: {}"</span>, member.address)
+    <span class="keyword">case</span> <span class="type">UnreachableMember</span>(member) =&gt;
+      log.info(<span class="string">"Member detected as unreachable: {}"</span>, member)
+    <span class="keyword">case</span> <span class="type">MemberRemoved</span>(member, previousStatus) =&gt;
+      log.info(<span class="string">"Member is Removed: {} after {}"</span>,
+        member.address, previousStatus)
+    <span class="keyword">case</span> _: <span class="type">MemberEvent</span> =&gt; <span class="comment">// ignore</span>
+  }
+}
+</code></pre><p>这个actor把自己注册为集群事件的订阅者.当订阅开始时它会收到当前集群中状态改变的事件.</p>
+<h2 id="向集群中添加一个节点">向集群中添加一个节点</h2><p>当一个节点启动时,它会发送一个消息到所有节点,然后向返回消息的节点发送一个加入命令.如果其中一个节点回复后(或者其他节点还没有启动),它会一直尝试这个流程,知道成功或者自己被关闭.</p>
+<p>在配置文件<code>application.conf</code>中定义所有集群中的节点信息:</p>
+<pre><code>akka<span class="class">.cluster</span><span class="class">.seed-nodes</span> = [
+  <span class="string">"akka.tcp://ClusterSystem@host1:2552"</span>,
+  <span class="string">"akka.tcp://ClusterSystem@host2:2552"</span>]
+</code></pre><p>这些节点可以以然和顺序启动并且不用全部都启动.但是当最初启动一个集群时,列表中的第一个节点必须被首先启动,否则其他的节点不会被初始化,也不会被加入到集群中.当启动两个节点以上时第一个节点再被关闭就没有问题了.如果第一个节点被重启,它会首先尝试加入到集群中其他已有的节点.</p>
+<p>如果不配置节点信息的话则需要以编程的方式或者手动的方式提供节点信息.</p>
+<h2 id="自动或手动关闭">自动或手动关闭</h2><p>默认情况下必须以手动的方式(命令行)关闭集群,或者可以在配置文件中设置为自动方式:</p>
+<pre><code>akka<span class="class">.cluster</span><span class="class">.auto-down-unreachable-after</span> = <span class="number">120s</span>
+</code></pre><p>这表示集群管理员会自定把连接超时的节点从<code>unreachable</code>状态设置为<code>down</code>状态.</p>
+<h2 id="Leaving">Leaving</h2><p>有两种方式从集群中移除一个节点.</p>
+<p>首先可以关闭actor系统.</p>
+<p>另一种优雅的方式是告诉集群一个节点需要离开,可以通过命令行工具,或者使用编程的方式:</p>
+<pre><code>val cluster = <span class="function"><span class="title">Cluster</span><span class="params">(system)</span></span>
+cluster.<span class="function"><span class="title">leave</span><span class="params">(cluster.selfAddress)</span></span>
+</code></pre><h2 id="WeaklyUp_Members(实验性,仅支持2-4以上的版本)">WeaklyUp Members(实验性,仅支持2.4以上的版本)</h2><p>当一个节点变为<code>unreachable</code>时,我们仍然希望它能够再次激活,这个特性默认是关闭的,可以通过配置文件激活:</p>
+<pre><code>akka<span class="class">.cluster</span><span class="class">.allow-weakly-up-members</span> = on
+</code></pre><p>激活这个特性后,如果当时没有<code>gossip convergence</code>,<code>Joining</code>状态的成员会变成<code>WeaklyUp</code>同时成为集群的一部分,一旦<code>gossip convergence</code>到达,管理员就会把<code>WeaklyUp</code>的成员改为<code>Up</code>状态.</p>
+<h2 id="订阅集群事件">订阅集群事件</h2><p>使用<code>Cluster(system).subscribe</code>可以订阅集群改变的提醒.</p>
+<pre><code><span class="tag">cluster</span><span class="class">.subscribe</span>(<span class="tag">self</span>, <span class="tag">classOf</span><span class="attr_selector">[MemberEvent]</span>, <span class="tag">classOf</span><span class="attr_selector">[UnreachableMember]</span>)
+</code></pre><p><code>akka.cluster.ClusterEvent.CurrentClusterState</code>,集群完整状态的快照,会作为第一条消息发送到订阅者,后续的时间会发送新的更新.</p>
+<p>如果你在join流程完成之前开启订阅,还没有任何成员,这时会受到一个空的<code>CurrentClusterState</code>.</p>
+<p>如果不想接收<code>CurrentClusterState</code>,可以使用<code>ClusterEvent.InitialStateAsEvents</code>参数进行订阅,这会发送整个集群中真正作用到集群的过往消息.</p>
+<pre><code>cluster.subscribe(self, initialStateMode = InitialStateAsEvents,
+  classOf<span class="string">[MemberEvent]</span>, classOf<span class="string">[UnreachableMember]</span>)
+</code></pre><p>整个生命周期的轨迹事件包括:</p>
+<ol>
+<li>ClusterEvent.MemberJoined</li>
+<li>ClusterEvent.MemberUp</li>
+<li>ClusterEvent.MemberExited</li>
+<li>ClusterEvent.MemberRemoved</li>
+<li>ClusterEvent.UnreachableMember</li>
+<li>ClusterEvent.ReachableMember</li>
+</ol>
+<p>还有更多别的事件,详细参考API.如果只想获取成员关系状态可以使用<code>Cluster(system).state</code>.</p>
+<h2 id="Worker_Dial-in_Example">Worker Dial-in Example</h2><p>这个样例应用用于转换一个文本.当一个文本发送到前端服务时,它会被分发到一个后端工作节点来完成转换工作,然后在把结果返回给原始的客户端.一个新的前端或者后端节点可以动态的向集群添加或移除.</p>
+<p>用到的消息:</p>
+<pre><code><span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">TransformationJob</span>(</span>text: <span class="type">String</span>)
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">TransformationResult</span>(</span>text: <span class="type">String</span>)
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">JobFailed</span>(</span>reason: <span class="type">String</span>, job: <span class="type">TransformationJob</span>)
+<span class="keyword">case</span> <span class="class"><span class="keyword">object</span> <span class="title">BackendRegistration</span></span>
+</code></pre><p>完成转换工作的后端工作节点:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">TransformationBackend</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+
+  <span class="function"><span class="keyword">val</span> <span class="title">cluster</span> =</span> <span class="type">Cluster</span>(context.system)
+
+  <span class="comment">// subscribe to cluster changes, MemberUp</span>
+  <span class="comment">// re-subscribe when restart</span>
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">preStart</span>(</span>): <span class="type">Unit</span> = cluster.subscribe(self, classOf[<span class="type">MemberUp</span>])
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">postStop</span>(</span>): <span class="type">Unit</span> = cluster.unsubscribe(self)
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> <span class="type">TransformationJob</span>(text) =&gt; sender() ! <span class="type">TransformationResult</span>(text.toUpperCase)
+    <span class="keyword">case</span> state: <span class="type">CurrentClusterState</span> =&gt;
+      state.members.filter(_.status == <span class="type">MemberStatus</span>.<span class="type">Up</span>) foreach register
+    <span class="keyword">case</span> <span class="type">MemberUp</span>(m) =&gt; register(m)
+  }
+
+  <span class="function"><span class="keyword">def</span> <span class="title">register</span>(</span>member: <span class="type">Member</span>): <span class="type">Unit</span> =
+    <span class="keyword">if</span> (member.hasRole(<span class="string">"frontend"</span>))     <span class="comment">// 检查节点角色</span>
+      context.actorSelection(<span class="type">RootActorPath</span>(member.address) / <span class="string">"user"</span> / <span class="string">"frontend"</span>) !
+        <span class="type">BackendRegistration</span>
+}
+</code></pre><p>注意这个<code>TransformationBackend</code>actor订阅了集群事件用于检测新的前端节点,然后给他发送一个注册消息以告诉他们可以使用后端的工作节点了.</p>
+<p>前端节点接收转换工作并委派到以注册的后端工作节点:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">TransformationFrontend</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+
+  <span class="keyword">var</span> backends = <span class="type">IndexedSeq</span>.empty[<span class="type">ActorRef</span>]
+  <span class="keyword">var</span> jobCounter = <span class="number">0</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> job: <span class="type">TransformationJob</span> <span class="keyword">if</span> backends.isEmpty =&gt;
+      sender() ! <span class="type">JobFailed</span>(<span class="string">"Service unavailable, try again later"</span>, job)
+
+    <span class="keyword">case</span> job: <span class="type">TransformationJob</span> =&gt;
+      jobCounter += <span class="number">1</span>
+      backends(jobCounter % backends.size) forward job
+
+    <span class="keyword">case</span> <span class="type">BackendRegistration</span> <span class="keyword">if</span> !backends.contains(sender()) =&gt;
+      context watch sender()
+      backends = backends :+ sender()
+
+    <span class="keyword">case</span> <span class="type">Terminated</span>(a) =&gt;
+      backends = backends.filterNot(_ == a)
+  }
+}
+</code></pre><p>注意前端节点使用<code>watch</code>监控了已注册的节点,以便他们关闭时会发来<code>Terminated</code>消息从而将该关闭的节点从可用节点列表中移除.</p>
+<h2 id="节点角色">节点角色</h2><p>并不是所有的节点都需要提供所有的功能: 一些用于运行web前端,一些运行数据库访问层,一些用于计数.部署actor时提供角色信息可以将节点的角色归档以进行职责分配.</p>
+<p>节点角色在配置文件的<code>akka.cluster.roles</code>属性中定义,通常定义在系统启动脚本或环境变量中.</p>
+<p>节点角色同样是<code>MemberEvent</code>成员关系信息的一部分,可以进行订阅.</p>
+<h2 id="How_To_Startup_when_Cluster_Size_Reached">How To Startup when Cluster Size Reached</h2><p>一个普遍的用例是当集群初始化后,成员已经加入,并且集群已经到达一个值时启动actor.</p>
+<p>可以通过配置文件设置一个值,来限制管理员将<code>Joining</code>状态的节点改变为<code>Up</code>时需要的最小成员数量:</p>
+<pre><code>akka<span class="class">.cluster</span><span class="class">.min-nr-of-members</span> = <span class="number">3</span>
+</code></pre><p>或者根据不同角色的数量来进行限制:</p>
+<pre><code>akka.cluster.role {
+  frontend.<span class="built_in">min</span>-nr-<span class="operator">of</span>-members = <span class="number">1</span>
+  backend.<span class="built_in">min</span>-nr-<span class="operator">of</span>-members = <span class="number">2</span>
+}
+</code></pre><p>可以使用<code>registerOnMemberUp</code>回调来创建actor,当当前的成员状态变为<code>Up</code>时会自动被调用,集群中至少会拥和有上面定义的数量一致的成员个数:</p>
+<pre><code>Cluster(<span class="keyword">system</span>) registerOnMemberUp {
+  <span class="keyword">system</span>.actorOf(Props(classOf[FactorialFrontend], upToN, <span class="constant">true</span>),
+    name = <span class="string">"factorialFrontend"</span>)
+}
+</code></pre><p>这个回调不仅仅只可以用于创建actor.</p>
+<h2 id="How_To_Cleanup_when_Member_is_Removed">How To Cleanup when Member is Removed</h2><p>可以在一个<code>registerOnMemberRemoved</code>回调中处理一些清理工作,当当前的成员状态被变为<code>Removed</code>时或者集群关闭时,会自动被调用.比如在退出JVM时关闭actor系统.</p>
+<pre><code>Cluster(<span class="keyword">system</span>).registerOnMemberRemoved {
+ <span class="comment"> // exit JVM when ActorSystem has been terminated</span>
+  <span class="keyword">system</span>.registerOnTermination(System.exit(<span class="number">0</span>))
+ <span class="comment"> // shut down ActorSystem</span>
+  <span class="keyword">system</span>.terminate()
+
+ <span class="comment"> // In case ActorSystem shutdown takes longer than 10 seconds,</span>
+ <span class="comment"> // exit the JVM forcefully anyway.</span>
+ <span class="comment"> // We must spawn a separate thread to not block current thread,</span>
+ <span class="comment"> // since that would have blocked the shutdown of the ActorSystem.</span>
+  <span class="built_in">new</span> Thread {
+    override def run(): Unit = {
+      <span class="keyword">if</span> (Try(Await.ready(<span class="keyword">system</span>.whenTerminated, <span class="number">10.</span><span class="built_in">seconds</span>)).isFailure)
+        System.exit(-<span class="number">1</span>)
+    }
+  }.<span class="built_in">start</span>()
+}
+</code></pre></span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Akka/" rel="tag">#Akka</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/27/Simple-Akka-Persistence/" rel="next">Simple Akka: Persistence</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">113</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">39</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gossip协议"><span class="nav-number">1.1.</span> <span class="nav-text">Gossip协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#术语"><span class="nav-number">2.</span> <span class="nav-text">术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#成员关系"><span class="nav-number">3.</span> <span class="nav-text">成员关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip"><span class="nav-number">4.</span> <span class="nav-text">Gossip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向量时钟(Vector_Clocks)"><span class="nav-number">5.</span> <span class="nav-text">向量时钟(Vector Clocks)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Convergence"><span class="nav-number">6.</span> <span class="nav-text">Gossip Convergence</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failure_Detector"><span class="nav-number">7.</span> <span class="nav-text">Failure Detector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leader"><span class="nav-number">8.</span> <span class="nav-text">Leader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Seed_Nodes"><span class="nav-number">9.</span> <span class="nav-text">Seed Nodes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Protocol"><span class="nav-number">10.</span> <span class="nav-text">Gossip Protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Membership_Lifecycle"><span class="nav-number">11.</span> <span class="nav-text">Membership Lifecycle</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#成员状态"><span class="nav-number">11.1.</span> <span class="nav-text">成员状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户动作"><span class="nav-number">11.2.</span> <span class="nav-text">用户动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader动作"><span class="nav-number">11.3.</span> <span class="nav-text">Leader动作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加依赖"><span class="nav-number">12.</span> <span class="nav-text">添加依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的集群例子"><span class="nav-number">13.</span> <span class="nav-text">一个简单的集群例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向集群中添加一个节点"><span class="nav-number">14.</span> <span class="nav-text">向集群中添加一个节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自动或手动关闭"><span class="nav-number">15.</span> <span class="nav-text">自动或手动关闭</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leaving"><span class="nav-number">16.</span> <span class="nav-text">Leaving</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WeaklyUp_Members(实验性,仅支持2-4以上的版本)"><span class="nav-number">17.</span> <span class="nav-text">WeaklyUp Members(实验性,仅支持2.4以上的版本)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#订阅集群事件"><span class="nav-number">18.</span> <span class="nav-text">订阅集群事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker_Dial-in_Example"><span class="nav-number">19.</span> <span class="nav-text">Worker Dial-in Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点角色"><span class="nav-number">20.</span> <span class="nav-text">节点角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Startup_when_Cluster_Size_Reached"><span class="nav-number">21.</span> <span class="nav-text">How To Startup when Cluster Size Reached</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Cleanup_when_Member_is_Removed"><span class="nav-number">22.</span> <span class="nav-text">How To Cleanup when Member is Removed</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>

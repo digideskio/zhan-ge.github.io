@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/08/Simple-Nginx-1/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Nginx配置与使用">
-<meta property="og:updated_time" content="2016-03-08T14:43:55.000Z">
+<meta property="og:updated_time" content="2016-03-28T07:58:12.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Nginx 1">
 <meta name="twitter:description" content="Nginx配置与使用">
@@ -185,7 +185,9 @@
       
 
       
-        <span itemprop="articleBody"><h2 id="安装Nginx">安装Nginx</h2><p>为了支持rewrite功能,安装pcre:</p>
+        <span itemprop="articleBody"><h2 id="安装Nginx">安装Nginx</h2><p>首先安装常规驱动:</p>
+<pre><code>apt-<span class="built_in">get</span> install libxml2 libxslt1-<span class="built_in">dev</span> libgd2-xpm libgd2-xpm-<span class="built_in">dev</span> libgeoip-<span class="built_in">dev</span> libpcre3-<span class="built_in">dev</span> libssl-<span class="built_in">dev</span>
+</code></pre><p>为了支持rewrite功能,安装pcre:</p>
 <pre><code>yum <span class="keyword">install</span> pcre*
 </code></pre><p>为了支持ssl,安装openssl:</p>
 <pre><code>yum <span class="keyword">install</span> openssl*
@@ -206,8 +208,18 @@
 nginx<span class="class">.com</span>.
 </code></pre><p>关闭:</p>
 <pre><code>/usr/<span class="built_in">local</span>/nginx-<span class="number">1.9</span>.<span class="number">12</span>/sbin/nginx <span class="operator">-s</span> stop
+</code></pre><p>测试配置文件是否正确:</p>
+<pre><code><span class="tag">nginx</span> <span class="tag">-t</span> <span class="tag">-c</span> <span class="tag">nginx</span><span class="class">.conf</span>
 </code></pre><p>当有修改配置文件时,进行reload:</p>
 <pre><code>/usr/<span class="built_in">local</span>/nginx-<span class="number">1.9</span>.<span class="number">12</span>/sbin/nginx <span class="operator">-s</span> reload
+</code></pre><p>配置日志格式:</p>
+<pre><code>log_format  mylog  '<span class="variable">$remote_addr</span> | <span class="variable">$remote_user</span> | [<span class="variable">$time_local</span>] | <span class="string">"<span class="variable">$request</span>"</span> | <span class="string">"<span class="variable">$request_body</span>"</span> | <span class="variable">$request_time</span> | '
+                       '<span class="variable">$status</span> | <span class="variable">$body_bytes_sent</span> | <span class="string">"<span class="variable">$http_referer</span>"</span> | <span class="string">"<span class="variable">$http_user_agent</span>"</span> | <span class="variable">$http_x_forwarded_for</span>'<span class="comment">;</span>
+</code></pre><p>使用Nginx内置模块创建一个空的GIF图:</p>
+<pre><code><span class="comment"># 直接在server块中添加一个路由:</span>
+location /app/v1/<span class="name">report</span> {
+    empty_gif;
+}
 </code></pre><h2 id="更新现有的版本">更新现有的版本</h2><h3 id="使用升级脚本">使用升级脚本</h3><pre><code>wget soft.vpser.<span class="keyword">net</span>/lnmp/upgrade_nginx.<span class="keyword">sh</span>;<span class="keyword">sh</span> upgrade_nginx.<span class="keyword">sh</span>
 </code></pre><p>然后按提示输入要更新的版本号,确认后回车,程序开始安装.</p>
 <h3 id="手动升级">手动升级</h3><p>首先下载需要升级版本的源码文件,解压后进入对应目录,然后查看当前版本的配置信息:</p>
@@ -222,7 +234,7 @@ nginx<span class="class">.com</span>.
 </span></span>-<span class="ruby"><span class="regexp">-with-http_gzip_static_module --with-http_image_filter_module --with-http_realip_module \
 </span></span>-<span class="ruby"><span class="regexp">-with-http_stub_status_module --with-http_ssl_module --with-http_sub_module --with-http_xslt_module \
 </span></span>-<span class="ruby"><span class="regexp">-with-ipv6 --with-sha1=/usr</span><span class="regexp">/include/openssl</span> --with-md5=<span class="regexp">/usr/include</span><span class="regexp">/openssl --with-mail --with-mail_ssl_module</span></span>
-</code></pre><p>然后执行configure命令并跟上上面的配置信息:</p>
+</code></pre><p>然后执行configure命令并跟上上面的配置信息,如果上面的配置中有<code>--add-module</code>部分则需要去掉,因为不同的版本有不同的模块名和路径,如果需要使用可以单独进行安装:</p>
 <pre><code>.<span class="regexp">/configure --prefix=/</span>etc<span class="regexp">/nginx --conf-path=/</span>etc<span class="regexp">/nginx/</span>nginx.conf \ .....
 </code></pre><p>如果执行中遇到什么错误,进行修复后重新执行以上命令:</p>
 <ol>
@@ -235,11 +247,13 @@ nginx<span class="class">.com</span>.
 <li><p>rewrite需要pcre支持, 错误提示：./configure: error: the HTTP rewrite module requires the PCRE library: yum install -y pcre*</p>
 </li>
 </ol>
-<p>没有提示错误后进行make:</p>
+<p>Ubuntu下可能需要安装的驱动:</p>
+<pre><code>apt-<span class="built_in">get</span> install libxml2 libxml2-<span class="built_in">dev</span> libxslt-<span class="built_in">dev</span> libgd2-xpm libgd2-xpm-<span class="built_in">dev</span> geoip-database libgeoip-<span class="built_in">dev</span> libpcre3 libpcre3-<span class="built_in">dev</span>
+</code></pre><p>没有提示错误后进行make:</p>
 <pre><code><span class="built_in">make</span>
 </code></pre><p>编译完成后多出一个nginx文件夹,就是已编译好的nginx程序.</p>
 <p>备份旧的nginx程序的名字,并复制新的程序进去,首先cd到旧的nginx目录:</p>
-<pre><code>mv <span class="regexp">/usr/</span>sbin<span class="regexp">/nginx /u</span>sr<span class="regexp">/sbin/</span>nginx-backends
+<pre><code>mv <span class="regexp">/usr/</span>sbin<span class="regexp">/nginx /u</span>sr<span class="regexp">/sbin/</span>nginx.backends
 cp objs<span class="regexp">/nginx /u</span>sr<span class="regexp">/sbin/</span>nginx
 </code></pre><p>执行检查命令对配置进行检查:</p>
 <pre><code>/usr/sbin/nginx -t
@@ -247,7 +261,8 @@ cp objs<span class="regexp">/nginx /u</span>sr<span class="regexp">/sbin/</span>
 nginx: the configuration <span class="keyword">file</span> /etc/nginx/nginx.<span class="keyword">conf</span> <span class="keyword">syntax</span> is ok
 nginx: configuration <span class="keyword">file</span> /etc/nginx/nginx.<span class="keyword">conf</span> <span class="keyword">test</span> is successful
 </code></pre><p>然后回到新版nginx的解压目录,执行更新:</p>
-<pre><code><span class="built_in">make</span> upgrade
+<pre><code><span class="built_in">make</span> install
+<span class="built_in">make</span> upgrade
 </code></pre><p>但是得到一个错误:</p>
 <pre><code><span class="string">make:</span> <span class="regexp">/etc/</span>nginx<span class="regexp">/sbin/</span><span class="string">nginx:</span> Command not found
 <span class="string">make:</span> *** [upgrade] Error <span class="number">127</span>
@@ -342,7 +357,7 @@ nginx: configuration <span class="keyword">file</span> /etc/nginx/nginx.<span cl
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">112</span>
+              <span class="site-state-item-count">113</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
