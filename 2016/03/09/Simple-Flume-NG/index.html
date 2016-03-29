@@ -50,7 +50,7 @@
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent2.png">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent3.png">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent4.png">
-<meta property="og:updated_time" content="2016-03-09T14:55:44.000Z">
+<meta property="og:updated_time" content="2016-03-29T09:30:09.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Flume-NG">
 <meta name="twitter:description" content="Flume的原理和使用">
@@ -435,7 +435,44 @@ a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span clas
 a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.priority</span><span class="class">.k2</span> = <span class="number">7</span>
 a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.priority</span><span class="class">.k3</span> = <span class="number">6</span>
 a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span class="class">.processor</span><span class="class">.maxpenalty</span> = <span class="number">20000</span>
-</code></pre><h2 id="安装和使用">安装和使用</h2><p>安装方式参考官方文档.</p>
+</code></pre><h2 id="安装和使用">安装和使用</h2><p>安装需要的基本要求:</p>
+<ol>
+<li>JDK 1.6版本以上</li>
+<li>足够的内存用于配置</li>
+<li>磁盘空间</li>
+<li><p>文件夹读写权限</p>
+</li>
+<li><p>首先安装对应版本的JDK,参考JDK的安装.</p>
+</li>
+<li><p>然后在Flume官方下载最新版本的二进制文件<code>apache-flume-1.6.0-bin.tar</code>,创建一个<code>/usr/lib/flume</code>的目录,并设置读写权限:</p>
+<pre><code><span class="variable">$ </span>sudo mkdir /usr/<span class="class"><span class="keyword">lib</span>/<span class="title">flume</span></span>
+<span class="variable">$ </span>sudo chmod -<span class="constant">R</span> <span class="number">777</span> /usr/<span class="class"><span class="keyword">lib</span>/<span class="title">flume</span></span>
+<span class="variable">$ </span>cp apache-flume-<span class="number">1.6</span>.<span class="number">0</span>-bin.tar /usr/<span class="class"><span class="keyword">lib</span>/<span class="title">flume</span>/</span>
+<span class="variable">$ </span>cd /usr/<span class="class"><span class="keyword">lib</span>/<span class="title">flume</span></span>
+<span class="variable">$ </span>tar -xvf apache-flume-<span class="number">1.6</span>.<span class="number">0</span>-bin.tar
+</code></pre></li>
+<li><p>设置对应的环境变量:</p>
+<pre><code>vim ~/.bash_profile
+
+<span class="comment">### Flume Home Settings</span>
+<span class="built_in">export</span> FLUME_HOME=<span class="string">"/usr/lib/flume/apache-flume-1.6.0-bin"</span>
+<span class="built_in">export</span> FLUME_CONF_DIR=<span class="string">"<span class="variable">$FLUME_HOME</span>/conf"</span>
+<span class="built_in">export</span> FLUME_CLASSPATH=<span class="string">"<span class="variable">$FLUME_CONF_DIR</span>"</span>
+<span class="built_in">export</span> PATH=<span class="string">"<span class="variable">$FLUME_HOME</span>/bin:<span class="variable">$PATH</span>"</span>
+
+<span class="built_in">source</span> ~/.bash_profile
+</code></pre></li>
+<li><p>然后在Flume的配置文件路径,即<code>FLUME_CONF_DIR</code>中将<code>flume-env.sh.template</code>复制一份改名为<code>flume-env.sh</code>,配置需要的<code>JAVA_HOME</code>.</p>
+</li>
+<li><p>如果需要使用内存型channel,需要在上面的文件<code>flume-env.sh</code>中设置对应的<code>JAVA_OPTS</code>变量,默认是100MB到200MB,最好根据机器配置设置为500MB到1000MB.</p>
+<pre><code>cp flume-env.sh.<span class="keyword">template</span> flume-env.sh
+<span class="keyword">export</span> JAVA_HOME=/usr/lib/jvm/jdk1<span class="number">.8</span><span class="number">.0</span>_77
+<span class="keyword">export</span> JAVA_OPTS=<span class="string">"-Xms500m -Xmx1000m -Dcom.sun.management.jmxremote"</span>
+</code></pre></li>
+<li><p>安装完成,测试:</p>
+<pre><code>flume-ng <span class="comment">--help</span>
+</code></pre></li>
+</ol>
 <h3 id="实例:_avro数据源">实例: avro数据源</h3><p>安装成功之后,在 <code>/etc/flume/conf</code> 目录创建f1.conf文件,内容如下:</p>
 <pre><code>agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.type</span> = memory
 

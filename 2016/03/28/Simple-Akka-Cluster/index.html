@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/28/Simple-Akka-Cluster/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Akka集群模式.">
-<meta property="og:updated_time" content="2016-03-28T15:51:11.000Z">
+<meta property="og:updated_time" content="2016-03-29T15:49:47.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Akka: Cluster">
 <meta name="twitter:description" content="Akka集群模式.">
@@ -419,6 +419,174 @@ cluster.<span class="function"><span class="title">leave</span><span class="para
     }
   }.<span class="built_in">start</span>()
 }
+</code></pre><h2 id="Cluster_Singleton">Cluster Singleton</h2><p>对于有些场景或者需求,需要在集群中运行一个单独的actor.比如:</p>
+<ol>
+<li>一些集群中为了一致性结果的单点任务,或者集群中的协调动作</li>
+<li>一个外部系统的单点入口</li>
+<li>一个单独的主服务,多个工作服务</li>
+<li>中央命名服务,或者路由逻辑</li>
+</ol>
+<p>使用单例不应该作为第一个设计选择.它有很多缺点,比如单点瓶颈,单点错误也是需要格外注意的,不过有些特性会用于处理这些问题以保证最终在其他地方会重新启动一个单例.</p>
+<p>集群的单例模式通过<code>akka.cluster.singleton.ClusterSingletonManager</code>来实现.通过一个特殊的逻辑在整个集群节点或一组节点中维持一个单例actor实例.<code>ClusterSingletonManager</code>是一个可能会在所有节点上启动的actor,或者在进群中通过规则特殊指定的那些节点启动.事实上,单例actor会被<code>ClusterSingletonManager</code>在最老的节点上通过提供一个<code>Props</code>创建子actor的方式启动.<code>ClusterSingletonManager</code>会确保整个集群中在任何时间只会有一个单例运行.</p>
+<p>单例actor总是会根据一个特殊的规则运行在最老的节点上.最老节点的选择通过<code>akka.cluster.Member#isOlderThan</code>类决定.这可以通过将成员移出集群来改变.注意在交接过程中会有一个很小的时间间隔没有激活的单例可用.</p>
+<p>集群的错误检测器会注意到最老节点的状态改变为<code>unreachable</code>,比如JVM崩溃,硬退出或者网络错误.这是一个新的最老节点会接管并创建一个新的单例actor.对于这些错误情况并不会有一个优雅的接管方式,但是多个激活的单例actor会妨碍更多正常的任务.一些比较偏僻的问题可以通过配置超时时间来解决.</p>
+<p>可以通过提供的<code>akka.cluster.singleton.ClusterSingletonProxy</code>来访问单例actor,可以将所有的消息路由到当前的单例actor实例.这个代理会保留集群中最老节点的轨迹,通过单例的<code>ActorRef</code>隐式的向单例的<code>actorSelection</code>发送<code>akka.actor.Identify</code>消息,然后等待回复.如果单例没有在一定的时间内(可配置)回复的话这个过程会被周期性的执行.如果在一个周期时间内<code>ActorRef</code>不可用则会放弃执行,比如节点已经离开集群了.这时代理会会对发送到单例的消息进行缓冲并在单例可用时进行重发.当这个缓冲满的时候又有新消息进入,<code>ClusterSingletonProxy</code>会丢弃掉最老的消息,这个缓冲可以通过配置修改并且可以设置为0来关闭缓冲.</p>
+<p>由于actor的分布式性质,消息总有可能会丢失.通常会在单例中实现一些额外的逻辑或者在客户端actor中确保消息能够最少一次被提交.</p>
+<h3 id="需要注意的潜在问题">需要注意的潜在问题</h3><p>这种模式看起来很能吸引人去使用,但是它也有很多缺点,下面是一个常见问题列表:</p>
+<ol>
+<li>集群单例可能会很快成为一个性能瓶颈</li>
+<li>不能信赖集群单例永不停止的可能,当运行单例的节点宕机后需要几秒钟的时间才能转移,然后单例会被移交到另一个节点</li>
+<li>在设置了<code>Automatic Downing</code>模式时可能出现的网络分割情况下,会发生每个单独的就群都会去启动一个单独的单例实例</li>
+</ol>
+<p>特别需要注意最后一点,在使用了集群单例模式时需要自己关注宕机的节点而不能单单依赖于<code>auto-down</code>的特性.<code>Automatic Downing</code>特性允许集群分离成多个单独的集群,这时多个集群会分别启动各自的单例.</p>
+<h3 id="实例">实例</h3><p>加入我们的外部系统需要一个单点实例,一个actor接收来自<code>JMS</code>队列的消息,并且严格要求同时只能有一个<code>JMS</code>消费者存在以保证消息的处理顺序.这种事情可能没人愿意设计,但这是在于外部系统集成时一个真实的情况.</p>
+<p>进群中的每个节点都需要启动一个<code>ClusterSingletonManager</code>并且提供一个单例actor的<code>Props</code>,这里是<code>JMS</code>的消费者.</p>
+<pre><code>system.actorOf(ClusterSingletonManager.props(
+  singletonProps = Props(classOf[Consumer], queue, testActor),
+  terminationMessage = <span class="operator"><span class="keyword">End</span>,
+  <span class="keyword">settings</span> = ClusterSingletonManagerSettings(<span class="keyword">system</span>).withRole(<span class="string">"worker"</span>)),
+  <span class="keyword">name</span> = <span class="string">"consumer"</span>)</span>
+</code></pre><p>这里限制了单例只能在<code>worker</code>角色的节点上运行,如果不指定,则可以在所有角色的节点运行.</p>
+<p>这里使用了一个特殊用途的<code>terminationMessage</code>来确保在实际关闭单例之前关闭对应的资源.但如果仅需要关闭actor的话使用<code>PoisonPill</code>会比<code>terminationMessage</code>要好.</p>
+<p>这里展示了单例actor如何处理<code>terminationMessage</code>消息:</p>
+<pre><code><span class="keyword">case</span> End =&gt;                     <span class="comment">// 当自身收到关闭消息的时候通知队列消费者未注册</span>
+  queue ! UnregisterConsumer
+<span class="keyword">case</span> UnregistrationOk =&gt;        <span class="comment">// 当队列返回消息表示注销成功时才进行关闭,并设置对应的标志</span>
+  stoppedBeforeUnregistration = <span class="keyword">false</span>
+  context stop <span class="keyword">self</span>
+<span class="keyword">case</span> Ping =&gt;
+  sender() ! Pong
+</code></pre><p>通过上面给出的<code>name</code>,可以使用正确配置的代理通过集群中任何一个节点访问单例.</p>
+<pre><code>system.actorOf(ClusterSingletonProxy.props(
+  singletonManagerPath = <span class="string">"/user/consumer"</span>,
+  settings = <span class="function"><span class="title">ClusterSingletonProxySettings</span><span class="params">(system)</span></span>.<span class="function"><span class="title">withRole</span><span class="params">(<span class="string">"worker"</span>)</span></span>),
+  name = <span class="string">"consumerProxy"</span>)
+</code></pre><h3 id="依赖配置">依赖配置</h3><pre><code><span class="string">"com.typesafe.akka"</span> <span class="preprocessor">%</span><span class="preprocessor">%</span> <span class="string">"akka-cluster-tools"</span> <span class="preprocessor">%</span> <span class="string">"2.4.2"</span>
+</code></pre><h3 id="配置选项">配置选项</h3><p>下面的配置属性,在使用<code>ActorSystem</code>参数创建单例时通过<code>ClusterSingletonManagerSettings</code>读取.<code>ClusterSingletonManagerSettings</code>是<code>ClusterSingletonManager.props</code>工厂方法的一个参数,如果需要,可以为每个单例配置不同的属性.</p>
+<pre><code>akka.cluster.singleton {
+  <span class="comment"># 单例actor的name.</span>
+  singleton-<span class="property">name</span> = <span class="string">"singleton"</span>
+
+  <span class="comment"># 为单例能够运行的节点指定一个角色,如果不提供角色,单例运行在所有节点上运行.</span>
+  role = <span class="string">""</span>
+
+  <span class="comment"># 当一个actor变成最老时会想上一个准备离开集群的最老的actor发送交接请求, 这个值用于设置请求的频率,</span>
+  <span class="comment"># 直到该actor确认交接开始或者从集群中移除(+ akka.cluster.down-removal-margin).</span>
+  hand-<span class="keyword">over</span>-retry-interval = <span class="number">1</span>s
+
+  <span class="comment"># The number of retries are derived from hand-over-retry-interval and</span>
+  <span class="comment"># akka.cluster.down-removal-margin (or ClusterSingletonManagerSettings.removalMargin),</span>
+  <span class="comment"># but it will never be less than this property.</span>
+  min-<span class="type">number</span>-<span class="keyword">of</span>-hand-<span class="keyword">over</span>-retries = <span class="number">10</span>
+}
+</code></pre><p>下面的配置属性,在使用<code>ActorSystem</code>参数创建代理时通过<code>ClusterSingletonProxySettings</code>读取.<code>ClusterSingletonProxySettings</code>是<code>ClusterSingletonProxy.props</code>工厂方法的参数,每个单例代理可以配置不同的属性.</p>
+<pre><code>akka.cluster.<span class="built_in">singleton</span>-proxy {
+  <span class="preprocessor"># 被ClusterSingletonManager启动的单例actor的name</span>
+  <span class="built_in">singleton</span>-name = ${akka.cluster.<span class="built_in">singleton</span>.<span class="built_in">singleton</span>-name}
+
+  <span class="preprocessor"># 单例可以部署的集群节点角色,如果不指定则所有节点都可以部署. </span>
+  role = <span class="string">""</span>
+
+  <span class="preprocessor"># 代理用来查找单例的频率</span>
+  <span class="built_in">singleton</span>-identification-interval = <span class="number">1</span>s
+
+  <span class="preprocessor"># 单例位置未知时代理缓冲消息的数量,设置为0则关闭缓冲,当单例未知则消息直接被丢弃,最大为10000. </span>
+  buffer-size = <span class="number">1000</span> 
+}
+</code></pre><h2 id="集群中的分布式发布订阅">集群中的分布式发布订阅</h2><p>在不知道actor运行在哪个节点时如何向它发送消息呢? 或者如何向集群中订阅主题的actor进行广播消息呢?</p>
+<p>该模式提供了一个中介actor,<code>akka.cluster.pubsub.DistributedPubSubMediator</code>,它会管理一个actor引用的登记薄,并复制整个集群中一个或一组通过指定规则标记的actor.</p>
+<p>这个<code>DistributedPubSubMediator</code>actor允许运行在集群的所有节点,或者所有通过规则指定的节点.中介者可以通过<code>DistributedPubSub</code>扩展或者作为一个额外的actor启动.</p>
+<p>登记薄是最终一致的,比如有时候改变不能作用到其他节点,但是在几秒后会被完整的复制到其他所有节点.</p>
+<p>如果集群成员带有<code>WeaklyUp</code>状态,并且该特性激活,则会参与到集群的发布订阅.如果发布者节点和订阅者节点在网络分割的同一边则<code>WeaklyUp</code>状态的节点就能收到发布者的消息.</p>
+<p>任何一个节点都可以通过中介者发布消息到任何其他订阅的节点.</p>
+<p>消息提交有两种模式.</p>
+<h3 id="Publish">Publish</h3><p>这是真正的发布/订阅模式,这个模式的典型用例就是即时通信应用中的聊天室.</p>
+<p>Actor通过命名主题进行订阅.可以作用于每个节点的多个订阅者.消息会被发送到该主题的所有订阅者.</p>
+<p>为了效率消息会被发送到每个节点一次(通过匹配的主题),然后提交到该节点本地代理人的所有订阅者.</p>
+<p>使用<code>DistributedPubSubMediator.Subscribe</code>将actor注册到本地中介者,成功的<code>Subscribe(订阅)</code>或<code>Unsubscribe(退订)</code>通过<code>DistributedPubSubMediator.SubscribeAck</code>进行确认,通过<code>DistributedPubSubMediator.UnsubscribeAck</code>进行回复.确认的意思是该订阅已经注册,但是复制到其他节点仍然会花费一些时间.</p>
+<p>通过向本地的中介者发送<code>DistributedPubSubMediator.Publish</code>消息来进行消息的发送.</p>
+<p>当actor终止时会自动从订阅中移除,或者可以使用<code>DistributedPubSubMediator.Unsubscribe</code>进行显式的移除.</p>
+<p>一个订阅者actor的例子:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Subscriber</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">ActorLogging</span> {</span>
+  <span class="keyword">import</span> <span class="type">DistributedPubSubMediator</span>.{ <span class="type">Subscribe</span>, <span class="type">SubscribeAck</span> }
+  <span class="function"><span class="keyword">val</span> <span class="title">mediator</span> =</span> <span class="type">DistributedPubSub</span>(context.system).mediator     <span class="comment">// 获取本地中介者引用</span>
+  mediator ! <span class="type">Subscribe</span>(<span class="string">"content"</span>, self)                         <span class="comment">// 订阅"content"主题</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> s: <span class="type">String</span> =&gt; log.info(<span class="string">"Got {}"</span>, s)
+    <span class="keyword">case</span> <span class="type">SubscribeAck</span>(<span class="type">Subscribe</span>(<span class="string">"content"</span>, <span class="type">None</span>, `self`)) =&gt; log.info(<span class="string">"subscribing"</span>);
+  }
+}
+</code></pre><p>订阅者actor可以在集群中的多个节点启动,都会受到发布到<code>content</code>主题的消息:</p>
+<pre><code><span class="function"><span class="title">runOn</span><span class="params">(first)</span> {
+  <span class="title">system</span>.<span class="title">actorOf</span><span class="params">(<span class="variable">Props</span>[<span class="variable">Subscriber</span>], <span class="string">"subscriber1"</span>)</span>
+}
+<span class="title">runOn</span><span class="params">(second)</span> {
+  <span class="title">system</span>.<span class="title">actorOf</span><span class="params">(<span class="variable">Props</span>[<span class="variable">Subscriber</span>], <span class="string">"subscriber2"</span>)</span>
+  <span class="title">system</span>.<span class="title">actorOf</span><span class="params">(<span class="variable">Props</span>[<span class="variable">Subscriber</span>], <span class="string">"subscriber3"</span>)</span>
+}</span>
+</code></pre><p>主题<code>content</code>的发布者actor例子:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Publisher</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+  <span class="keyword">import</span> <span class="type">DistributedPubSubMediator</span>.<span class="type">Publish</span>
+  <span class="comment">// activate the extension</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">mediator</span> =</span> <span class="type">DistributedPubSub</span>(context.system).mediator
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> in: <span class="type">String</span> =&gt;
+      <span class="function"><span class="keyword">val</span> <span class="title">out</span> =</span> in.toUpperCase
+      mediator ! <span class="type">Publish</span>(<span class="string">"content"</span>, out)
+  }
+}
+</code></pre><p>可以从集群中的任何节点想主题发布消息:</p>
+<pre><code>runOn(third) {
+  <span class="variable"><span class="keyword">val</span> publisher</span> = system.actorOf(Props[Publisher], <span class="string">"publisher"</span>)
+  later()
+  <span class="comment">// after a while the subscriptions are replicated</span>
+  publisher ! <span class="string">"hello"</span>
+}
+</code></pre><p>Actor同时可以使用一个可选的属性(group)对命名主题进行订阅.如果通过组名(group name)订阅,任何发布到主题中并且标记为<code>sendOneMessageToEachGroup</code>的消息会通过提供的<code>RoutingLogic</code>(默认为random)会被发送到该订阅组中的其中一个actor,如果所有的订阅者都拥有相同的组名,这是工作方式就类似于<code>Send</code>并且所有的消息都会被提交给一个actor.同样,如果每个actor都拥有不同的组名,则工作方式就跟普通的<code>Publish</code>一样,所有的消息都会被广播的所有的订阅者.</p>
+<h3 id="Send">Send</h3><p>这是一个点对点(point-to-point)的模式,每个消息都被提交到一个目的地,但是同样不需要知道目的地的位置.这个模式的经典用例是及时通信应用中的用户私聊.同样可以用于分布任务到已注册的工作者,类似一个集群路由器并且路由可以对自己进行动态注册.</p>
+<p>如果没有任何注册的话,消息会通过一个路径匹配提交到授权者.如果由于已经在多个节点上注册从何多个实体匹配到了这个路径,则消息会通过提供的<code>RoutingLogic</code>(默认Random)提交到其中一个目的地.消息的<code>sender()</code>可以指定本地关系优先.如果可能的话,消息会被发送到本地的同一个actor系统中,就像之前用过的中介者,否则会路由到其他匹配的实体.</p>
+<p>通过<code>DistributedPubSubMediator.Put</code>将actor注册到本地中介者.<code>Put</code>方法中的<code>ActorRef</code>必须和中介者在同一个本地的actor系统.不带地址信息的路径是用来发送消息的键(key).一个节点中只能存在一个这个路径的actor,因为同一个本地actor系统中路径是唯一的.</p>
+<p>通过向本地中介者发送带有目的actor路径(不带地址信息)的<code>DistributedPubSubMediator.Send</code>消息来进行消息的发送.</p>
+<p>Actor终止时会自动从订阅中移除,或者通过<code>DistributedPubSubMediator.Remove</code>显式的移除.</p>
+<p>一个目的地actor的例子:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Destination</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">ActorLogging</span> {</span>
+  <span class="keyword">import</span> <span class="type">DistributedPubSubMediator</span>.<span class="type">Put</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">mediator</span> =</span> <span class="type">DistributedPubSub</span>(context.system).mediator
+
+  mediator ! <span class="type">Put</span>(self)      <span class="comment">// 通过本地中介者注册自己的路径</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> s: <span class="type">String</span> =&gt; log.info(<span class="string">"Got {}"</span>, s)
+  }
+}
+</code></pre><p>目的地actor可以在集群中的多个节点启动,都会受到发送到该路径的消息:</p>
+<pre><code><span class="function"><span class="title">runOn</span><span class="params">(first)</span> {
+  <span class="title">system</span>.<span class="title">actorOf</span><span class="params">(<span class="variable">Props</span>[<span class="variable">Destination</span>], <span class="string">"destination"</span>)</span>
+}
+<span class="title">runOn</span><span class="params">(second)</span> {
+  <span class="title">system</span>.<span class="title">actorOf</span><span class="params">(<span class="variable">Props</span>[<span class="variable">Destination</span>], <span class="string">"destination"</span>)</span>
+}</span>
+</code></pre><p>向该路径发送消息的actor例子:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Sender</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+  <span class="keyword">import</span> <span class="type">DistributedPubSubMediator</span>.<span class="type">Send</span>
+  <span class="comment">// activate the extension</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">mediator</span> =</span> <span class="type">DistributedPubSub</span>(context.system).mediator
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> in: <span class="type">String</span> =&gt;
+      <span class="function"><span class="keyword">val</span> <span class="title">out</span> =</span> in.toUpperCase
+      mediator ! <span class="type">Send</span>(path = <span class="string">"/user/destination"</span>, msg = out, localAffinity = <span class="literal">true</span>)
+  }
+}
+</code></pre><p>可以从集群的任何节点发送消息:</p>
+<pre><code>runOn(third) {
+  <span class="variable"><span class="keyword">val</span> sender</span> = system.actorOf(Props[Sender], <span class="string">"sender"</span>)
+  later()
+  <span class="comment">// after a while the destinations are replicated</span>
+  sender ! <span class="string">"hello"</span>
+}
 </code></pre></span>
       
     </div>
@@ -546,7 +714,7 @@ cluster.<span class="function"><span class="title">leave</span><span class="para
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gossip协议"><span class="nav-number">1.1.</span> <span class="nav-text">Gossip协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#术语"><span class="nav-number">2.</span> <span class="nav-text">术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#成员关系"><span class="nav-number">3.</span> <span class="nav-text">成员关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip"><span class="nav-number">4.</span> <span class="nav-text">Gossip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向量时钟(Vector_Clocks)"><span class="nav-number">5.</span> <span class="nav-text">向量时钟(Vector Clocks)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Convergence"><span class="nav-number">6.</span> <span class="nav-text">Gossip Convergence</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failure_Detector"><span class="nav-number">7.</span> <span class="nav-text">Failure Detector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leader"><span class="nav-number">8.</span> <span class="nav-text">Leader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Seed_Nodes"><span class="nav-number">9.</span> <span class="nav-text">Seed Nodes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Protocol"><span class="nav-number">10.</span> <span class="nav-text">Gossip Protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Membership_Lifecycle"><span class="nav-number">11.</span> <span class="nav-text">Membership Lifecycle</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#成员状态"><span class="nav-number">11.1.</span> <span class="nav-text">成员状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户动作"><span class="nav-number">11.2.</span> <span class="nav-text">用户动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader动作"><span class="nav-number">11.3.</span> <span class="nav-text">Leader动作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加依赖"><span class="nav-number">12.</span> <span class="nav-text">添加依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的集群例子"><span class="nav-number">13.</span> <span class="nav-text">一个简单的集群例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向集群中添加一个节点"><span class="nav-number">14.</span> <span class="nav-text">向集群中添加一个节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自动或手动关闭"><span class="nav-number">15.</span> <span class="nav-text">自动或手动关闭</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leaving"><span class="nav-number">16.</span> <span class="nav-text">Leaving</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WeaklyUp_Members(实验性,仅支持2-4以上的版本)"><span class="nav-number">17.</span> <span class="nav-text">WeaklyUp Members(实验性,仅支持2.4以上的版本)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#订阅集群事件"><span class="nav-number">18.</span> <span class="nav-text">订阅集群事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker_Dial-in_Example"><span class="nav-number">19.</span> <span class="nav-text">Worker Dial-in Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点角色"><span class="nav-number">20.</span> <span class="nav-text">节点角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Startup_when_Cluster_Size_Reached"><span class="nav-number">21.</span> <span class="nav-text">How To Startup when Cluster Size Reached</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Cleanup_when_Member_is_Removed"><span class="nav-number">22.</span> <span class="nav-text">How To Cleanup when Member is Removed</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gossip协议"><span class="nav-number">1.1.</span> <span class="nav-text">Gossip协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#术语"><span class="nav-number">2.</span> <span class="nav-text">术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#成员关系"><span class="nav-number">3.</span> <span class="nav-text">成员关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip"><span class="nav-number">4.</span> <span class="nav-text">Gossip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向量时钟(Vector_Clocks)"><span class="nav-number">5.</span> <span class="nav-text">向量时钟(Vector Clocks)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Convergence"><span class="nav-number">6.</span> <span class="nav-text">Gossip Convergence</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failure_Detector"><span class="nav-number">7.</span> <span class="nav-text">Failure Detector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leader"><span class="nav-number">8.</span> <span class="nav-text">Leader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Seed_Nodes"><span class="nav-number">9.</span> <span class="nav-text">Seed Nodes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Protocol"><span class="nav-number">10.</span> <span class="nav-text">Gossip Protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Membership_Lifecycle"><span class="nav-number">11.</span> <span class="nav-text">Membership Lifecycle</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#成员状态"><span class="nav-number">11.1.</span> <span class="nav-text">成员状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户动作"><span class="nav-number">11.2.</span> <span class="nav-text">用户动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader动作"><span class="nav-number">11.3.</span> <span class="nav-text">Leader动作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加依赖"><span class="nav-number">12.</span> <span class="nav-text">添加依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的集群例子"><span class="nav-number">13.</span> <span class="nav-text">一个简单的集群例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向集群中添加一个节点"><span class="nav-number">14.</span> <span class="nav-text">向集群中添加一个节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自动或手动关闭"><span class="nav-number">15.</span> <span class="nav-text">自动或手动关闭</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leaving"><span class="nav-number">16.</span> <span class="nav-text">Leaving</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WeaklyUp_Members(实验性,仅支持2-4以上的版本)"><span class="nav-number">17.</span> <span class="nav-text">WeaklyUp Members(实验性,仅支持2.4以上的版本)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#订阅集群事件"><span class="nav-number">18.</span> <span class="nav-text">订阅集群事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker_Dial-in_Example"><span class="nav-number">19.</span> <span class="nav-text">Worker Dial-in Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点角色"><span class="nav-number">20.</span> <span class="nav-text">节点角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Startup_when_Cluster_Size_Reached"><span class="nav-number">21.</span> <span class="nav-text">How To Startup when Cluster Size Reached</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Cleanup_when_Member_is_Removed"><span class="nav-number">22.</span> <span class="nav-text">How To Cleanup when Member is Removed</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Singleton"><span class="nav-number">23.</span> <span class="nav-text">Cluster Singleton</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#需要注意的潜在问题"><span class="nav-number">23.1.</span> <span class="nav-text">需要注意的潜在问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例"><span class="nav-number">23.2.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖配置"><span class="nav-number">23.3.</span> <span class="nav-text">依赖配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置选项"><span class="nav-number">23.4.</span> <span class="nav-text">配置选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群中的分布式发布订阅"><span class="nav-number">24.</span> <span class="nav-text">集群中的分布式发布订阅</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Publish"><span class="nav-number">24.1.</span> <span class="nav-text">Publish</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Send"><span class="nav-number">24.2.</span> <span class="nav-text">Send</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
