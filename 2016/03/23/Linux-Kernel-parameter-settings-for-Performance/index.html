@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/23/Linux-Kernel-parameter-settings-for-Performance/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Linux内核参数配置优化">
-<meta property="og:updated_time" content="2016-03-24T14:42:12.000Z">
+<meta property="og:updated_time" content="2016-03-30T03:42:49.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Linux Kernel parameter settings for Performance">
 <meta name="twitter:description" content="Linux内核参数配置优化">
@@ -294,7 +294,49 @@ alias ipv6
 options ipv6 disable=<span class="number">0</span>
 </code></pre><p>最后重启网络服务:</p>
 <pre><code><span class="title">service</span> network restart
-</code></pre><p><a href="https://tweaked.io/guide/kernel/" title="Tweaked.io: The GNU/Linux Kernel" target="_blank" rel="external">Tweaked.io: The GNU/Linux Kernel</a></p>
+</code></pre><h2 id="时间命令">时间命令</h2><pre><code><span class="keyword">date</span> -d -<span class="number">10</span>minute +<span class="variable">%Y</span>-<span class="variable">%m</span>-<span class="variable">%d</span>-<span class="variable">%H</span>-<span class="variable">%M</span>
+</code></pre><p><code>-10minute</code>表示获取10分钟前的时间,同样可以使用<code>-10hour</code>表示10小时前等等.</p>
+<p><code>+%Y-%m-%d-%H-%M</code>表示输出的格式,使用<code>date --help</code>命令查看更多使用方式.</p>
+<h2 id="定时任务">定时任务</h2><p>定时任务一般使用crontab完成:</p>
+<pre><code><span class="comment"># 查看所有定时任务列表</span>
+crontab <span class="operator">-l</span>
+
+<span class="comment"># 编辑定时任务列表</span>
+crontab <span class="operator">-e</span>
+</code></pre><p>同时可以提供shell脚本来使用crontab执行,常用的场景为Nginx日志切割:</p>
+<pre><code><span class="comment">## 打印日志</span>
+date
+<span class="built_in">echo</span> <span class="string">'cutting log'</span>
+
+<span class="comment">## 设置日志的操作路径</span>
+LOGS_PATH_FROM=/etc/logs/nginx      <span class="comment">## 原始路径</span>
+LOGS_PATH_TO=/data/logs/nginx       <span class="comment">## 目的路径</span>
+<span class="built_in">echo</span> <span class="variable">$LOGS_PATH_FROM</span>
+<span class="built_in">echo</span> <span class="variable">$LOGS_PATH_TO</span>
+
+<span class="comment">## 设置被切割后的日志时间标识,这里是昨天的日期</span>
+YESTERDAY=$(date <span class="operator">-d</span> <span class="string">"yesterday"</span> +%Y-%m-%d)  
+
+<span class="built_in">echo</span> <span class="variable">$YESTERDAY</span>
+
+<span class="comment">## 组合路径和文件名,执行移动命令</span>
+mv <span class="variable">${LOGS_PATH_FROM}</span>/access.log <span class="variable">${LOGS_PATH_TO}</span>/access_<span class="variable">${YESTERDAY}</span>.log
+
+<span class="comment">## 向Nginx发送"USR1"信号,该信号为重新打开日志文件</span>
+<span class="built_in">kill</span> -USR1 $(cat /run/nginx.pid)
+</code></pre><p>该类脚本一般放在一个统一的路径下,比如<code>/etc/crontabTask</code>下.然后配置定时任务:</p>
+<pre><code>crontab -e
+
+<span class="preprocessor">## Nginx日志切割任务,每天的零点执行,并且把执行日志输出到`cut_Ngnix_log.log`文件</span>
+<span class="number">0</span> <span class="number">0</span> * * * /bin/bash  /etc/crontabTask/cut-<span class="built_in">log</span>.sh &gt; /root/crontabLog/cut_Ngnix_log.<span class="built_in">log</span> <span class="number">2</span>&gt;&amp;<span class="number">1</span>
+
+<span class="preprocessor">## 每<span class="number">10</span>分钟</span>
+<span class="number">10</span> */<span class="number">1</span> * * *
+
+<span class="preprocessor">## 每天<span class="number">2</span>点</span>
+<span class="number">0</span> <span class="number">2</span> * * *
+</code></pre><p>配置完成后执行<code>service cron reload</code>以立即生效配置.</p>
+<p><a href="https://tweaked.io/guide/kernel/" title="Tweaked.io: The GNU/Linux Kernel" target="_blank" rel="external">Tweaked.io: The GNU/Linux Kernel</a></p>
 </span>
       
     </div>
@@ -422,7 +464,7 @@ options ipv6 disable=<span class="number">0</span>
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件句柄限制"><span class="nav-number">1.</span> <span class="nav-text">文件句柄限制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Socket调整"><span class="nav-number">2.</span> <span class="nav-text">Socket调整</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完整参数设置(Centos_6-X)"><span class="nav-number">3.</span> <span class="nav-text">完整参数设置(Centos 6.X)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置面密码SSH"><span class="nav-number">4.</span> <span class="nav-text">配置面密码SSH</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#阿里云开启IPV6"><span class="nav-number">5.</span> <span class="nav-text">阿里云开启IPV6</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件句柄限制"><span class="nav-number">1.</span> <span class="nav-text">文件句柄限制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Socket调整"><span class="nav-number">2.</span> <span class="nav-text">Socket调整</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#完整参数设置(Centos_6-X)"><span class="nav-number">3.</span> <span class="nav-text">完整参数设置(Centos 6.X)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置面密码SSH"><span class="nav-number">4.</span> <span class="nav-text">配置面密码SSH</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#阿里云开启IPV6"><span class="nav-number">5.</span> <span class="nav-text">阿里云开启IPV6</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#时间命令"><span class="nav-number">6.</span> <span class="nav-text">时间命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定时任务"><span class="nav-number">7.</span> <span class="nav-text">定时任务</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

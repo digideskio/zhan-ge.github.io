@@ -50,7 +50,7 @@
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent2.png">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent3.png">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent4.png">
-<meta property="og:updated_time" content="2016-03-29T09:30:09.000Z">
+<meta property="og:updated_time" content="2016-03-30T06:14:00.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Flume-NG">
 <meta name="twitter:description" content="Flume的原理和使用">
@@ -473,7 +473,26 @@ a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span clas
 <pre><code>flume-ng <span class="comment">--help</span>
 </code></pre></li>
 </ol>
-<h3 id="实例:_avro数据源">实例: avro数据源</h3><p>安装成功之后,在 <code>/etc/flume/conf</code> 目录创建f1.conf文件,内容如下:</p>
+<h3 id="实例:_spooldir源发送到控制台用于测试">实例: spooldir源发送到控制台用于测试</h3><pre><code>a1<span class="class">.channels</span> = ch1
+a1<span class="class">.sources</span> = src1
+a1<span class="class">.sinks</span> = sink_logger
+
+a1<span class="class">.sources</span><span class="class">.src1</span><span class="class">.type</span> = spooldir
+a1<span class="class">.sources</span><span class="class">.src1</span><span class="class">.channels</span> = ch1
+a1<span class="class">.sources</span><span class="class">.src1</span><span class="class">.spoolDir</span> = /data/pro/flume/testlog
+a1<span class="class">.sources</span><span class="class">.src1</span><span class="class">.deletePolicy</span> = never
+a1<span class="class">.sources</span><span class="class">.src1</span><span class="class">.fileHeader</span> = true
+
+a1<span class="class">.channels</span><span class="class">.ch1</span><span class="class">.type</span> = memory
+a1<span class="class">.channels</span><span class="class">.ch1</span><span class="class">.capacity</span> = <span class="number">1000000</span>
+a1<span class="class">.channels</span><span class="class">.ch1</span><span class="class">.transactionCapacity</span> = <span class="number">1000000</span>
+a1<span class="class">.channels</span><span class="class">.ch1</span><span class="class">.keep-alive</span> = <span class="number">10</span>
+
+a1<span class="class">.sinks</span><span class="class">.sink_logger</span><span class="class">.type</span> = logger
+a1<span class="class">.sinks</span><span class="class">.sink_logger</span><span class="class">.channel</span> = ch1
+
+flume-ng agent -c /usr/lib/flume/apache-flume-<span class="number">1.6</span>.<span class="number">0</span>-bin/conf -f /usr/lib/flume/apache-flume-<span class="number">1.6</span>.<span class="number">0</span>-bin/conf/flume-conf<span class="class">.properties</span><span class="class">.conf</span> -Dflume<span class="class">.root</span><span class="class">.logger</span>=DEBUG,console -n a1
+</code></pre><h3 id="实例:_avro数据源">实例: avro数据源</h3><p>安装成功之后,在响应的 <code>/conf</code> 目录创建f1.conf文件,内容如下:</p>
 <pre><code>agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.type</span> = memory
 
 agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.avro-source1</span><span class="class">.channels</span> = ch-<span class="number">1</span>
@@ -499,25 +518,34 @@ agent-<span class="number">1</span><span class="class">.sinks</span> = log-sink1
 </ol>
 <p>下面启动一个avro-client客户端生产数据:</p>
 <pre><code>$ flume-ng avro-client -c /etc/flume-ng/conf -H localhost -<span class="tag">p</span> <span class="number">41414</span> -F /etc/passwd -Dflume<span class="class">.root</span><span class="class">.logger</span>=DEBUG,console
-</code></pre><h3 id="spooldir数据源">spooldir数据源</h3><p>在 <code>/etc/flume/conf</code> 目录创建f2.conf文件,内容如下:</p>
-<pre><code>agent-<span class="number">1</span><span class="class">.channels</span> = ch-<span class="number">1</span>
-agent-<span class="number">1</span><span class="class">.sources</span> = src-<span class="number">1</span>
+</code></pre><h3 id="spooldir源发送到kafka">spooldir源发送到kafka</h3><pre><code>a1.channels = ch1
+a1.sources = src1
+a1.sinks = sink_kafka
 
-agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.type</span> = memory
+<span class="comment">## 配置source</span>
+a1.sources.src1.<span class="keyword">type</span> = spooldir                       <span class="comment"># 源类型为文件目录</span>
+a1.sources.src1.channels = ch1                       <span class="comment"># 对应的channel名</span>
+a1.sources.src1.spoolDir = <span class="regexp">/root/log</span>                  <span class="comment"># 监控的目录</span>
+a1.sources.src1.deletePolicy= never                   <span class="comment"># 是否删除已完成的文件: never或immediate(立即)</span>
+a1.sources.src1.fileHeader = <span class="literal">true</span>                     <span class="comment"># 时候设置一个header来保存文件名的绝对路径</span>
 
-agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.type</span> = spooldir
-agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.channels</span> = ch-<span class="number">1</span>
-agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.spoolDir</span> = /root/log
-agent-<span class="number">1</span><span class="class">.sources</span><span class="class">.src-1</span><span class="class">.fileHeader</span> = true
+a1.sources.src1.interceptors = i1                      <span class="comment"># 在header中添加timestamp以在hadoop中使用</span>
+a1.sources.src1.interceptors.i1.<span class="keyword">type</span> = timestamp
 
-agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.log-sink1</span><span class="class">.channel</span> = ch-<span class="number">1</span>
-agent-<span class="number">1</span><span class="class">.sinks</span><span class="class">.log-sink1</span><span class="class">.type</span> = logger
+<span class="comment">## 配置channel</span>
+a1.channels.ch1.<span class="keyword">type</span> = file                           <span class="comment"># 类型</span>
+a1.channels.ch1.checkpointDir= <span class="regexp">/root/checkpoint</span>       <span class="comment"># 检查点目录</span>
+a1.channels.ch1.dataDirs= <span class="regexp">/root/data</span>                  <span class="comment"># 缓存目录</span>
 
-agent-<span class="number">1</span><span class="class">.sinks</span> = log-sink1
-</code></pre><p>然后启动agent:</p>
-<pre><code>$ flume-ng agent -c /etc/flume-ng/conf -f /etc/flume-ng/conf/f2<span class="class">.conf</span> -Dflume<span class="class">.root</span><span class="class">.logger</span>=DEBUG,console -n agent-<span class="number">1</span>
+<span class="comment">## 配置sink: kafka</span>
+a1.sinks.sink_kafka.<span class="keyword">type</span> = org.apache.flume.sink.kafka.<span class="constant">KafkaSink</span>
+a1.sinks.sink_kafka.topic = mytopic                    <span class="comment"># 对应Kafka中的主题</span>
+a1.sinks.sink_kafka.brokerList = <span class="symbol">localhost:</span><span class="number">9092</span>        <span class="comment"># kafka的地址</span>
+a1.sinks.sink_kafka.requiredAcks = <span class="number">1</span>
+a1.sinks.sink_kafka.batchSize = <span class="number">20</span>
+a1.sinks.sink_kafka.channel = ch1
 </code></pre><p>手动拷贝一个文件到 ‘/root/log’ 目录,观察日志输出和 ‘/root/log’ 下的变化.</p>
-<h3 id="spooldir数据源并写入HDFS">spooldir数据源并写入HDFS</h3><pre><code>agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.type</span> = file
+<h3 id="实例:_spooldir数据源并写入HDFS">实例: spooldir数据源并写入HDFS</h3><pre><code>agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.type</span> = file
 agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.checkpointDir</span>= /root/checkpoint
 agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.dataDirs</span>= /root/data
 
@@ -547,6 +575,49 @@ agent-<span class="number">1</span><span class="class">.sinks</span><span class=
 agent-<span class="number">1</span><span class="class">.channels</span> = ch-<span class="number">1</span>
 agent-<span class="number">1</span><span class="class">.sources</span> = src-<span class="number">1</span>
 agent-<span class="number">1</span><span class="class">.sinks</span> = sink_hdfs
+</code></pre><h3 id="spooldir数据源发送到多个sink">spooldir数据源发送到多个sink</h3><pre><code><span class="preprocessor">## 定义各组件的名字</span>
+
+agent-<span class="number">1.</span>channels = ch-<span class="number">1</span> ch-<span class="number">2</span>
+agent-<span class="number">1.</span>sources = src-<span class="number">1</span>
+agent-<span class="number">1.</span>sinks = sink_kafka sink_logger
+
+<span class="preprocessor">## 配置source</span>
+agent-<span class="number">1.</span>sources.src-<span class="number">1.</span>type = spooldir                       <span class="preprocessor"># 源类型为文件目录</span>
+agent-<span class="number">1.</span>sources.src-<span class="number">1.</span>channels = ch-<span class="number">1</span>                       <span class="preprocessor"># 对应的channel名</span>
+agent-<span class="number">1.</span>sources.src-<span class="number">1.</span>spoolDir = /root/<span class="built_in">log</span>                  <span class="preprocessor"># 监控的目录</span>
+agent-<span class="number">1.</span>sources.src-<span class="number">1.</span>deletePolicy= never                   <span class="preprocessor"># 是否删除已完成的文件: never或immediate(立即)</span>
+agent-<span class="number">1.</span>sources.src-<span class="number">1.f</span>ileHeader = <span class="literal">true</span>                     <span class="preprocessor"># 时候设置一个header来保存文件名的绝对路径</span>
+
+agent-<span class="number">1.</span>sources.src-<span class="number">1.</span>interceptors =i1                      <span class="preprocessor"># 在header中添加timestamp以在hadoop中使用</span>
+agent-<span class="number">1.</span>sources.src-<span class="number">1.</span>interceptors.i1.type = timestamp
+
+<span class="preprocessor">## ch-<span class="number">1</span>和sink_kafka一组发送数据到kafka</span>
+
+<span class="preprocessor">## 配置channel</span>
+agent-<span class="number">1.</span>channels.ch-<span class="number">1.</span>type = file                           <span class="preprocessor"># 类型</span>
+agent-<span class="number">1.</span>channels.ch-<span class="number">1.</span>checkpointDir= /root/checkpoint       <span class="preprocessor"># 检查点目录</span>
+agent-<span class="number">1.</span>channels.ch-<span class="number">1.</span>dataDirs= /root/data                  <span class="preprocessor"># 缓存目录</span>
+
+<span class="preprocessor">## 配置sink: kafka</span>
+agent-<span class="number">1.</span>sinks.sink_kafka.type = org.apache.flume.sink.kafka.KafkaSink
+agent-<span class="number">1.</span>sinks.sink_kafka.topic = mytopic                    <span class="preprocessor"># 对应Kafka中的主题</span>
+agent-<span class="number">1.</span>sinks.sink_kafka.brokerList = localhost:<span class="number">9092</span>        <span class="preprocessor"># kafka的地址</span>
+agent-<span class="number">1.</span>sinks.sink_kafka.requiredAcks = <span class="number">1</span>
+agent-<span class="number">1.</span>sinks.sink_kafka.batchSize = <span class="number">20</span>
+agent-<span class="number">1.</span>sinks.sink_kafka.channel = ch-<span class="number">1</span>
+
+<span class="preprocessor">## ch-<span class="number">2</span>和sink_logger输出到控制台用于调试</span>
+
+<span class="preprocessor">## 配置channel</span>
+agent-<span class="number">1.</span>channels.ch-<span class="number">2.</span>type = memory
+agent-<span class="number">1.</span>channels.ch-<span class="number">2.</span>capacity = <span class="number">1000000</span>
+agent-<span class="number">1.</span>channels.ch-<span class="number">2.</span>transactionCapacity = <span class="number">1000000</span>
+agent-<span class="number">1.</span>channels.ch-<span class="number">2.</span>keep-alive = <span class="number">10</span>
+
+<span class="preprocessor">## 配置sink: 用于测试的Logger</span>
+agent-<span class="number">1.</span>sinks = sink-logger
+agent-<span class="number">1.</span>sinks.k1.type = logger
+agent-<span class="number">1.</span>sinks.k1.channel = ch-<span class="number">2</span>
 </code></pre><p>说明:</p>
 <ol>
 <li>通过 interceptors 往 header 里添加 timestamp，这样做，可以在 hdfs.path 引用系统内部的时间变量或者主机的 hostname。</li>
@@ -707,7 +778,7 @@ agent-<span class="number">1</span><span class="class">.sinks</span> = sink_hdfs
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构"><span class="nav-number">2.</span> <span class="nav-text">架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据流"><span class="nav-number">2.1.</span> <span class="nav-text">数据流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#核心组件"><span class="nav-number">2.2.</span> <span class="nav-text">核心组件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Source"><span class="nav-number">2.2.1.</span> <span class="nav-text">Source</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Channel"><span class="nav-number">2.2.2.</span> <span class="nav-text">Channel</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Sink"><span class="nav-number">2.2.3.</span> <span class="nav-text">Sink</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可靠性"><span class="nav-number">2.3.</span> <span class="nav-text">可靠性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可恢复性"><span class="nav-number">2.4.</span> <span class="nav-text">可恢复性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用场景"><span class="nav-number">3.</span> <span class="nav-text">使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#多个agent顺序连接"><span class="nav-number">3.1.</span> <span class="nav-text">多个agent顺序连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多个agent的数据汇集到一个agent"><span class="nav-number">3.2.</span> <span class="nav-text">多个agent的数据汇集到一个agent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多路Agent"><span class="nav-number">3.3.</span> <span class="nav-text">多路Agent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现loadbalance功能"><span class="nav-number">3.4.</span> <span class="nav-text">实现loadbalance功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现failover功能"><span class="nav-number">3.5.</span> <span class="nav-text">实现failover功能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装和使用"><span class="nav-number">4.</span> <span class="nav-text">安装和使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实例:_avro数据源"><span class="nav-number">4.1.</span> <span class="nav-text">实例: avro数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spooldir数据源"><span class="nav-number">4.2.</span> <span class="nav-text">spooldir数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spooldir数据源并写入HDFS"><span class="nav-number">4.3.</span> <span class="nav-text">spooldir数据源并写入HDFS</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最佳实践"><span class="nav-number">5.</span> <span class="nav-text">最佳实践</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考列表"><span class="nav-number">6.</span> <span class="nav-text">参考列表</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构"><span class="nav-number">2.</span> <span class="nav-text">架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据流"><span class="nav-number">2.1.</span> <span class="nav-text">数据流</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#核心组件"><span class="nav-number">2.2.</span> <span class="nav-text">核心组件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Source"><span class="nav-number">2.2.1.</span> <span class="nav-text">Source</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Channel"><span class="nav-number">2.2.2.</span> <span class="nav-text">Channel</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Sink"><span class="nav-number">2.2.3.</span> <span class="nav-text">Sink</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可靠性"><span class="nav-number">2.3.</span> <span class="nav-text">可靠性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可恢复性"><span class="nav-number">2.4.</span> <span class="nav-text">可恢复性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用场景"><span class="nav-number">3.</span> <span class="nav-text">使用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#多个agent顺序连接"><span class="nav-number">3.1.</span> <span class="nav-text">多个agent顺序连接</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多个agent的数据汇集到一个agent"><span class="nav-number">3.2.</span> <span class="nav-text">多个agent的数据汇集到一个agent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#多路Agent"><span class="nav-number">3.3.</span> <span class="nav-text">多路Agent</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现loadbalance功能"><span class="nav-number">3.4.</span> <span class="nav-text">实现loadbalance功能</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现failover功能"><span class="nav-number">3.5.</span> <span class="nav-text">实现failover功能</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装和使用"><span class="nav-number">4.</span> <span class="nav-text">安装和使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实例:_spooldir源发送到控制台用于测试"><span class="nav-number">4.1.</span> <span class="nav-text">实例: spooldir源发送到控制台用于测试</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例:_avro数据源"><span class="nav-number">4.2.</span> <span class="nav-text">实例: avro数据源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spooldir源发送到kafka"><span class="nav-number">4.3.</span> <span class="nav-text">spooldir源发送到kafka</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例:_spooldir数据源并写入HDFS"><span class="nav-number">4.4.</span> <span class="nav-text">实例: spooldir数据源并写入HDFS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#spooldir数据源发送到多个sink"><span class="nav-number">4.5.</span> <span class="nav-text">spooldir数据源发送到多个sink</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最佳实践"><span class="nav-number">5.</span> <span class="nav-text">最佳实践</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考列表"><span class="nav-number">6.</span> <span class="nav-text">参考列表</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

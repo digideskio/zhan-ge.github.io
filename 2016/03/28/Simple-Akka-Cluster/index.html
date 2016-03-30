@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/28/Simple-Akka-Cluster/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Akka集群模式.">
-<meta property="og:updated_time" content="2016-03-29T15:49:47.000Z">
+<meta property="og:updated_time" content="2016-03-30T15:49:48.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Akka: Cluster">
 <meta name="twitter:description" content="Akka集群模式.">
@@ -587,6 +587,151 @@ cluster.<span class="function"><span class="title">leave</span><span class="para
   <span class="comment">// after a while the destinations are replicated</span>
   sender ! <span class="string">"hello"</span>
 }
+</code></pre><p>同时可以通过向本地中介者发送<code>Put.SendDistributedPubSubMediator.SendToAll</code>消息,将消息发送到所有注册到匹配路径的目的地actor.带有相同路径不带地址信息的actor可以注册到不同的节点,每个节点上只能存在一个这样的节点,因为本地actor系统中路径是唯一的.</p>
+<p>这个模式的经典用例是讲消息广播到所有拥有相同路径的actor.比如不同的节点都执行相同的动作.同时可以指定一个特殊的属性(allButSelf)来决定是否将消息发送到自身节点中匹配的路径.</p>
+<h3 id="DistributedPubSub_Extension">DistributedPubSub Extension</h3><p>上面的例子中,中介者使用<code>akka.cluster.pubsub.DistributedPubSub</code>扩展来创建和访问.在很多场景中这是方便理想的方式,同时需要了解的是可以创建一个单独的actor来作为中介者,或者同时创建多个不同的中介者来大量的actor或主题分割到不同的中介者.比如可以为不同的中介者使用不同的集群节点角色.</p>
+<p><code>DistributedPubSub</code>扩展可以通过下面的配置文件来设置属性:</p>
+<pre><code><span class="comment"># Settings for the DistributedPubSub extension</span>
+akka.cluster.pub-<span class="sub"><span class="keyword">sub</span> {</span>
+  <span class="comment"># 中介者的actor名字name, /system/distributedPubSubMediator</span>
+  name = distributedPubSubMediator
+
+  <span class="comment"># 在那种角色的节点上穿件这个中介者actor,不设置则在所有节点创建</span>
+  role = <span class="string">""</span>
+
+  <span class="comment"># `Send`的路由方法: random, round-robin, broadcast</span>
+  routing-logic = random
+
+  <span class="comment"># DistributedPubSubMediator发送gossip信息的频率</span>
+  gossip-interval = <span class="number">1</span><span class="keyword">s</span>
+
+  <span class="comment"># Removed entries are pruned after this duration</span>
+  removed-<span class="keyword">time</span>-to-live = <span class="number">120</span><span class="keyword">s</span>
+
+  <span class="comment"># Maximum number of elements to transfer in one message when synchronizing the registries.</span>
+  <span class="comment"># Next chunk will be transferred in next round of gossip.</span>
+  max-delta-elements = <span class="number">3000</span>
+
+  <span class="comment"># The id of the dispatcher to use for DistributedPubSubMediator actors. </span>
+  <span class="comment"># If not specified default dispatcher is used.</span>
+  <span class="comment"># If specified you need to define the settings of the actual dispatcher.</span>
+  <span class="keyword">use</span>-dispatcher = <span class="string">""</span>
+}
+</code></pre><p>推荐的做法是通过定义<code>akka.extensions</code>属性以在actor系统启动是加载扩展.否则会在第一次启动时加载,这通常会需要一点时间.</p>
+<pre><code>akka<span class="class">.extensions</span> = [<span class="string">"akka.cluster.pubsub.DistributedPubSub"</span>]
+</code></pre><h3 id="依赖">依赖</h3><pre><code><span class="string">"com.typesafe.akka"</span> <span class="preprocessor">%</span><span class="preprocessor">%</span> <span class="string">"akka-cluster-tools"</span> <span class="preprocessor">%</span> <span class="string">"2.4.2"</span>
+</code></pre><h2 id="Cluster_Client">Cluster Client</h2><p>集群之外的actor系统可以通过<code>ClusterClient</code>与集群进行通信,这个客户端可以属于另外一个集群.它只需要知道一个或其中几个节点作为最初的联系点.它会创建一个与集群中<code>ClusterReceptionist</code>的连接,并且监控连接,如果连接丢失则会重新进行创建.当寻找新的连接点时会刷新上一个连接,或者周期性的刷新连接,最初的连接点并不是必须的.</p>
+<p>注意: <code>ClusterClient</code>不能用于向运行于集群本身的actor发送消息.如果需要,可以使用分布式的订阅发布来向当前集群的actor发送消息.</p>
+<p>注意在使用<code>ClusterClient</code>时同样需要将Akka的<code>akka.actor.provider</code>从<code>akka.actor.LocalActorRefProvider</code>改变为<code>akka.remote.RemoteActorRefProvider or akka.cluster.ClusterActorRefProvider</code>.</p>
+<p>连接点可以在所有节点上启动,或者通过指定一个规则在部分节点上启动.通过<code>ClusterClientReceptionist</code>扩展启动,或者作为一个单独的actor启动.</p>
+<p>可以通过<code>ClusterClient</code>向集群中使用<code>ClusterReceptionist</code>注册到<code>DistributedPubSubMediator</code>的actor发送消息.<code>ClusterClientReceptionist</code>为已注册的actor提供了一个方法用于和客户端联系.消息通过<code>ClusterClient.Send</code>,<code>ClusterClient.SendToAll</code>或<code>ClusterClient.Publish</code>封装.</p>
+<ol>
+<li><p><code>ClusterClient.Send</code>: 消息会通过匹配的路径提交给一个存在的接收者,如果同时有多个匹配路径的实体会通过随机的方式提交到目的地.消息的<code>sender()</code>可以指定本地优先.</p>
+</li>
+<li><p><code>ClusterClient.SendToAll</code>: 消息会被发送到所有匹配路径的目的地.</p>
+</li>
+<li><p><code>ClusterClient.Publish</code>: 消息会被发送到所有通过主题名注册为订阅者的目的地.</p>
+</li>
+</ol>
+<p>从目的地actor回复的消息会被接待者以隧道的方式转接,以避免其他集群的节点对连接的绑定.比如,被目的地actor看到的<code>sender()</code>并不是这个客户端本身.被客户端看到的发送响应消息的<code>sneder()</code>会收到<code>deadLetters</code>,因为客户端通常会通过<code>ClusterClient</code>发送后续的消息.如果客户端需要立即与集群中的一个actor通信时,同样可以在回复消息中传入原始的sender.</p>
+<p>当与目的地之间建立联系时,<code>ClusterClient</code>会对消息进行缓冲然后当连接建立完成后将消息发送.缓冲满的时候<code>ClusterClient</code>再收到新的消息则会将最老的消息丢弃.或者将缓冲设置为0来关闭缓冲功能.</p>
+<h3 id="实例-1">实例</h3><p>首先在集群中启动接待员.推荐的做法是通过在配置文件中定义<code>akka.extensions</code>属性在actor系统启动时加载扩展.</p>
+<pre><code>akka<span class="class">.extensions</span> = [<span class="string">"akka.cluster.client.ClusterClientReceptionist"</span>]
+</code></pre><p>然后将客户端需要连接的actor进行注册:</p>
+<pre><code><span class="function"><span class="title">runOn</span><span class="params">(host1)</span> {
+  <span class="title">val</span> <span class="title">serviceA</span> = <span class="title">system</span>.<span class="title">actorOf</span><span class="params">(<span class="variable">Props</span>[<span class="variable">Service</span>], <span class="string">"serviceA"</span>)</span>
+  C<span class="title">lusterClientReceptionist</span><span class="params">(system)</span>.<span class="title">registerService</span><span class="params">(service<span class="variable">A</span>)</span>
+}
+
+<span class="title">runOn</span><span class="params">(host2, host3)</span> {
+  <span class="title">val</span> <span class="title">serviceB</span> = <span class="title">system</span>.<span class="title">actorOf</span><span class="params">(<span class="variable">Props</span>[<span class="variable">Service</span>], <span class="string">"serviceB"</span>)</span>
+  C<span class="title">lusterClientReceptionist</span><span class="params">(system)</span>.<span class="title">registerService</span><span class="params">(service<span class="variable">B</span>)</span>
+}</span>
+</code></pre><p>在客户端可以创建一个<code>ClusterClient</code>actor作为网关来向集群中被路径标识的actor发送消息.</p>
+<pre><code>runOn(client) {
+  val <span class="built_in">c</span> = system.actorOf(<span class="type">ClusterClient</span>.props(
+    <span class="type">ClusterClientSettings</span>(system).withInitialContacts(initialContacts)), <span class="string">"client"</span>)
+  <span class="built_in">c</span> ! <span class="type">ClusterClient</span>.<span class="type">Send</span>(<span class="string">"/user/serviceA"</span>, <span class="string">"hello"</span>, localAffinity = <span class="literal">true</span>)
+  <span class="built_in">c</span> ! <span class="type">ClusterClient</span>.<span class="type">SendToAll</span>(<span class="string">"/user/serviceB"</span>, <span class="string">"hi"</span>)
+}
+</code></pre><p>上面的<code>initialContacts</code>参数是一个<code>Set[ActorPath]</code>,可以按如下的方式创建:</p>
+<pre><code>val initialContacts = Set(
+  ActorPath.<span class="function"><span class="title">fromString</span><span class="params">(<span class="string">"akka.tcp://OtherSys@host1:2552/system/receptionist"</span>)</span></span>,
+  ActorPath.<span class="function"><span class="title">fromString</span><span class="params">(<span class="string">"akka.tcp://OtherSys@host2:2552/system/receptionist"</span>)</span></span>)
+val settings = <span class="function"><span class="title">ClusterClientSettings</span><span class="params">(system)</span></span>
+  .<span class="function"><span class="title">withInitialContacts</span><span class="params">(initialContacts)</span></span>
+</code></pre><p>或者在配置文件中或系统变量中定义.</p>
+<h3 id="ClusterClientReceptionist_Extension">ClusterClientReceptionist Extension</h3><p>上面的例子中接待者使用<code>akka.cluster.client.ClusterClientReceptionist</code>扩展创建和访问.这种方式很方便,通知支持启动一个单独的<code>akka.cluster.client.ClusterReceptionist</code>actor,并且支持同时存在多个接待者以服务不同类型的客户端.</p>
+<p>注意<code>ClusterClientReceptionist</code>同时使用了<code>DistributedPubSub</code>扩展,已经在分布式发布订阅集群的部分进行了介绍.</p>
+<h3 id="依赖-1">依赖</h3><pre><code><span class="string">"com.typesafe.akka"</span> <span class="preprocessor">%</span><span class="preprocessor">%</span> <span class="string">"akka-cluster-tools"</span> <span class="preprocessor">%</span> <span class="string">"2.4.2"</span>
+</code></pre><h3 id="配置">配置</h3><p><code>ClusterClientReceptionist</code>扩展可以通过如下属性进行配置:</p>
+<pre><code><span class="comment"># Settings for the ClusterClientReceptionist extension</span>
+akka.cluster.client.receptionist {
+  <span class="comment"># Actor name of the ClusterReceptionist actor, /system/receptionist</span>
+  <span class="property">name</span> = receptionist
+
+  <span class="comment"># 用以启动接待者的节点角色,不设置则所有节点都可以启动</span>
+  role = <span class="string">""</span>
+
+  <span class="comment"># The receptionist will send this number of contact points to the client</span>
+  <span class="type">number</span>-<span class="keyword">of</span>-contacts = <span class="number">3</span>
+
+  <span class="comment"># The actor that tunnel response messages to the client will be stopped</span>
+  <span class="comment"># after this time of inactivity.</span>
+  response-tunnel-receive-<span class="keyword">timeout</span> = <span class="number">30</span>s
+
+  <span class="comment"># The id of the dispatcher to use for ClusterReceptionist actors. </span>
+  <span class="comment"># If not specified default dispatcher is used.</span>
+  <span class="comment"># If specified you need to define the settings of the actual dispatcher.</span>
+  use-dispatcher = <span class="string">""</span>
+
+}
+</code></pre><p>下面的配置属性在使用参数创建<code>ActorSystem</code>时由<code>ClusterClientSettings</code>读取,或者可以通过<code>ClusterClientSettings</code>在读取时按上面的格式设置其他的配置文件.</p>
+<pre><code><span class="comment"># Settings for the ClusterClient</span>
+akka.cluster.client {
+  <span class="comment"># Actor paths of the ClusterReceptionist actors on the servers (cluster nodes)</span>
+  <span class="comment"># that the client will try to contact initially. It is mandatory to specify</span>
+  <span class="comment"># at least one initial contact. </span>
+  <span class="comment"># Comma separated full actor paths defined by a string on the form of</span>
+  <span class="comment"># "akka.tcp://system@hostname:port/system/receptionist"</span>
+  initial-contacts = []
+
+  <span class="comment"># Interval at which the client retries to establish contact with one of </span>
+  <span class="comment"># ClusterReceptionist on the servers (cluster nodes)</span>
+  establishing-<span class="keyword">get</span>-contacts-interval = <span class="number">3</span>s
+
+  <span class="comment"># Interval at which the client will ask the ClusterReceptionist for</span>
+  <span class="comment"># new contact points to be used for next reconnect.</span>
+  refresh-contacts-interval = <span class="number">60</span>s
+
+  <span class="comment"># How often failure detection heartbeat messages should be sent</span>
+  heartbeat-interval = <span class="number">2</span>s
+
+  <span class="comment"># Number of potentially lost/delayed heartbeats that will be</span>
+  <span class="comment"># accepted before considering it to be an anomaly.</span>
+  <span class="comment"># The ClusterClient is using the akka.remote.DeadlineFailureDetector, which</span>
+  <span class="comment"># will trigger if there are no heartbeats within the duration </span>
+  <span class="comment"># heartbeat-interval + acceptable-heartbeat-pause, i.e. 15 seconds with</span>
+  <span class="comment"># the default settings.</span>
+  acceptable-heartbeat-pause = <span class="number">13</span>s
+
+  <span class="comment"># If connection to the receptionist is not established the client will buffer</span>
+  <span class="comment"># this number of messages and deliver them the connection is established.</span>
+  <span class="comment"># When the buffer is full old messages will be dropped when new messages are sent</span>
+  <span class="comment"># via the client. Use 0 to disable buffering, i.e. messages will be dropped</span>
+  <span class="comment"># immediately if the location of the singleton is unknown.</span>
+  <span class="comment"># Maximum allowed buffer size is 10000.</span>
+  buffer-size = <span class="number">1000</span>
+
+  <span class="comment"># If connection to the receiptionist is lost and the client has not been</span>
+  <span class="comment"># able to acquire a new connection for this long the client will stop itself.</span>
+  <span class="comment"># This duration makes it possible to watch the cluster client and react on a more permanent</span>
+  <span class="comment"># loss of connection with the cluster, for example by accessing some kind of</span>
+  <span class="comment"># service registry for an updated set of initial contacts to start a new cluster client with.</span>
+  <span class="comment"># If this is not wanted it can be set to "off" to disable the timeout and retry</span>
+  <span class="comment"># forever.</span>
+  reconnect-<span class="keyword">timeout</span> = off
+}
 </code></pre></span>
       
     </div>
@@ -714,7 +859,7 @@ cluster.<span class="function"><span class="title">leave</span><span class="para
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gossip协议"><span class="nav-number">1.1.</span> <span class="nav-text">Gossip协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#术语"><span class="nav-number">2.</span> <span class="nav-text">术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#成员关系"><span class="nav-number">3.</span> <span class="nav-text">成员关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip"><span class="nav-number">4.</span> <span class="nav-text">Gossip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向量时钟(Vector_Clocks)"><span class="nav-number">5.</span> <span class="nav-text">向量时钟(Vector Clocks)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Convergence"><span class="nav-number">6.</span> <span class="nav-text">Gossip Convergence</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failure_Detector"><span class="nav-number">7.</span> <span class="nav-text">Failure Detector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leader"><span class="nav-number">8.</span> <span class="nav-text">Leader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Seed_Nodes"><span class="nav-number">9.</span> <span class="nav-text">Seed Nodes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Protocol"><span class="nav-number">10.</span> <span class="nav-text">Gossip Protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Membership_Lifecycle"><span class="nav-number">11.</span> <span class="nav-text">Membership Lifecycle</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#成员状态"><span class="nav-number">11.1.</span> <span class="nav-text">成员状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户动作"><span class="nav-number">11.2.</span> <span class="nav-text">用户动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader动作"><span class="nav-number">11.3.</span> <span class="nav-text">Leader动作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加依赖"><span class="nav-number">12.</span> <span class="nav-text">添加依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的集群例子"><span class="nav-number">13.</span> <span class="nav-text">一个简单的集群例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向集群中添加一个节点"><span class="nav-number">14.</span> <span class="nav-text">向集群中添加一个节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自动或手动关闭"><span class="nav-number">15.</span> <span class="nav-text">自动或手动关闭</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leaving"><span class="nav-number">16.</span> <span class="nav-text">Leaving</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WeaklyUp_Members(实验性,仅支持2-4以上的版本)"><span class="nav-number">17.</span> <span class="nav-text">WeaklyUp Members(实验性,仅支持2.4以上的版本)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#订阅集群事件"><span class="nav-number">18.</span> <span class="nav-text">订阅集群事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker_Dial-in_Example"><span class="nav-number">19.</span> <span class="nav-text">Worker Dial-in Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点角色"><span class="nav-number">20.</span> <span class="nav-text">节点角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Startup_when_Cluster_Size_Reached"><span class="nav-number">21.</span> <span class="nav-text">How To Startup when Cluster Size Reached</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Cleanup_when_Member_is_Removed"><span class="nav-number">22.</span> <span class="nav-text">How To Cleanup when Member is Removed</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Singleton"><span class="nav-number">23.</span> <span class="nav-text">Cluster Singleton</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#需要注意的潜在问题"><span class="nav-number">23.1.</span> <span class="nav-text">需要注意的潜在问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例"><span class="nav-number">23.2.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖配置"><span class="nav-number">23.3.</span> <span class="nav-text">依赖配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置选项"><span class="nav-number">23.4.</span> <span class="nav-text">配置选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群中的分布式发布订阅"><span class="nav-number">24.</span> <span class="nav-text">集群中的分布式发布订阅</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Publish"><span class="nav-number">24.1.</span> <span class="nav-text">Publish</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Send"><span class="nav-number">24.2.</span> <span class="nav-text">Send</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gossip协议"><span class="nav-number">1.1.</span> <span class="nav-text">Gossip协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#术语"><span class="nav-number">2.</span> <span class="nav-text">术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#成员关系"><span class="nav-number">3.</span> <span class="nav-text">成员关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip"><span class="nav-number">4.</span> <span class="nav-text">Gossip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向量时钟(Vector_Clocks)"><span class="nav-number">5.</span> <span class="nav-text">向量时钟(Vector Clocks)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Convergence"><span class="nav-number">6.</span> <span class="nav-text">Gossip Convergence</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failure_Detector"><span class="nav-number">7.</span> <span class="nav-text">Failure Detector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leader"><span class="nav-number">8.</span> <span class="nav-text">Leader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Seed_Nodes"><span class="nav-number">9.</span> <span class="nav-text">Seed Nodes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Protocol"><span class="nav-number">10.</span> <span class="nav-text">Gossip Protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Membership_Lifecycle"><span class="nav-number">11.</span> <span class="nav-text">Membership Lifecycle</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#成员状态"><span class="nav-number">11.1.</span> <span class="nav-text">成员状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户动作"><span class="nav-number">11.2.</span> <span class="nav-text">用户动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader动作"><span class="nav-number">11.3.</span> <span class="nav-text">Leader动作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加依赖"><span class="nav-number">12.</span> <span class="nav-text">添加依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的集群例子"><span class="nav-number">13.</span> <span class="nav-text">一个简单的集群例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向集群中添加一个节点"><span class="nav-number">14.</span> <span class="nav-text">向集群中添加一个节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自动或手动关闭"><span class="nav-number">15.</span> <span class="nav-text">自动或手动关闭</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leaving"><span class="nav-number">16.</span> <span class="nav-text">Leaving</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WeaklyUp_Members(实验性,仅支持2-4以上的版本)"><span class="nav-number">17.</span> <span class="nav-text">WeaklyUp Members(实验性,仅支持2.4以上的版本)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#订阅集群事件"><span class="nav-number">18.</span> <span class="nav-text">订阅集群事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker_Dial-in_Example"><span class="nav-number">19.</span> <span class="nav-text">Worker Dial-in Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点角色"><span class="nav-number">20.</span> <span class="nav-text">节点角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Startup_when_Cluster_Size_Reached"><span class="nav-number">21.</span> <span class="nav-text">How To Startup when Cluster Size Reached</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Cleanup_when_Member_is_Removed"><span class="nav-number">22.</span> <span class="nav-text">How To Cleanup when Member is Removed</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Singleton"><span class="nav-number">23.</span> <span class="nav-text">Cluster Singleton</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#需要注意的潜在问题"><span class="nav-number">23.1.</span> <span class="nav-text">需要注意的潜在问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例"><span class="nav-number">23.2.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖配置"><span class="nav-number">23.3.</span> <span class="nav-text">依赖配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置选项"><span class="nav-number">23.4.</span> <span class="nav-text">配置选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群中的分布式发布订阅"><span class="nav-number">24.</span> <span class="nav-text">集群中的分布式发布订阅</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Publish"><span class="nav-number">24.1.</span> <span class="nav-text">Publish</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Send"><span class="nav-number">24.2.</span> <span class="nav-text">Send</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DistributedPubSub_Extension"><span class="nav-number">24.3.</span> <span class="nav-text">DistributedPubSub Extension</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖"><span class="nav-number">24.4.</span> <span class="nav-text">依赖</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Client"><span class="nav-number">25.</span> <span class="nav-text">Cluster Client</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实例-1"><span class="nav-number">25.1.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ClusterClientReceptionist_Extension"><span class="nav-number">25.2.</span> <span class="nav-text">ClusterClientReceptionist Extension</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖-1"><span class="nav-number">25.3.</span> <span class="nav-text">依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置"><span class="nav-number">25.4.</span> <span class="nav-text">配置</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

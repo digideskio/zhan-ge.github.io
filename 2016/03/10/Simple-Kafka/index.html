@@ -47,7 +47,7 @@
 <meta property="og:description" content="Kafka分布式消息系统">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/kafka1.png">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/kafka2.png">
-<meta property="og:updated_time" content="2016-03-12T10:47:31.000Z">
+<meta property="og:updated_time" content="2016-03-30T15:05:19.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Kafka">
 <meta name="twitter:description" content="Kafka分布式消息系统">
@@ -277,7 +277,133 @@
 <li><p>Flume和Kakfa可以配合使用.</p>
 </li>
 </ol>
-<p><a href="http://www.biaodianfu.com/kafka.html" title="标点符: 分布式消息系统：Kafka" target="_blank" rel="external">标点符: 分布式消息系统：Kafka</a><br><a href="http://tech.meituan.com/kafka-fs-design-theory.html" title="悠悠香草: Kafka 文件存储机制那些事" target="_blank" rel="external">悠悠香草: Kafka 文件存储机制那些事</a><br><a href="http://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.html" title="周明耀: Apache kafka 工作原理介绍" target="_blank" rel="external">周明耀: Apache kafka 工作原理介绍</a><br><a href="http://www.aboutyun.com/thread-9341-1-1.html" title="sstutu: kafka入门：简介、使用场景、设计原理、主要配置及集群搭建" target="_blank" rel="external">sstutu: kafka入门：简介、使用场景、设计原理、主要配置及集群搭建</a><br><a href="http://www.jasongj.com/2015/01/02/Kafka深度解析/" title="Jason’s Blog: Kafka深度解析" target="_blank" rel="external">Jason’s Blog: Kafka深度解析</a></p>
+<h2 id="配置集群">配置集群</h2><ol>
+<li><p>下载并解压稳定版本,这里是<code>kafka_2.11-0.9.0.1</code>,创建安装目录一般是<code>/usr/lib/kafka</code>,将解压后的文件复制到安装目录.</p>
+</li>
+<li><p>配置环境变量,编辑<code>~/.bash_profile</code>文件,添加上面的安装目录:</p>
+<pre><code>vim ~/.bash_profile
+
+export KAFKA_HOME=/usr/lib/kafka/kafka_2.<span class="number">11</span>-<span class="number">0</span>.<span class="number">9.0</span>.<span class="number">1</span>/bin
+export PATH=<span class="variable">$KAFKA</span>_HOME:<span class="variable">$PATH</span>
+
+source ~/.bash_profile
+</code></pre></li>
+<li><p>创建数据目录用于存放zookeeper数据,由于系统盘容量限制,在挂载数据盘中创建一个单独的目录,<code>/data/pro/kafka/data/zookeeper</code>,同时创建日志目录<code>/data/pro/kafka/log</code>.</p>
+</li>
+<li><p>配置Kafka的配置文件:</p>
+<pre><code><span class="preprocessor">## 分别在各个节点的安装目录`config`下编辑`server.properties`文件</span>
+<span class="preprocessor">## 这里配置<span class="number">3</span>个节点: <span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.2</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.3</span></span>
+vim /usr/lib/kafka/kafka_2<span class="number">.11</span>-<span class="number">0.9</span><span class="number">.0</span><span class="number">.1</span>-bin/config/server.properties
+
+broker.id=<span class="number">1</span>                 <span class="comment">// 每个节点配置一个单独的ID,可按顺序递增</span>
+host.name=<span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>
+<span class="built_in">log</span>.dirs=/data/pro/kafka/<span class="built_in">log</span>
+zookeeper.connect=<span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">2181</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.2</span>:<span class="number">2181</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.3</span>:<span class="number">2181</span>
+</code></pre></li>
+<li><p>配置zookeeper配置文件:</p>
+<pre><code><span class="preprocessor">## 分别在各个节编辑配置文件,添加zookeeper集群的信息</span>
+vim /usr/lib/kafka/kafka_2<span class="number">.11</span>-<span class="number">0.9</span><span class="number">.0</span><span class="number">.1</span>-bin/config/zookeeper.properties
+
+dataDir=/data/pro/kafka/data/zookeeper      <span class="preprocessor"># 直接指认到zookeeper的数据路径</span>
+server<span class="number">.1</span>=<span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">2888</span>:<span class="number">3888</span>
+server<span class="number">.2</span>=<span class="number">192.168</span><span class="number">.0</span><span class="number">.2</span>:<span class="number">2888</span>:<span class="number">3888</span>
+server<span class="number">.3</span>=<span class="number">192.168</span><span class="number">.0</span><span class="number">.3</span>:<span class="number">2888</span>:<span class="number">3888</span>
+</code></pre></li>
+<li><p>配置生产者配置文件:</p>
+<pre><code><span class="preprocessor">## 分别在三个节点</span>
+vim /usr/lib/kafka/kafka_2<span class="number">.11</span>-<span class="number">0.9</span><span class="number">.0</span><span class="number">.1</span>-bin/config/producer.properties
+
+broker.<span class="built_in">list</span>=<span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">9092</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.2</span>:<span class="number">9092</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.3</span>:<span class="number">9092</span>
+producer.type=async
+</code></pre></li>
+<li><p>配置消费者配置文件:</p>
+<pre><code><span class="preprocessor">## 分别在三个节点</span>
+vim /usr/lib/kafka/kafka_2<span class="number">.11</span>-<span class="number">0.9</span><span class="number">.0</span><span class="number">.1</span>-bin/config/consumer.properties
+
+zookeeper.contact=<span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">2181</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.2</span>:<span class="number">2181</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.3</span>:<span class="number">2181</span>
+</code></pre></li>
+<li><p>启动:</p>
+<pre><code><span class="preprocessor">## 分别在三个节点启动,在安装目录</span>
+kafka-server-start.sh config/server.properties &amp;
+
+<span class="preprocessor">## 关闭</span>
+kafka-server-stop.sh
+
+<span class="preprocessor">## 创建topic, 一个副本,一个分区,topic的name: test</span>
+kafka-topics.sh --create --zookeeper localhost:<span class="number">2181</span> --replication-factor <span class="number">1</span> --partitions <span class="number">1</span> --topic test
+
+<span class="preprocessor">##创建topic, 三个副本,一个分区topic的name: test1</span>
+kafka-topics.sh --create --zookeeper localhost:<span class="number">2181</span> --replication-factor <span class="number">3</span> --partitions <span class="number">1</span> --topic my-replicated-topic
+
+<span class="preprocessor">## 查看所有主题</span>
+kafka-topics.sh --<span class="built_in">list</span> --zookeeper localhost:<span class="number">2181</span>
+
+<span class="preprocessor">## 查看主题信息</span>
+kafka-topics.sh --describe --zookeeper localhost:<span class="number">2181</span> --topic test
+
+<span class="preprocessor">## 在本地单节点启动一个生产者</span>
+kafka-console-producer.sh --broker-<span class="built_in">list</span> localhost:<span class="number">9092</span> --topic test
+<span class="preprocessor"># 输入一些消息,然后关闭</span>
+
+<span class="preprocessor">## 在本地单节点启动一个消费者</span>
+kafka-console-consumer.sh --zookeeper localhost:<span class="number">2181</span> --topic test --from-beginning
+<span class="preprocessor"># 这时会受到刚才通过生产者发出的消息,或者集群部署时可以在其他节点启动消费者进行测试</span>
+
+<span class="preprocessor">## 为主题添加分块</span>
+kafka-topics.sh --zookeeper zk_host:port/chroot --alter --topic my_topic_name --partitions <span class="number">40</span>
+
+<span class="preprocessor">## 删除主题,需要在配置文件中添加: delete.topic.enable=true</span>
+kafka-topics.sh --zookeeper zk_host:port/chroot --<span class="keyword">delete</span> --topic my_topic_name
+
+<span class="preprocessor">## 优雅的关闭服务</span>
+controlled.shutdown.enable=<span class="literal">true</span>
+</code></pre></li>
+</ol>
+<p>一些其他配置(Twitter的生产环境配置参考):</p>
+<pre><code><span class="preprocessor"># Replication configurations</span>
+num.replica.fetchers=<span class="number">4</span>
+replica.fetch.max.bytes=<span class="number">1048576</span>
+replica.fetch.wait.max.ms=<span class="number">500</span>
+replica.high.watermark.checkpoint.interval.ms=<span class="number">5000</span>
+replica.socket.timeout.ms=<span class="number">30000</span>
+replica.socket.receive.buffer.bytes=<span class="number">65536</span>
+replica.lag.time.max.ms=<span class="number">10000</span>
+
+controller.socket.timeout.ms=<span class="number">30000</span>
+controller.message.<span class="built_in">queue</span>.size=<span class="number">10</span>
+
+<span class="preprocessor"># Log configuration</span>
+num.partitions=<span class="number">8</span>
+message.max.bytes=<span class="number">1000000</span>
+<span class="keyword">auto</span>.create.topics.enable=<span class="literal">true</span>
+<span class="built_in">log</span>.index.interval.bytes=<span class="number">4096</span>
+<span class="built_in">log</span>.index.size.max.bytes=<span class="number">10485760</span>
+<span class="built_in">log</span>.retention.hours=<span class="number">168</span>
+<span class="built_in">log</span>.flush.interval.ms=<span class="number">10000</span>
+<span class="built_in">log</span>.flush.interval.messages=<span class="number">20000</span>
+<span class="built_in">log</span>.flush.scheduler.interval.ms=<span class="number">2000</span>
+<span class="built_in">log</span>.roll.hours=<span class="number">168</span>
+<span class="built_in">log</span>.retention.check.interval.ms=<span class="number">300000</span>
+<span class="built_in">log</span>.segment.bytes=<span class="number">1073741824</span>
+
+<span class="preprocessor"># ZK configuration</span>
+zookeeper.connection.timeout.ms=<span class="number">6000</span>
+zookeeper.sync.time.ms=<span class="number">2000</span>
+
+<span class="preprocessor"># Socket server configuration</span>
+num.io.threads=<span class="number">8</span>
+num.network.threads=<span class="number">8</span>
+socket.request.max.bytes=<span class="number">104857600</span>
+socket.receive.buffer.bytes=<span class="number">1048576</span>
+socket.send.buffer.bytes=<span class="number">1048576</span>
+queued.max.requests=<span class="number">16</span>
+fetch.purgatory.purge.interval.requests=<span class="number">100</span>
+producer.purgatory.purge.interval.requests=<span class="number">100</span>
+
+-Xmx6g -Xms6g -XX:MetaspaceSize=<span class="number">96</span>m -XX:+UseG1GC
+-XX:MaxGCPauseMillis=<span class="number">20</span> -XX:InitiatingHeapOccupancyPercent=<span class="number">35</span> -XX:G1HeapRegionSize=<span class="number">16</span>M
+-XX:MinMetaspaceFreeRatio=<span class="number">50</span> -XX:MaxMetaspaceFreeRatio=<span class="number">80</span>
+</code></pre><p><a href="http://www.biaodianfu.com/kafka.html" title="标点符: 分布式消息系统：Kafka" target="_blank" rel="external">标点符: 分布式消息系统：Kafka</a><br><a href="http://tech.meituan.com/kafka-fs-design-theory.html" title="悠悠香草: Kafka 文件存储机制那些事" target="_blank" rel="external">悠悠香草: Kafka 文件存储机制那些事</a><br><a href="http://www.ibm.com/developerworks/cn/opensource/os-cn-kafka/index.html" title="周明耀: Apache kafka 工作原理介绍" target="_blank" rel="external">周明耀: Apache kafka 工作原理介绍</a><br><a href="http://www.aboutyun.com/thread-9341-1-1.html" title="sstutu: kafka入门：简介、使用场景、设计原理、主要配置及集群搭建" target="_blank" rel="external">sstutu: kafka入门：简介、使用场景、设计原理、主要配置及集群搭建</a><br><a href="http://www.jasongj.com/2015/01/02/Kafka深度解析/" title="Jason’s Blog: Kafka深度解析" target="_blank" rel="external">Jason’s Blog: Kafka深度解析</a></p>
 </span>
       
     </div>
@@ -405,7 +531,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么要用消息系统"><span class="nav-number">1.</span> <span class="nav-text">为什么要用消息系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用消息框架对比"><span class="nav-number">2.</span> <span class="nav-text">常用消息框架对比</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RabbitMQ"><span class="nav-number">2.1.</span> <span class="nav-text">RabbitMQ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis"><span class="nav-number">2.2.</span> <span class="nav-text">Redis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ZeroMQ"><span class="nav-number">2.3.</span> <span class="nav-text">ZeroMQ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActiveMQ"><span class="nav-number">2.4.</span> <span class="nav-text">ActiveMQ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Kafka/Jafka"><span class="nav-number">2.5.</span> <span class="nav-text">Kafka/Jafka</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka简介"><span class="nav-number">3.</span> <span class="nav-text">Kafka简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主要特点"><span class="nav-number">4.</span> <span class="nav-text">主要特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构"><span class="nav-number">5.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息发送的流程"><span class="nav-number">6.</span> <span class="nav-text">消息发送的流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的设计"><span class="nav-number">7.</span> <span class="nav-text">Kafka的设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#吞吐量"><span class="nav-number">7.1.</span> <span class="nav-text">吞吐量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡"><span class="nav-number">7.2.</span> <span class="nav-text">负载均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拉取系统"><span class="nav-number">7.3.</span> <span class="nav-text">拉取系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可扩展性"><span class="nav-number">7.4.</span> <span class="nav-text">可扩展性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的应用场景"><span class="nav-number">8.</span> <span class="nav-text">Kafka的应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息队列"><span class="nav-number">8.1.</span> <span class="nav-text">消息队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#行为跟踪"><span class="nav-number">8.2.</span> <span class="nav-text">行为跟踪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#元信息监控"><span class="nav-number">8.3.</span> <span class="nav-text">元信息监控</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日志收集"><span class="nav-number">8.4.</span> <span class="nav-text">日志收集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流处理"><span class="nav-number">8.5.</span> <span class="nav-text">流处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件源"><span class="nav-number">8.6.</span> <span class="nav-text">事件源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#持久性日志"><span class="nav-number">8.7.</span> <span class="nav-text">持久性日志</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的设计要点"><span class="nav-number">9.</span> <span class="nav-text">Kafka的设计要点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与Flume的区别"><span class="nav-number">10.</span> <span class="nav-text">与Flume的区别</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#为什么要用消息系统"><span class="nav-number">1.</span> <span class="nav-text">为什么要用消息系统</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#常用消息框架对比"><span class="nav-number">2.</span> <span class="nav-text">常用消息框架对比</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#RabbitMQ"><span class="nav-number">2.1.</span> <span class="nav-text">RabbitMQ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redis"><span class="nav-number">2.2.</span> <span class="nav-text">Redis</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ZeroMQ"><span class="nav-number">2.3.</span> <span class="nav-text">ZeroMQ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ActiveMQ"><span class="nav-number">2.4.</span> <span class="nav-text">ActiveMQ</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Kafka/Jafka"><span class="nav-number">2.5.</span> <span class="nav-text">Kafka/Jafka</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka简介"><span class="nav-number">3.</span> <span class="nav-text">Kafka简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主要特点"><span class="nav-number">4.</span> <span class="nav-text">主要特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#架构"><span class="nav-number">5.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#消息发送的流程"><span class="nav-number">6.</span> <span class="nav-text">消息发送的流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的设计"><span class="nav-number">7.</span> <span class="nav-text">Kafka的设计</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#吞吐量"><span class="nav-number">7.1.</span> <span class="nav-text">吞吐量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#负载均衡"><span class="nav-number">7.2.</span> <span class="nav-text">负载均衡</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#拉取系统"><span class="nav-number">7.3.</span> <span class="nav-text">拉取系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可扩展性"><span class="nav-number">7.4.</span> <span class="nav-text">可扩展性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的应用场景"><span class="nav-number">8.</span> <span class="nav-text">Kafka的应用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#消息队列"><span class="nav-number">8.1.</span> <span class="nav-text">消息队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#行为跟踪"><span class="nav-number">8.2.</span> <span class="nav-text">行为跟踪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#元信息监控"><span class="nav-number">8.3.</span> <span class="nav-text">元信息监控</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日志收集"><span class="nav-number">8.4.</span> <span class="nav-text">日志收集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#流处理"><span class="nav-number">8.5.</span> <span class="nav-text">流处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#事件源"><span class="nav-number">8.6.</span> <span class="nav-text">事件源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#持久性日志"><span class="nav-number">8.7.</span> <span class="nav-text">持久性日志</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka的设计要点"><span class="nav-number">9.</span> <span class="nav-text">Kafka的设计要点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#与Flume的区别"><span class="nav-number">10.</span> <span class="nav-text">与Flume的区别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置集群"><span class="nav-number">11.</span> <span class="nav-text">配置集群</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

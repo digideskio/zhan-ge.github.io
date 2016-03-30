@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2015/09/29/Simple-Java-Setup-on-Mac/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Mac上安装多个版本的java。">
-<meta property="og:updated_time" content="2016-03-29T08:43:39.000Z">
+<meta property="og:updated_time" content="2016-03-30T09:57:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Java: Setup on Mac">
 <meta name="twitter:description" content="Mac上安装多个版本的java。">
@@ -197,14 +197,14 @@
 </code></pre><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">source</span> ~/.bash_profile</span><br></pre></td></tr></table></figure>
 <p>配置完成后，系统默认使用JDK7，命令行中使用jdk7或者jdk8进行不同版本的切换，在IDEA中选择对应的JDK目录即可。</p>
 <h2 id="CentOS_6-5安装">CentOS 6.5安装</h2><p>下载官方JDK对应的rpm文件,通过rpm进行安装:</p>
-<pre><code>rpm -ivh jdk-<span class="number">8u</span>65-linux-x64.rpm
+<pre><code><span class="preprocessor"># rpm -ivh jdk-8u65-linux-x64.rpm</span>
+<span class="preprocessor"># 直接解压tar包,将解压的文件复制到/usr/lib/jvm然后设置系统变量即可</span>
 </code></pre><p>修改系统变量:</p>
 <pre><code>vim ~/.bash_profile
 
-JAVA_HOME=/usr/java/jdk1.<span class="number">8.0_65</span>
-PATH=<span class="variable">$JAVA</span>_HOME/bin:<span class="variable">$PATH</span>
-CLASSPATH=<span class="variable">$JAVA</span>_HOME/jre/lib/ext:<span class="variable">$JAVA</span>_HOME/lib/tools.jar
-export PATH JAVA_HOME CLASSPATH
+export JAVA_HOME=/usr/lib/jvm/jdk1.<span class="number">8.0_77</span>
+export CLASSPATH=<span class="variable">$JAVA</span>_HOME/jre/lib/ext:<span class="variable">$JAVA</span>_HOME/lib/tools.jar
+export PATH=<span class="variable">$CLASSPATH</span>:<span class="variable">$JAVA</span>_HOME/bin:<span class="variable">$PATH</span>
 
 source ~/.bash_profile
 
