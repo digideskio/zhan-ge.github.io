@@ -47,7 +47,7 @@
 <meta property="og:description" content="Kafka分布式消息系统">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/kafka1.png">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/kafka2.png">
-<meta property="og:updated_time" content="2016-03-30T15:05:19.000Z">
+<meta property="og:updated_time" content="2016-03-31T10:29:43.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Kafka">
 <meta name="twitter:description" content="Kafka分布式消息系统">
@@ -293,7 +293,7 @@ source ~/.bash_profile
 <li><p>配置Kafka的配置文件:</p>
 <pre><code><span class="preprocessor">## 分别在各个节点的安装目录`config`下编辑`server.properties`文件</span>
 <span class="preprocessor">## 这里配置<span class="number">3</span>个节点: <span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.2</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.3</span></span>
-vim /usr/lib/kafka/kafka_2<span class="number">.11</span>-<span class="number">0.9</span><span class="number">.0</span><span class="number">.1</span>-bin/config/server.properties
+vim /usr/lib/kafka/kafka_2<span class="number">.11</span>-<span class="number">0.9</span><span class="number">.0</span><span class="number">.1</span>/config/server.properties
 
 broker.id=<span class="number">1</span>                 <span class="comment">// 每个节点配置一个单独的ID,可按顺序递增</span>
 host.name=<span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>
@@ -302,7 +302,7 @@ zookeeper.connect=<span class="number">192.168</span><span class="number">.0</sp
 </code></pre></li>
 <li><p>配置zookeeper配置文件:</p>
 <pre><code><span class="preprocessor">## 分别在各个节编辑配置文件,添加zookeeper集群的信息</span>
-vim /usr/lib/kafka/kafka_2<span class="number">.11</span>-<span class="number">0.9</span><span class="number">.0</span><span class="number">.1</span>-bin/config/zookeeper.properties
+vim /usr/lib/kafka/kafka_2<span class="number">.11</span>-<span class="number">0.9</span><span class="number">.0</span><span class="number">.1</span>/config/zookeeper.properties
 
 dataDir=/data/pro/kafka/data/zookeeper      <span class="preprocessor"># 直接指认到zookeeper的数据路径</span>
 server<span class="number">.1</span>=<span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">2888</span>:<span class="number">3888</span>
@@ -311,7 +311,7 @@ server<span class="number">.3</span>=<span class="number">192.168</span><span cl
 </code></pre></li>
 <li><p>配置生产者配置文件:</p>
 <pre><code><span class="preprocessor">## 分别在三个节点</span>
-vim /usr/lib/kafka/kafka_2<span class="number">.11</span>-<span class="number">0.9</span><span class="number">.0</span><span class="number">.1</span>-bin/config/producer.properties
+vim /usr/lib/kafka/kafka_2<span class="number">.11</span>-<span class="number">0.9</span><span class="number">.0</span><span class="number">.1</span>/config/producer.properties
 
 broker.<span class="built_in">list</span>=<span class="number">192.168</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">9092</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.2</span>:<span class="number">9092</span>,<span class="number">192.168</span><span class="number">.0</span><span class="number">.3</span>:<span class="number">9092</span>
 producer.type=async
@@ -350,10 +350,10 @@ kafka-console-consumer.sh --zookeeper localhost:<span class="number">2181</span>
 <span class="preprocessor"># 这时会受到刚才通过生产者发出的消息,或者集群部署时可以在其他节点启动消费者进行测试</span>
 
 <span class="preprocessor">## 为主题添加分块</span>
-kafka-topics.sh --zookeeper zk_host:port/chroot --alter --topic my_topic_name --partitions <span class="number">40</span>
+kafka-topics.sh --zookeeper localhost:<span class="number">2181</span>/chroot --alter --topic my_topic_name --partitions <span class="number">40</span>
 
 <span class="preprocessor">## 删除主题,需要在配置文件中添加: delete.topic.enable=true</span>
-kafka-topics.sh --zookeeper zk_host:port/chroot --<span class="keyword">delete</span> --topic my_topic_name
+kafka-topics.sh --zookeeper localhost:<span class="number">2181</span>/chroot --<span class="keyword">delete</span> --topic my_topic_name
 
 <span class="preprocessor">## 优雅的关闭服务</span>
 controlled.shutdown.enable=<span class="literal">true</span>

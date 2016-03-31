@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/03/28/Simple-Akka-Cluster/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Akka集群模式.">
-<meta property="og:updated_time" content="2016-03-30T15:49:48.000Z">
+<meta property="og:updated_time" content="2016-03-31T15:13:48.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Akka: Cluster">
 <meta name="twitter:description" content="Akka集群模式.">
@@ -418,6 +418,160 @@ cluster.<span class="function"><span class="title">leave</span><span class="para
         System.exit(-<span class="number">1</span>)
     }
   }.<span class="built_in">start</span>()
+}
+</code></pre><h2 id="Cluster_Aware_Routers">Cluster Aware Routers</h2><p>所有种类的路由器都可以用于集群的成员,比如部署新的路由或者查找集群节点的路由.当一个节点称为<code>unreachable</code>或离开了集群,该节点的路径会自动从路由器中注销.当新节点加入集群时,一个额外的路由会根据配置添加到路由器.当节点从<code>unreachable</code>变为<code>reachable</code>状态时也会添加路由.</p>
+<p>当开启<code>WeaklyUp</code>特性时,该状态的节点也会被应用路由.</p>
+<p>主要有两种不同的路由:</p>
+<ol>
+<li>Group - router通过<code>actor selection</code>将消息发送到指定的路径.一个路由可以个集群中的不同节点共享.这类路由器的一个用例就是服务运行于集群的后台节点,路由器运行于集群的前端节点.</li>
+<li>Pool - router将路由创建为子节点,并在远程节点上部署.每个路由器都会有自己的路由实例.比如,如果在一个拥有10个节点的集群中创建一个3节点的路由,如果路由器配置为每个节点一个实例的话总共会又有30个路由.被不同路由器创建的路由不会再路由器之间共享.这类路由的实例是一个单独的管理者将真正的工作路由到集群的不同节点中.</li>
+</ol>
+<h3 id="Router_with_Group_of_Routees">Router with Group of Routees</h3><p>当使用<code>Group</code>时必须在集群成员节点上启动路由actor.这并不是由路由器完成的,下面是配置示例:</p>
+<pre><code>akka.actor.deployment {
+  /statsService/workerRouter {
+      router = consistent-hashing-<span class="literal">group</span>
+      routees.paths = [<span class="string">"/user/statsWorker"</span>]
+      <span class="keyword">cluster</span> {
+        enabled = <span class="keyword">on</span>
+        allow-<span class="keyword">local</span>-routees = <span class="keyword">on</span>
+        <span class="keyword">use</span>-role = compute
+      }
+    }
+}
+</code></pre><p>注意,当启动actor系统时路由actor需要尽可能早的启动,因为当这些成员状态编程<code>Up</code>时路由器会立即尝试使用它们.</p>
+<p>actor的路径被定义在<code>routees.paths</code>中,路由器用来选择消息将要发送的actor.消息会通过<code>ActorSelection</code>发送到路由,因此应该是符合预期的同样的传递语义.通过使用<code>use-role</code>可以限制路由对相关角色节点的查询.</p>
+<p><code>max-total-nr-of-instances</code>定义了集群中路由的总数,默认设置为一个很高的值(10000),因此当节点加入到集群是路由能够加入到路由器,可以自定义进行限制.</p>
+<p>同时可以在代码中进行定义:</p>
+<pre><code>import akka<span class="class">.cluster</span><span class="class">.routing</span><span class="class">.ClusterRouterGroup</span>
+import akka<span class="class">.cluster</span><span class="class">.routing</span><span class="class">.ClusterRouterGroupSettings</span>
+import akka<span class="class">.routing</span><span class="class">.ConsistentHashingGroup</span>
+
+val workerRouter = context.actorOf(
+  <span class="function"><span class="title">ClusterRouterGroup</span><span class="params">(ConsistentHashingGroup(Nil)</span></span>, ClusterRouterGroupSettings(
+    totalInstances = <span class="number">100</span>, routeesPaths = <span class="function"><span class="title">List</span><span class="params">(<span class="string">"/user/statsWorker"</span>)</span></span>,
+    allowLocalRoutees = true, useRole = <span class="function"><span class="title">Some</span><span class="params">(<span class="string">"compute"</span>)</span></span>)).<span class="function"><span class="title">props</span><span class="params">()</span></span>,
+  name = <span class="string">"workerRouter2"</span>)
+</code></pre><h3 id="Router_Example_with_Group_of_Routees">Router Example with Group of Routees</h3><p>这个样例提供了一个文本统计的服务,当文本发送到服务时会被拆分成单词,然后将统计每个单词长度的任务分发给工作者,就是路由器的各个路由.每个单词的计数会被返回给一个聚合器,当集齐所有结果时计算每个单词的平均数.</p>
+<p>消息:</p>
+<pre><code><span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">StatsJob</span>(<span class="title">text</span>: <span class="title">String</span>)</span>
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">StatsResult</span>(<span class="title">meanWordLength</span>: <span class="title">Double</span>)</span>
+<span class="keyword">final</span> <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">JobFailed</span>(<span class="title">reason</span>: <span class="title">String</span>)</span>
+</code></pre><p>用于对每个单词计数的worker:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">StatsWorker</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+  <span class="keyword">var</span> cache = <span class="type">Map</span>.empty[<span class="type">String</span>, <span class="type">Int</span>]
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> word: <span class="type">String</span> =&gt;
+      <span class="function"><span class="keyword">val</span> <span class="title">length</span> =</span> cache.get(word) <span class="keyword">match</span> {
+        <span class="keyword">case</span> <span class="type">Some</span>(x) =&gt; x
+        <span class="keyword">case</span> <span class="type">None</span> =&gt;
+          <span class="function"><span class="keyword">val</span> <span class="title">x</span> =</span> word.length
+          cache += (word -&gt; x)
+          x
+      }
+
+      sender() ! length
+  }
+}
+</code></pre><p>接收用户文本并拆分成单词的服务,委派worker并聚合:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">StatsService</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Actor</span> {</span>
+  <span class="comment">// This router is used both with lookup and deploy of routees. If you</span>
+  <span class="comment">// have a router with only lookup of routees you can use Props.empty</span>
+  <span class="comment">// instead of Props[StatsWorker.class].</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">workerRouter</span> =</span> context.actorOf(<span class="type">FromConfig</span>.props(<span class="type">Props</span>[<span class="type">StatsWorker</span>]),
+    name = <span class="string">"workerRouter"</span>)
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> <span class="type">StatsJob</span>(text) <span class="keyword">if</span> text != <span class="string">""</span> =&gt;
+      <span class="function"><span class="keyword">val</span> <span class="title">words</span> =</span> text.split(<span class="string">" "</span>)
+      <span class="function"><span class="keyword">val</span> <span class="title">replyTo</span> =</span> sender() <span class="comment">// important to not close over sender()</span>
+      <span class="comment">// create actor that collects replies from workers</span>
+      <span class="function"><span class="keyword">val</span> <span class="title">aggregator</span> =</span> context.actorOf(<span class="type">Props</span>(
+        classOf[<span class="type">StatsAggregator</span>], words.size, replyTo))
+      words foreach { word =&gt;
+        workerRouter.tell(
+          <span class="type">ConsistentHashableEnvelope</span>(word, word), aggregator)
+      }
+  }
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">StatsAggregator</span>(</span>expectedResults: <span class="type">Int</span>, replyTo: <span class="type">ActorRef</span>) <span class="keyword">extends</span> <span class="type">Actor</span> {
+  <span class="keyword">var</span> results = <span class="type">IndexedSeq</span>.empty[<span class="type">Int</span>]
+  context.setReceiveTimeout(<span class="number">3.</span>seconds)
+
+  <span class="function"><span class="keyword">def</span> <span class="title">receive</span> =</span> {
+    <span class="keyword">case</span> wordCount: <span class="type">Int</span> =&gt;
+      results = results :+ wordCount
+      <span class="keyword">if</span> (results.size == expectedResults) {
+        <span class="function"><span class="keyword">val</span> <span class="title">meanWordLength</span> =</span> results.sum.toDouble / results.size
+        replyTo ! <span class="type">StatsResult</span>(meanWordLength)
+        context.stop(self)
+      }
+    <span class="keyword">case</span> <span class="type">ReceiveTimeout</span> =&gt;
+      replyTo ! <span class="type">JobFailed</span>(<span class="string">"Service unavailable, try again later"</span>)
+      context.stop(self)
+  }
+}
+</code></pre><p>注意没有任何集群的特性,只是简单的actor.</p>
+<p>所有的节点都会启动<code>StatsService</code>和<code>StatsWorker</code>actor,这个场景中worker就是路由,路由器通过<code>routees.paths</code>配置:</p>
+<pre><code>akka.actor.deployment {
+  /statsService/workerRouter {
+    router = consistent-hashing-<span class="literal">group</span>
+    routees.paths = [<span class="string">"/user/statsWorker"</span>]
+    <span class="keyword">cluster</span> {
+      enabled = <span class="keyword">on</span>
+      allow-<span class="keyword">local</span>-routees = <span class="keyword">on</span>
+      <span class="keyword">use</span>-role = compute
+    }
+  }
+}
+</code></pre><p>这表示用户的请求会被发送到任何节点的<code>StatsService</code>并会在所有节点上使用<code>StatsWorker</code>.</p>
+<p>即,每个路由会在每个节点上部署,该路由会在每个节点上创建多个路由,请求会被发送到任何一个节点的路由器,然后路由器会将任务委派到任何节点上对应路由的路由.</p>
+<h3 id="Router_with_Pool_of_Remote_Deployed_Routees">Router with Pool of Remote Deployed Routees</h3><p>配置示例:</p>
+<pre><code>akka.actor.deployment {
+  /statsService/singleton/workerRouter {
+      router = consistent-hashing-pool
+      cluster {
+        enabled = <span class="command"><span class="keyword">on</span></span>
+        <span class="built_in">max</span>-nr-<span class="operator">of</span>-instances-per-node = <span class="number">3</span>
+        allow-<span class="built_in">local</span>-routees = <span class="command"><span class="keyword">on</span></span>
+        use-role = compute
+      }
+    }
+}
+</code></pre><p>可以通过<code>use-role</code>指定路由部署的节点类型.</p>
+<p><code>max-total-nr-of-instances</code>定义了集群中路由实例的总数.<code>max-nr-of-instances-per-node</code>定义的每个节点上的路由实例数会比总的数量要多.</p>
+<p>同样可以使用代码定义配置:</p>
+<pre><code>import akka<span class="class">.cluster</span><span class="class">.routing</span><span class="class">.ClusterRouterPool</span>
+import akka<span class="class">.cluster</span><span class="class">.routing</span><span class="class">.ClusterRouterPoolSettings</span>
+import akka<span class="class">.routing</span><span class="class">.ConsistentHashingPool</span>
+
+val workerRouter = context.actorOf(
+  <span class="function"><span class="title">ClusterRouterPool</span><span class="params">(ConsistentHashingPool(<span class="number">0</span>)</span></span>, ClusterRouterPoolSettings(
+    totalInstances = <span class="number">100</span>, maxInstancesPerNode = <span class="number">3</span>,
+    allowLocalRoutees = false, useRole = None)).<span class="function"><span class="title">props</span><span class="params">(Props[StatsWorker])</span></span>,
+  name = <span class="string">"workerRouter3"</span>)
+</code></pre><h3 id="Router_Example_with_Pool_of_Remote_Deployed_Routees">Router Example with Pool of Remote Deployed Routees</h3><p>实例中,一个单独的,master节点来创建和部署worker.使用集群单例来实现master,<code>ClusterSingletonManager</code>会在每个节点中启动:</p>
+<pre><code>system.actorOf(ClusterSingletonManager.props(
+  singletonProps = Props[StatsService],
+  terminationMessage = PoisonPill,
+  settings = <span class="function"><span class="title">ClusterSingletonManagerSettings</span><span class="params">(system)</span></span>.<span class="function"><span class="title">withRole</span><span class="params">(<span class="string">"compute"</span>)</span></span>),
+  name = <span class="string">"statsService"</span>)
+</code></pre><p>同时需要在每个节点上有一个actor来跟踪当前master并将任务委派给<code>StatsService</code>,通过<code>ClusterSingletonProxy</code>提供:</p>
+<pre><code>system.actorOf(ClusterSingletonProxy.props(singletonManagerPath = <span class="string">"/user/statsService"</span>,
+  settings = <span class="function"><span class="title">ClusterSingletonProxySettings</span><span class="params">(system)</span></span>.<span class="function"><span class="title">withRole</span><span class="params">(<span class="string">"compute"</span>)</span></span>),
+  name = <span class="string">"statsServiceProxy"</span>)
+</code></pre><p><code>ClusterSingletonProxy</code>会接收用户的文本并委派给当前的<code>StatsService</code>,这个单独的actor.它通过监听集群时间来在最老的节点上查找<code>StatsService</code>.</p>
+<p>所有的节点都会启动<code>ClusterSingletonProxy</code>和<code>ClusterSingletonManager</code>,路由会这样配置:</p>
+<pre><code>akka.actor.deployment {
+  /statsService/singleton/workerRouter {
+    router = consistent-hashing-pool
+    cluster {
+      enabled = <span class="command"><span class="keyword">on</span></span>
+      <span class="built_in">max</span>-nr-<span class="operator">of</span>-instances-per-node = <span class="number">3</span>
+      allow-<span class="built_in">local</span>-routees = <span class="command"><span class="keyword">on</span></span>
+      use-role = compute
+    }
+  }
 }
 </code></pre><h2 id="Cluster_Singleton">Cluster Singleton</h2><p>对于有些场景或者需求,需要在集群中运行一个单独的actor.比如:</p>
 <ol>
@@ -859,7 +1013,7 @@ akka.cluster.client {
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gossip协议"><span class="nav-number">1.1.</span> <span class="nav-text">Gossip协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#术语"><span class="nav-number">2.</span> <span class="nav-text">术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#成员关系"><span class="nav-number">3.</span> <span class="nav-text">成员关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip"><span class="nav-number">4.</span> <span class="nav-text">Gossip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向量时钟(Vector_Clocks)"><span class="nav-number">5.</span> <span class="nav-text">向量时钟(Vector Clocks)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Convergence"><span class="nav-number">6.</span> <span class="nav-text">Gossip Convergence</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failure_Detector"><span class="nav-number">7.</span> <span class="nav-text">Failure Detector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leader"><span class="nav-number">8.</span> <span class="nav-text">Leader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Seed_Nodes"><span class="nav-number">9.</span> <span class="nav-text">Seed Nodes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Protocol"><span class="nav-number">10.</span> <span class="nav-text">Gossip Protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Membership_Lifecycle"><span class="nav-number">11.</span> <span class="nav-text">Membership Lifecycle</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#成员状态"><span class="nav-number">11.1.</span> <span class="nav-text">成员状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户动作"><span class="nav-number">11.2.</span> <span class="nav-text">用户动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader动作"><span class="nav-number">11.3.</span> <span class="nav-text">Leader动作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加依赖"><span class="nav-number">12.</span> <span class="nav-text">添加依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的集群例子"><span class="nav-number">13.</span> <span class="nav-text">一个简单的集群例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向集群中添加一个节点"><span class="nav-number">14.</span> <span class="nav-text">向集群中添加一个节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自动或手动关闭"><span class="nav-number">15.</span> <span class="nav-text">自动或手动关闭</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leaving"><span class="nav-number">16.</span> <span class="nav-text">Leaving</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WeaklyUp_Members(实验性,仅支持2-4以上的版本)"><span class="nav-number">17.</span> <span class="nav-text">WeaklyUp Members(实验性,仅支持2.4以上的版本)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#订阅集群事件"><span class="nav-number">18.</span> <span class="nav-text">订阅集群事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker_Dial-in_Example"><span class="nav-number">19.</span> <span class="nav-text">Worker Dial-in Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点角色"><span class="nav-number">20.</span> <span class="nav-text">节点角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Startup_when_Cluster_Size_Reached"><span class="nav-number">21.</span> <span class="nav-text">How To Startup when Cluster Size Reached</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Cleanup_when_Member_is_Removed"><span class="nav-number">22.</span> <span class="nav-text">How To Cleanup when Member is Removed</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Singleton"><span class="nav-number">23.</span> <span class="nav-text">Cluster Singleton</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#需要注意的潜在问题"><span class="nav-number">23.1.</span> <span class="nav-text">需要注意的潜在问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例"><span class="nav-number">23.2.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖配置"><span class="nav-number">23.3.</span> <span class="nav-text">依赖配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置选项"><span class="nav-number">23.4.</span> <span class="nav-text">配置选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群中的分布式发布订阅"><span class="nav-number">24.</span> <span class="nav-text">集群中的分布式发布订阅</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Publish"><span class="nav-number">24.1.</span> <span class="nav-text">Publish</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Send"><span class="nav-number">24.2.</span> <span class="nav-text">Send</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DistributedPubSub_Extension"><span class="nav-number">24.3.</span> <span class="nav-text">DistributedPubSub Extension</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖"><span class="nav-number">24.4.</span> <span class="nav-text">依赖</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Client"><span class="nav-number">25.</span> <span class="nav-text">Cluster Client</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实例-1"><span class="nav-number">25.1.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ClusterClientReceptionist_Extension"><span class="nav-number">25.2.</span> <span class="nav-text">ClusterClientReceptionist Extension</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖-1"><span class="nav-number">25.3.</span> <span class="nav-text">依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置"><span class="nav-number">25.4.</span> <span class="nav-text">配置</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gossip协议"><span class="nav-number">1.1.</span> <span class="nav-text">Gossip协议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#术语"><span class="nav-number">2.</span> <span class="nav-text">术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#成员关系"><span class="nav-number">3.</span> <span class="nav-text">成员关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip"><span class="nav-number">4.</span> <span class="nav-text">Gossip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向量时钟(Vector_Clocks)"><span class="nav-number">5.</span> <span class="nav-text">向量时钟(Vector Clocks)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Convergence"><span class="nav-number">6.</span> <span class="nav-text">Gossip Convergence</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Failure_Detector"><span class="nav-number">7.</span> <span class="nav-text">Failure Detector</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leader"><span class="nav-number">8.</span> <span class="nav-text">Leader</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Seed_Nodes"><span class="nav-number">9.</span> <span class="nav-text">Seed Nodes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Gossip_Protocol"><span class="nav-number">10.</span> <span class="nav-text">Gossip Protocol</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Membership_Lifecycle"><span class="nav-number">11.</span> <span class="nav-text">Membership Lifecycle</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#成员状态"><span class="nav-number">11.1.</span> <span class="nav-text">成员状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户动作"><span class="nav-number">11.2.</span> <span class="nav-text">用户动作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Leader动作"><span class="nav-number">11.3.</span> <span class="nav-text">Leader动作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加依赖"><span class="nav-number">12.</span> <span class="nav-text">添加依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的集群例子"><span class="nav-number">13.</span> <span class="nav-text">一个简单的集群例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#向集群中添加一个节点"><span class="nav-number">14.</span> <span class="nav-text">向集群中添加一个节点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自动或手动关闭"><span class="nav-number">15.</span> <span class="nav-text">自动或手动关闭</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leaving"><span class="nav-number">16.</span> <span class="nav-text">Leaving</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#WeaklyUp_Members(实验性,仅支持2-4以上的版本)"><span class="nav-number">17.</span> <span class="nav-text">WeaklyUp Members(实验性,仅支持2.4以上的版本)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#订阅集群事件"><span class="nav-number">18.</span> <span class="nav-text">订阅集群事件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Worker_Dial-in_Example"><span class="nav-number">19.</span> <span class="nav-text">Worker Dial-in Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点角色"><span class="nav-number">20.</span> <span class="nav-text">节点角色</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Startup_when_Cluster_Size_Reached"><span class="nav-number">21.</span> <span class="nav-text">How To Startup when Cluster Size Reached</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How_To_Cleanup_when_Member_is_Removed"><span class="nav-number">22.</span> <span class="nav-text">How To Cleanup when Member is Removed</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Aware_Routers"><span class="nav-number">23.</span> <span class="nav-text">Cluster Aware Routers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Router_with_Group_of_Routees"><span class="nav-number">23.1.</span> <span class="nav-text">Router with Group of Routees</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Router_Example_with_Group_of_Routees"><span class="nav-number">23.2.</span> <span class="nav-text">Router Example with Group of Routees</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Router_with_Pool_of_Remote_Deployed_Routees"><span class="nav-number">23.3.</span> <span class="nav-text">Router with Pool of Remote Deployed Routees</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Router_Example_with_Pool_of_Remote_Deployed_Routees"><span class="nav-number">23.4.</span> <span class="nav-text">Router Example with Pool of Remote Deployed Routees</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Singleton"><span class="nav-number">24.</span> <span class="nav-text">Cluster Singleton</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#需要注意的潜在问题"><span class="nav-number">24.1.</span> <span class="nav-text">需要注意的潜在问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实例"><span class="nav-number">24.2.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖配置"><span class="nav-number">24.3.</span> <span class="nav-text">依赖配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置选项"><span class="nav-number">24.4.</span> <span class="nav-text">配置选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#集群中的分布式发布订阅"><span class="nav-number">25.</span> <span class="nav-text">集群中的分布式发布订阅</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Publish"><span class="nav-number">25.1.</span> <span class="nav-text">Publish</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Send"><span class="nav-number">25.2.</span> <span class="nav-text">Send</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DistributedPubSub_Extension"><span class="nav-number">25.3.</span> <span class="nav-text">DistributedPubSub Extension</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖"><span class="nav-number">25.4.</span> <span class="nav-text">依赖</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster_Client"><span class="nav-number">26.</span> <span class="nav-text">Cluster Client</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实例-1"><span class="nav-number">26.1.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ClusterClientReceptionist_Extension"><span class="nav-number">26.2.</span> <span class="nav-text">ClusterClientReceptionist Extension</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#依赖-1"><span class="nav-number">26.3.</span> <span class="nav-text">依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置"><span class="nav-number">26.4.</span> <span class="nav-text">配置</span></a></li></ol></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>

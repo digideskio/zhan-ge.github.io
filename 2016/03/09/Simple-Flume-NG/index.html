@@ -50,7 +50,7 @@
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent2.png">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent3.png">
 <meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/flume-agent4.png">
-<meta property="og:updated_time" content="2016-03-30T06:14:00.000Z">
+<meta property="og:updated_time" content="2016-03-31T10:41:06.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Flume-NG">
 <meta name="twitter:description" content="Flume的原理和使用">
@@ -469,8 +469,14 @@ a1<span class="class">.sinkgroups</span><span class="class">.g1</span><span clas
 <span class="keyword">export</span> JAVA_HOME=/usr/lib/jvm/jdk1<span class="number">.8</span><span class="number">.0</span>_77
 <span class="keyword">export</span> JAVA_OPTS=<span class="string">"-Xms500m -Xmx1000m -Dcom.sun.management.jmxremote"</span>
 </code></pre></li>
+<li><p>配置<code>log4j.properties</code>日志路径:</p>
+<p> flume.log.dir=/data/pro/flume/running_log</p>
+</li>
 <li><p>安装完成,测试:</p>
 <pre><code>flume-ng <span class="comment">--help</span>
+</code></pre></li>
+<li><p>配置<code>flume-conf.properties</code>文件,配置具体的agent:</p>
+<pre><code><span class="tag">cp</span> <span class="tag">flume-conf</span><span class="class">.properties</span><span class="class">.template</span> <span class="tag">flume-conf</span><span class="class">.properties</span>
 </code></pre></li>
 </ol>
 <h3 id="实例:_spooldir源发送到控制台用于测试">实例: spooldir源发送到控制台用于测试</h3><pre><code>a1<span class="class">.channels</span> = ch1
@@ -491,7 +497,7 @@ a1<span class="class">.channels</span><span class="class">.ch1</span><span class
 a1<span class="class">.sinks</span><span class="class">.sink_logger</span><span class="class">.type</span> = logger
 a1<span class="class">.sinks</span><span class="class">.sink_logger</span><span class="class">.channel</span> = ch1
 
-flume-ng agent -c /usr/lib/flume/apache-flume-<span class="number">1.6</span>.<span class="number">0</span>-bin/conf -f /usr/lib/flume/apache-flume-<span class="number">1.6</span>.<span class="number">0</span>-bin/conf/flume-conf<span class="class">.properties</span><span class="class">.conf</span> -Dflume<span class="class">.root</span><span class="class">.logger</span>=DEBUG,console -n a1
+flume-ng agent -c /usr/lib/flume/apache-flume-<span class="number">1.6</span>.<span class="number">0</span>-bin/conf -f /usr/lib/flume/apache-flume-<span class="number">1.6</span>.<span class="number">0</span>-bin/conf/flume-conf<span class="class">.properties</span> -Dflume<span class="class">.root</span><span class="class">.logger</span>=DEBUG,console -n a1
 </code></pre><h3 id="实例:_avro数据源">实例: avro数据源</h3><p>安装成功之后,在响应的 <code>/conf</code> 目录创建f1.conf文件,内容如下:</p>
 <pre><code>agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.type</span> = memory
 
@@ -540,10 +546,15 @@ a1.channels.ch1.dataDirs= <span class="regexp">/root/data</span>                
 <span class="comment">## 配置sink: kafka</span>
 a1.sinks.sink_kafka.<span class="keyword">type</span> = org.apache.flume.sink.kafka.<span class="constant">KafkaSink</span>
 a1.sinks.sink_kafka.topic = mytopic                    <span class="comment"># 对应Kafka中的主题</span>
-a1.sinks.sink_kafka.brokerList = <span class="symbol">localhost:</span><span class="number">9092</span>        <span class="comment"># kafka的地址</span>
+a1.sinks.sink_kafka.brokerList = <span class="symbol">host1:</span><span class="number">9092</span>,<span class="symbol">host2:</span><span class="number">9092</span> <span class="comment"># kafka的地址</span>
 a1.sinks.sink_kafka.requiredAcks = <span class="number">1</span>
 a1.sinks.sink_kafka.batchSize = <span class="number">20</span>
 a1.sinks.sink_kafka.channel = ch1
+
+a1.sinks.sink_kafka.serializer.<span class="keyword">class</span>=kafka.serializer.<span class="constant">StringEncoder</span>
+a1.sinks.sink_kafka.max.message.size=<span class="number">1000000</span>
+a1.sinks.sink_kafka.producer.<span class="keyword">type</span>=sync
+a1.sinks.sink_kafka.custom.encoding=<span class="constant">UTF</span>-<span class="number">8</span>
 </code></pre><p>手动拷贝一个文件到 ‘/root/log’ 目录,观察日志输出和 ‘/root/log’ 下的变化.</p>
 <h3 id="实例:_spooldir数据源并写入HDFS">实例: spooldir数据源并写入HDFS</h3><pre><code>agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.type</span> = file
 agent-<span class="number">1</span><span class="class">.channels</span><span class="class">.ch-1</span><span class="class">.checkpointDir</span>= /root/checkpoint
