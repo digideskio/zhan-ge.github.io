@@ -1,0 +1,1009 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="SBT,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="SBT介绍与搭建.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple SBT: Getting start">
+<meta property="og:url" content="http://yoursite.com/2016/04/03/Simple-SBT-Getting-start/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="SBT介绍与搭建.">
+<meta property="og:image" content="http://7xiwca.com1.z0.glb.clouddn.com/sbt-configuration.jpg">
+<meta property="og:updated_time" content="2016-04-03T13:44:35.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple SBT: Getting start">
+<meta name="twitter:description" content="SBT介绍与搭建.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple SBT: Getting start | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple SBT: Getting start
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-04-03T12:26:25+08:00" content="2016-04-03">
+            2016-04-03
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Sbt由两个部分组成,task和setting.</p>
+<ol>
+<li>tasks: Sbt围绕task进行构建.跟Maven不同的是,没有阶段,目标,执行,而只是task.想做一些事情的生活只需要执行task.如果想要一个task在一个task之后执行,只需要在两个task之间添加隐式依赖.如果需要在一个task中使用另一个task的结果,可以将task的输出推送到另一个task,task的结果会在依赖他的task中自动可见.Sbt中task的输出是一个值,可以是任何类型,因此很易于传递.多个task可以依赖于同一个task的结果.默认情况下sbt会以并行的方式运行这些task,同时会使用依赖树,以此来决定哪些顺序执行,哪些并行执行.</li>
+<li>settings: 一个setting在sbt中是一个值,可以是项目的名字或者scala的版本.</li>
+</ol>
+<p>Sbt所提供的特性:</p>
+<ol>
+<li>Reproducible builds: 并不关心谁来构建.</li>
+<li>Minimal configuration: 更快的配置并运行.</li>
+<li>Encouragement of good practices: 比如在打包之间运行测试.</li>
+<li>Portability: 可以在任何机器上运行.</li>
+<li>A good ecosystem: 开发者需要做的很少.</li>
+</ol>
+<p>同时提供了交互式的环境,会提高开发者的生产力提供了一下特性:</p>
+<ol>
+<li>Faster compilation times: 更少的启动时间,增量编译</li>
+<li>Easy addition of custom tasks: 简便的构建定义</li>
+<li>Faster compile/test cycles through the use of the <code>~</code> command: 快速反馈</li>
+<li>The ability to explore your project using the Scala REPL: 快速反馈</li>
+</ol>
+<h2 id="搭建">搭建</h2><p>Sbt的搭建只需要下载响应的版本并设置对应的环境变量,版本一般选择最新以避免Bug,环境变量的设置:</p>
+<pre><code>$ vim ~/.bash_profile
+
+SBT_HOME=/path/<span class="keyword">to</span>/your/zip/extraction 
+PATH=<span class="variable">$PATH</span>:<span class="variable">$SBT</span>_HOME/bin 
+export PATH
+
+$ source ~/.bash_profile
+</code></pre><p>然后就可以在终端运行sbt:</p>
+<pre><code><span class="variable">$ </span>sbt
+&gt;
+</code></pre><p>会看到一些输出信息.</p>
+<p>在一个项目中使用sbt需要提供两个文件:</p>
+<pre><code>-<span class="ruby"> project/build.properties
+</span>-<span class="ruby"> build.sbt</span>
+</code></pre><p>第一个文件用于指定sbt所使用的版本,第二个文件定义了整个构建的配置信息:</p>
+<pre><code><span class="comment">// project/build.properties</span>
+sbt.version=<span class="number">0.13</span><span class="number">.7</span>
+
+<span class="comment">// build.sbt</span>
+name := <span class="string">"preowned-kittens"</span>      <span class="comment">// 构建名称</span>
+                                <span class="comment">// 使用空行隔开</span>
+version := <span class="string">"1.0"</span>                <span class="comment">// 构建版本</span>
+</code></pre><p>在sbt中提供了很多命令,其中有一个tasks. tasks是sbt能够为你完成的工作,比如编译一个项目,创建文档或者运行测试.在sbt中输入tasks命令,会输出它提供的所有命令.</p>
+<p>输入settings,会显示所有可以获取当前项目构建属性的命令.</p>
+<h2 id="Creating_builds">Creating builds</h2><p>如之前的介绍,我们可以按如下方式创建一个<code>build.sbt</code>文件:</p>
+<pre><code><span class="string">name :</span>= <span class="string">"preowned-kittens"</span> 
+
+<span class="string">organization :</span>= <span class="string">"com.preowned-kittens"</span> 
+
+<span class="string">version :</span>= <span class="string">"1.0"</span> 
+
+libraryDependencies += <span class="string">"org.specs2"</span> % <span class="string">"specs2_2.10"</span> % <span class="string">"1.14"</span> % <span class="string">"test"</span>
+</code></pre><p>配置中每一项都有三个部分组成,<code>Key,Operator,Initialization</code>.</p>
+<p>创建一个task:</p>
+<pre><code>val gitHeadCommitSha = taskKey[<span class="link_label">String</span>](<span class="link_url"> "Determines the current git commit SHA"</span>)
+</code></pre><ol>
+<li><code>gitHeadCommitSha</code>是key的名字</li>
+<li><code>taskKey</code>表示这个key只用于task</li>
+<li><code>[String]</code>表示这个task的返回值类型为<code>String</code></li>
+<li>最后的字符串部分用于在解释器中显示该key的描述</li>
+</ol>
+<p>请求这些值的时候,这些task会被运行.</p>
+<p>比如创建一个task,用于在构建时读取git的commitHash值,并生成一个<code>version.properties</code>文件以便网站能够在运行时读取,这样就可以总是能够知道当前代码使用的版本了.</p>
+<pre><code>gitHeadCommitSha := <span class="function"><span class="title">Process</span><span class="params">(<span class="string">"git rev-parse HEAD"</span>)</span></span><span class="class">.lines</span><span class="class">.head</span>
+</code></pre><p>然后就可以在sbt中使用该变量:</p>
+<pre><code><span class="blockquote">&gt; show gitHeadCommitSha</span>
+</code></pre><p>这些是sbt中的定义部分,可以定义一个变量或方法在sbt配置中进行重用,这些定义会首先被编译,并且可以引用之前的定义.当请求一个task时,会对所有它依赖的task执行计算.</p>
+<p>下面的例子中生成一个<code>version.properties</code>文件:</p>
+<pre><code>val makeVersionProperties = taskKey[Se<span class="string">q[File]</span>](<span class="string">"Makes a version.properties file."</span>)
+
+makeVersionProperties := {
+    val propFile = new File((resourceManaged in Compile).value, <span class="string">"version.properties"</span>)
+    val content = <span class="string">"version=<span class="variable">%s</span>"</span> <span class="keyword">format</span> (gitHeadCommit.value)
+    IO.<span class="keyword">write</span>(propFile, content)
+    Se<span class="string">q(propFile)</span>
+}
+</code></pre><ol>
+<li>首先创建一个taskKey来初始化一个task</li>
+<li>然后定义了这个task如何执行</li>
+</ol>
+<p>然后需要告诉sbt在编译时将这个属性文件包含在运行时的classpath中:</p>
+<pre><code>resourceGenerators <span class="keyword">in</span> Compile += makePropertiesFile
+</code></pre><h2 id="使用配置">使用配置</h2><p>配置是key的命名空间,这允许一个key用于多个不同的目的.sbt在默认的构建中带有多种不同的配置:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Configuration</th>
+<th style="text-align:left">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Compile</td>
+<td style="text-align:left">这些设置和值用于编译主项目并生成生产环境的artifact</td>
+</tr>
+<tr>
+<td style="text-align:left">Test</td>
+<td style="text-align:left">用于编译和运行单元测试代码</td>
+</tr>
+<tr>
+<td style="text-align:left">Runtime</td>
+<td style="text-align:left">用于在sbt中运行工程</td>
+</tr>
+<tr>
+<td style="text-align:left">IntegrationTest</td>
+<td style="text-align:left">根据生成环境artifact运行测试</td>
+</tr>
+</tbody>
+</table>
+<p>这些配置用于根据高阶规则对setting和task进行拆分.比如<code>sources in Compile</code>会为编译生产环境artifact收集资源文件,<code>sources in Test</code>则用于定义单元测试需要的资源文件.</p>
+<p>可以把sbt文件中的各个setting和task看做是一个excel文件中的各个列,列的每一行定义了他们的值,而下面的行会对上面的行进行修改会添加.而不同的配置则可以看做是excel文件中的多个worksheet,不同的worksheet用于不同的使用目的.</p>
+<p><img src="http://7xiwca.com1.z0.glb.clouddn.com/sbt-configuration.jpg" alt="sbt-configuration" title="sbt-configuration"></p>
+<h2 id="定义多个子工程">定义多个子工程</h2><p>比如需要在一个工程中包含两个项目,一个web网站,一个数据分析,这两个应用都会用到一些公共的代码.这时需要定义一个子工程为<code>common</code>,用于存放一些通用的模块及测试.</p>
+<p>创建一个新的sbt工程,然后在<code>build.sbt</code>文件中添加如下代码:</p>
+<pre><code>lazy val common = ( <span class="function"><span class="title">Project</span><span class="params">(<span class="string">"common"</span>, file(<span class="string">"common"</span>)</span></span>). <span class="function"><span class="title">settings</span><span class="params">()</span></span> )
+</code></pre><ol>
+<li><code>common</code>定义了一个工程</li>
+<li><code>Project(&quot;common&quot;</code>部分定义了在sbt控制台中的工程名</li>
+<li><code>file(&quot;common&quot;)</code>第一了用于检索该工程的磁盘位置</li>
+<li><code>settings()</code>部分为该工程添加额外的配置,只是现在为空</li>
+</ol>
+<p>进入sbt控制台,编译后输入<code>projects</code>命令就可以看到所有的工程列表,包含刚刚创建的<code>common</code>工程.</p>
+<p>使用<code>common/test</code>命令可以执行common工程下的测试.如果在子工程需要使用以来库,则需要在其setting中单独配置:</p>
+<pre><code>lazy val common = <span class="list">( 
+    <span class="keyword">Project</span><span class="list">(<span class="string">"common"</span>, file<span class="list">(<span class="string">"common"</span>)</span>)</span> 
+    settings<span class="list">( <span class="keyword">libraryDependencies</span> += <span class="string">"org.specs2"</span> % <span class="string">"specs2_2.10"</span> % <span class="string">"1.14"</span> % <span class="string">"test"</span> )</span> 
+)</span>
+</code></pre><p>这时添加另外两个子项目:</p>
+<pre><code>lazy val analytics = ( 
+    <span class="function"><span class="title">Project</span><span class="params">(<span class="string">"analytics"</span>, file(<span class="string">"analytics"</span>)</span></span>) 
+    <span class="function"><span class="title">dependsOn</span><span class="params">(common)</span></span> <span class="function"><span class="title">settings</span><span class="params">()</span></span> 
+)
+
+lazy val website = ( 
+    <span class="function"><span class="title">Project</span><span class="params">(<span class="string">"website"</span>, file(<span class="string">"website"</span>)</span></span>) 
+    <span class="function"><span class="title">dependsOn</span><span class="params">(common)</span></span> <span class="function"><span class="title">settings</span><span class="params">()</span></span> 
+)
+</code></pre><p>上面使用了<code>Project</code>的<code>dependsOn</code>方法定义了这两个项目均以来与<code>common</code>项目.在使用这两个项目时首先会对他们所以来的项目进行编译.</p>
+<h2 id="Putting_it_all_together">Putting it all together</h2><p>上面的项目中,所有的子工程都使用工程名来作为文件夹名.这个方便的特性帮助开发者找到正确的工程并知道如果用来构建.相对于来回复制文件夹或名字字符串,可以创建一个辅助方法来结构化工程配置.下面在<code>build.sbt</code>的首部定义一个方法:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">PreownedKittenProject</span><span class="params">(name: String)</span>:</span> Project = (
+    Project(name, file(name)) 
+)
+</code></pre><p>这个被命名为<code>PreownedKittenProject</code>的方法接收一个工程名作为参数,返回一个<code>sbt.Project</code>对象,位置名和工程名一样.然后使用这个方法重新配置工程:</p>
+<pre><code>lazy val common = <span class="list">( 
+    <span class="keyword">PreownedKittenProject</span><span class="list">(<span class="string">"common"</span>)</span>. settings<span class="list">(
+    <span class="keyword">libraryDependencies</span> += <span class="string">"org.specs2"</span> % <span class="string">"specs2_2.10"</span> % <span class="string">"1.14"</span> % <span class="string">"test"</span> )</span> 
+)</span>
+
+val analytics = <span class="list">( 
+    <span class="keyword">PreownedKittenProject</span><span class="list">(<span class="string">"analytics"</span>)</span>. dependsOn<span class="list">(<span class="keyword">common</span>)</span>. settings<span class="list">()</span> 
+)</span>
+
+val website = <span class="list">( 
+    <span class="keyword">PreownedKittenProject</span><span class="list">(<span class="string">"website"</span>)</span>. dependsOn<span class="list">(<span class="keyword">common</span>)</span>. settings<span class="list">()</span> 
+)</span>
+</code></pre><p>可以注意到<code>dependsOn</code>和<code>settings</code>调用跟之前没有什么变化,这是因为<code>PreownedKittenProject</code>返回的是一个<code>base-level</code>的工程,可以用来细化配置依赖和setting.这表示所有在<code>PreownedKittensProject</code>中定义的属性或配置会应用到所有使用该方法构建的子项目.</p>
+<p>可以继续更新这个<code>PreownedKittenProject</code>方法,以便配置基本的组织信息,版本,并且测试依赖库也能包含到所有子工程中:</p>
+<pre><code><span class="function"><span class="keyword">def</span> <span class="title">PreownedKittenProject</span>(</span>name: <span class="type">String</span>): <span class="type">Project</span> = ( 
+    <span class="type">Project</span>(name, file(name)). 
+    settings( 
+        version := <span class="string">"1.0"</span>, 
+        organization := <span class="string">"com.preownedkittens"</span>, 
+        libraryDependencies += <span class="string">"org.specs2"</span> % <span class="string">"specs2_2.10"</span> % <span class="string">"1.14"</span> % <span class="string">"test"</span> 
+    ) 
+)
+
+<span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">common</span> =</span> ( 
+    <span class="type">PreownedKittenProject</span>(<span class="string">"common"</span>). 
+    settings() 
+)
+
+<span class="function"><span class="keyword">val</span> <span class="title">analytics</span> =</span> ( 
+    <span class="type">PreownedKittenProject</span>(<span class="string">"analytics"</span>). 
+    dependsOn(common). 
+    settings() 
+)
+
+<span class="function"><span class="keyword">val</span> <span class="title">website</span> =</span> ( 
+    <span class="type">PreownedKittenProject</span>(<span class="string">"website"</span>). 
+    dependsOn(common). 
+    settings() 
+)
+
+<span class="function"><span class="keyword">val</span> <span class="title">gitHeadCommitSha</span> =</span> taskKey[<span class="type">String</span>](<span class="string">"Determines the current git commit SHA"</span>)
+
+gitHeadCommitSha := <span class="type">Process</span>(<span class="string">"git rev-parse HEAD"</span>).lines.head
+
+<span class="function"><span class="keyword">val</span> <span class="title">makeVersionProperties</span> =</span> taskKey[<span class="type">Seq</span>[<span class="type">File</span>]](<span class="string">"Creates a version.properties file we can find at runtime."</span>)
+
+makeVersionProperties := { 
+    <span class="function"><span class="keyword">val</span> <span class="title">propFile</span> =</span> (resourceManaged in <span class="type">Compile</span>).value / <span class="string">"version.properties"</span> 
+    <span class="function"><span class="keyword">val</span> <span class="title">content</span> =</span> <span class="string">"version=%s"</span> format (gitHeadCommitSha.value) 
+    <span class="type">IO</span>.write(propFile, content) 
+    <span class="type">Seq</span>(propFile) 
+}
+</code></pre><p>对于<code>version.properties</code>文件,只能在common中拥有一个以便其他连个子项目都能使用.以便区分在运行时是否使用了一致的版本.</p>
+<p>可能<code>gitHeadCommitSha</code>这个task可能会用于其他用途,而只有生成<code>version.properties</code>是我们在<code>common</code>中需要的,所以只把文件生成部分放到<code>common</code>中,而<code>gitHeadCommitSha</code>放在build自身.</p>
+<p>使用<code>in ThisBuild</code>把task定义带build自身:</p>
+<pre><code>gitHeadCommitSha <span class="keyword">in</span> ThisBuild := <span class="function"><span class="title">Process</span><span class="params">(<span class="string">"git rev-parse HEAD"</span>)</span></span><span class="class">.lines</span><span class="class">.head</span>
+</code></pre><p>这样这个task就被附到build自身了,并且所有的自工程都可以使用它的结果.然后把<code>makeVersionProperties</code>移动到<code>common</code>工程:</p>
+<pre><code>lazy val common = <span class="list">( 
+    <span class="keyword">PreownedKittenProject</span><span class="list">(<span class="string">"common"</span>)</span>. 
+    settings<span class="list">(
+        <span class="keyword">makeVersionProperties</span> <span class="keyword">:=</span> { 
+            val propFile = <span class="list">(<span class="keyword">resourceManaged</span> in Compile)</span>.value /<span class="string">"version.properties"</span> 
+            val content = <span class="string">"version=%s"</span> format <span class="list">(<span class="keyword">gitHeadCommitSha</span>.value)</span> 
+            IO.write<span class="list">(<span class="keyword">propFile</span>, content)</span> 
+            Seq<span class="list">(<span class="keyword">propFile</span>)</span> 
+        }
+    )</span>    
+)</span>
+</code></pre><h2 id="编译代码">编译代码</h2><p>使用<code>inspect tree</code>命令可以查看sbt的需要,比如输入<code>inspect tree compile:compile</code>命令,会输出一个<code>ASCII</code>树,包含编译所需要的tasks和settings以及它们返回的值.</p>
+<h3 id="Finding_your_source">Finding your source</h3><h4 id="源文件">源文件</h4><p>几乎所有的工程都会用到一些源文件,sbt提供了源文件的管理,通知支持自定义.</p>
+<p>输入<code>inspect tree source</code>可以获得源文件的结构树.</p>
+<ol>
+<li><code>unmanagedSources</code>: 一个已发现的源文件列表,使用标准的工程惯例</li>
+<li><code>managedSources</code>: 一个由build生产的或者手动添加的源文件列表</li>
+</ol>
+<p>对于sbt来说,<code>unmanagedSources</code>由<code>convention</code>发现.类似于内存管理.<code>Unmanaged</code>的意思是你(而不是sbt)可以添加,修改或跟踪这些源文件,同时<code>managed</code>源文件而是由sbt为你创建和跟踪的.</p>
+<p><code>unmanagedSources</code>使用一组文件过滤器和一组默认的文件夹来为工程生成源文件列表,文件夹是用<code>javaSource</code>和<code>scalaSource</code>来定义,sbt用他们来查找源文件,使用命令可以查看他们的默认设置:</p>
+<pre><code>&gt; show javaSource 
+[info] &lt;project-dir&gt;<span class="regexp">/src/main</span><span class="regexp">/java 
+&gt; show scalaSource 
+[info] &lt;project-dir&gt;/src</span><span class="regexp">/main/scala</span>
+</code></pre><p>同时还有一些生产环境资源文件,同时被引用为<code>compile sources</code>,这些是<code>.scala</code>或<code>.java</code>文件,被编译成成二进制文件然后放到生产环境.</p>
+<h4 id="资源文件">资源文件</h4><p>另外,很多工程拥有<code>compile sources</code>,是一些用于运行时而又不需要编译的.比如<code>.properties</code>和<code>.xml</code>文件.这些资源文件不会被编译,只是被拷贝到二进制的artifact中.</p>
+<p>类似于sbt的<code>sources</code>的task用于收集源,同时还有一个<code>resources</code>用于收集运行时需要的文件.</p>
+<ol>
+<li><code>managedResources</code>: 一组由手动指定或为build手动生成的</li>
+<li><code>unmanagedResources</code>: 一组在资源文件夹中找到的文件</li>
+</ol>
+<p>与源文件管理不同的是,资源文件并不使用过滤器,所有在资源文件路径找到的文件都会在运行时可用.</p>
+<p>查看资源文件路径:</p>
+<pre><code>&gt; show resourceDirectory 
+[info] &lt;<span class="keyword">project</span>-dir&gt;<span class="regexp">/src/m</span>ain<span class="regexp">/resources</span>
+</code></pre><h4 id="测试源文件">测试源文件</h4><p>除了上面的source和resource,还有一种<code>test source files</code>包含了测试代码并且永远不会进入生产环境.或者可以作为<code>test resources</code>,一种不会进行编译,只会在运行时执行的文件.</p>
+<p>查看测试源的依赖树:</p>
+<pre><code>&gt; inspect tree test:sources 
+[info] test:sources = Task[scala<span class="class">.collection</span><span class="class">.Seq</span>[java<span class="class">.io</span><span class="class">.File</span>]] 
+...
+</code></pre><h4 id="自定义源文件组织">自定义源文件组织</h4><p><code>sourceDirectory</code>默认被指定为<code>src</code>目录,sbt默认的配置为:</p>
+<pre><code>sourceDirectory := new <span class="function"><span class="title">File</span><span class="params">(baseDirectory.value, <span class="string">"src"</span>)</span></span>
+</code></pre><p>如果需要自定义为<code>sources/</code>:</p>
+<pre><code>sourceDirectory := new <span class="function"><span class="title">File</span><span class="params">(baseDirectory.value, <span class="string">"sources"</span>)</span></span>
+</code></pre><p>然后是main和test的路径,他们依赖于<code>sourceDirectory</code>配置,默认的配置为:</p>
+<pre><code>sourceDirectory <span class="keyword">in</span> Compile := new <span class="function"><span class="title">File</span><span class="params">(sourceDirectory.value, <span class="string">"main"</span>)</span></span>
+
+sourceDirectory <span class="keyword">in</span> Test := new <span class="function"><span class="title">File</span><span class="params">(sourceDirectory.value, <span class="string">"test"</span>)</span></span>
+</code></pre><p>如果需要把把main改为<code>production/</code>路径:</p>
+<pre><code>sourceDirectory <span class="keyword">in</span> Compile := new <span class="function"><span class="title">File</span><span class="params">(sourceDirectory.value, <span class="string">"production"</span>)</span></span>
+</code></pre><h4 id="过滤需要的源文件">过滤需要的源文件</h4><pre><code>includeFilter <span class="keyword">in</span> (Compile, unmanagedSources) := <span class="string">"*.scala"</span> 
+excludeFilter <span class="keyword">in</span> (Compile, unmanagedSources) := NothingFilter
+</code></pre><h4 id="依赖库">依赖库</h4><p>使用<code>inspect tree compile:dependencyClasspath</code>查看依赖库的依赖树.</p>
+<ol>
+<li>Internal dependencies: 定义在当前sbt的build中,用于各个工厂的依赖.</li>
+<li>External dependencies: 从其他外部拉去的依赖,通过Ivy或文件系统.</li>
+</ol>
+<p>内部依赖通过<code>dependsOn</code>方法计算得出,同时分为两个部分:</p>
+<ol>
+<li>Unmanaged dependencies: sbt从默认的位置发现,比如工厂的lib文件夹</li>
+<li>Managed dependencies: 在sbt的build中指定的,通过<code>libraryDependencies</code>添加的</li>
+</ol>
+<h2 id="工程打包">工程打包</h2><p>工程标识:</p>
+<pre><code>mappings <span class="keyword">in</span> packageBin <span class="keyword">in</span> Compile += <span class="function"><span class="params">(baseDirectory.value / <span class="string">"LICENSE"</span>)</span> -&gt;</span> <span class="string">"PREOWNED-KITTEN-LICENSE"</span>
+name := <span class="string">"preownedkittens-core"</span>
+organization := <span class="string">"org.lostkittens"</span>
+version := <span class="string">"1.0.0"</span>
+</code></pre><h2 id="Effective_sbt">Effective sbt</h2><ol>
+<li><p>总是指定sbt的版本:</p>
+<pre><code><span class="comment">// poject/build.properties</span>
+sbt.version=<span class="number">0.13</span><span class="number">.11</span>
+</code></pre></li>
+<li><p>在一个地方追踪依赖:</p>
+<pre><code><span class="comment">// project/Dependencies.scala</span>
+<span class="class"><span class="keyword">object</span> <span class="title">Dependencies</span> {</span>
+  <span class="comment">// Versions</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">akkaVersion</span> =</span> <span class="number">2.4</span><span class="number">.2</span>
+
+  <span class="comment">// Libraries</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">specs2</span> =</span> <span class="string">"org.specs2"</span> %% <span class="string">"specs2"</span> % <span class="string">"1.14"</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">akkaActor</span> =</span> <span class="string">"com.typesafa.akka"</span> %% <span class="string">"akka-actor"</span> % akkaVersion
+
+  <span class="comment">// Projects</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">akkaProjectDependencies</span> =</span> <span class="type">Seq</span>(akkaActor, specs2 % <span class="string">"test"</span>)
+}
+
+<span class="comment">// Usage</span>
+<span class="keyword">import</span> <span class="type">Dependencies</span>._
+<span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">akkaBackend</span> =</span> (
+  <span class="type">Project</span>(<span class="string">"akkaBackend"</span>, file(<span class="string">"."</span>)).
+    settings(
+      libraryDependencies += akkaProjectDependencies
+    )
+)
+</code></pre></li>
+<li><p>为plugin文件命名:</p>
+<pre><code><span class="comment">// project/play.sbt         &lt;= plugins for play</span>
+val playVersion = <span class="string">"2.5.1"</span>
+
+resolvers += <span class="string">"Typesafe repository"</span> at <span class="string">"https://dl.bintray.com/typesafe/maven-releases/"</span>
+
+<span class="function"><span class="title">addSbtPlugin</span><span class="params">(<span class="string">"com.typesafe.play"</span> % <span class="string">"sbt-plugin"</span> % playVersion)</span></span>
+</code></pre></li>
+<li><p>在多个工程中共享配置:</p>
+<pre><code><span class="comment">// build.sbt</span>
+val commonSettings = Seq(
+  organization := <span class="string">"com.typesafe.example"</span>
+)
+
+val web = (
+  <span class="function"><span class="title">Project</span><span class="params">(<span class="string">"backend"</span>, file(<span class="string">"."</span>)</span></span>).
+    <span class="function"><span class="title">settings</span><span class="params">(commonSettings:_*)</span></span>     <span class="comment">// 对commonSettings进行重用</span>
+)
+</code></pre><p> 或者将辅助方法放到一个类似<code>lib</code>的文件<code>project/*.scala</code>中.或者创建一个新的工程构造器.</p>
+<pre><code><span class="comment">// project/common.scala</span>
+<span class="keyword">import</span> sbt._
+<span class="keyword">import</span> <span class="type">Keys</span>._
+<span class="class"><span class="keyword">object</span> <span class="title">common</span> {</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">commonSettings</span> =</span> <span class="type">Seq</span>(
+    organization := <span class="string">"com.typesafe.example"</span>
+  )
+  <span class="function"><span class="keyword">def</span> <span class="title">AwesomeProject</span>(</span>name:<span class="type">String</span>) = (
+    <span class="type">Project</span>(name, file(name)).
+      settings.(commonSettings:_*)
+  )
+  <span class="function"><span class="keyword">def</span> <span class="title">AwesomePlayProject</span>(</span>name:<span class="type">String</span>) = (
+    play.<span class="type">Project</span>(name, path=file(name)).
+      settings(commonSettings:_*)
+  )
+}
+
+<span class="comment">// Usage</span>
+<span class="comment">// build.sbt</span>
+<span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">backend</span> =</span> (
+  <span class="type">AwesomeProject</span>(<span class="string">"backend"</span>).
+    settings(backendDependencies:_*)
+)
+</code></pre></li>
+<li><p>从对个工程中聚合tasks:</p>
+<pre><code><span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">root</span> =</span> (project in file(<span class="string">"."</span>)).
+  aggregate(util, core)
+
+<span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">util</span> =</span> project
+
+<span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">core</span> =</span> project
+</code></pre></li>
+<li><p>为版本进行版本控制:</p>
+<pre><code>val gitHeadCommitSha = settingKey[<span class="link_label">String</span>](<span class="link_url">"current git commit SHA"</span>)
+
+gitHeadCommitSha in ThisBuild := Process("git rev-parse HEAD").lines.head
+
+version in ThisBulid := "1.0-" + gitHeadCommitSha.value
+</code></pre><p> 或者发布的版本,如果作为发布版本则设置为<code>1.0</code>,否则追加上对应的版本号:</p>
+<pre><code>val <span class="operator"><span class="keyword">release</span> = settingKey[<span class="built_in">Boolean</span>](<span class="string">""</span>)
+
+<span class="keyword">release</span> := <span class="keyword">sys</span>.props(<span class="string">"release"</span>) == <span class="string">"true"</span>
+
+<span class="keyword">version</span> <span class="keyword">in</span> ThisBuild := {
+  val v = <span class="string">"1.0"</span>
+  <span class="keyword">if</span>(<span class="keyword">release</span>.vaule) v
+  <span class="keyword">else</span> s<span class="string">"$v-${gitHeadCommitSha.value}"</span>
+}</span>
+</code></pre></li>
+<li><p>使用sbt的IO操作,<code>Process</code>和<code>File</code>库:</p>
+<p> 前面用到的一个例子:</p>
+<pre><code>val cmd = <span class="string">"git rev-parse HEAD"</span>
+
+<span class="function"><span class="title">Process</span><span class="params">(cmd)</span></span><span class="class">.lines</span><span class="class">.head</span>
+</code></pre><p> 我们可以用这样的方法在代码中获取工程的名字或版本:</p>
+<pre><code><span class="comment">// project/buildInfo.scala</span>
+<span class="function"><span class="keyword">val</span> <span class="title">infoFiles</span> =</span> taskKey[<span class="type">Seq</span>[<span class="type">File</span>]](<span class="string">""</span>)
+
+infoFiles := {
+  <span class="function"><span class="keyword">val</span> <span class="title">base</span> =</span> (sourceManaged in <span class="type">Compile</span>).value
+  <span class="function"><span class="keyword">val</span> <span class="title">file</span> =</span> base / <span class="string">"buildInfo.scala"</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">content</span> =</span> s<span class="string">"""object BuildInfo {
+                        version = "${version.value}" 
+                }"""</span>
+  <span class="type">IO</span>.write(file, content)
+  <span class="type">Seq</span>(file)
+}
+
+sourceGenerators in <span class="type">Compile</span> &lt;+= infoFiles
+
+<span class="comment">// Usage</span>
+<span class="function"><span class="keyword">val</span> <span class="title">commonSettings</span> =</span> <span class="type">BuildInfo</span>.settings ++ ...
+</code></pre></li>
+<li><p>使用settings和方法来保持代码清晰并易于扩展:</p>
+<pre><code><span class="comment">// project/buildInfo.scala</span>
+<span class="class"><span class="keyword">object</span> <span class="title">BuildInfo</span> {</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">properties</span> =</span> settingKey[<span class="type">Map</span>[<span class="type">String</span>, <span class="type">String</span>]]
+
+  <span class="function"><span class="keyword">val</span> <span class="title">infoFile</span> =</span> taskKey[<span class="type">File</span>]
+
+  ....
+
+  <span class="function"><span class="keyword">def</span> <span class="title">makeInfo</span>(</span>file:<span class="type">File</span>, props:<span class="type">Map</span>[<span class="type">String</span>,<span class="type">String</span>]) = {
+    <span class="function"><span class="keyword">val</span> <span class="title">lines</span> =</span> <span class="keyword">for</span>((key,value) &lt;- props) <span class="keyword">yield</span> s<span class="string">"val $key=\"$value\""</span>
+
+    <span class="function"><span class="keyword">val</span> <span class="title">source</span> =</span> s<span class="string">"""object BuildInfo{
+                     ${lines.mkString "\n"}
+                  }"""</span>
+
+    <span class="type">IO</span>.write(source, file)
+    file
+  }
+
+  <span class="function"><span class="keyword">val</span> <span class="title">settings</span> =</span> 
+    <span class="type">Seq</span>(
+      properties := <span class="type">Map</span>.empty
+      properties += <span class="string">"version"</span> -&gt; version.value
+      properties += <span class="string">"name"</span> -&gt; name.value
+      infoFile := {
+        makeInfo(
+          (sourceManaged in <span class="type">Compile</span>).vaule / <span class="string">"buildInfo.scala"</span>,
+          properties.value
+        )
+      }
+    ),
+    sourceGenterators in <span class="type">Compile</span> += infoFile.task
+}
+</code></pre></li>
+<li><p>使用插件:</p>
+<pre><code><span class="function"><span class="title">addSbtPlugin</span><span class="params">(<span class="string">"com.eed3i9n"</span> % <span class="string">"sbt-buildinfo"</span> % <span class="string">"0.2.5"</span>)</span></span>
+
+<span class="comment">// Usage</span>
+val commonSettings = buildInfoSettings ++ ...
+</code></pre></li>
+<li><p>使用<code>~</code>符号响应是改变.</p>
+</li>
+</ol>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/SBT/" rel="tag">#SBT</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/28/Simple-Akka-Cluster/" rel="next">Simple Akka: Cluster</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">114</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">40</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#搭建"><span class="nav-number">2.</span> <span class="nav-text">搭建</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Creating_builds"><span class="nav-number">3.</span> <span class="nav-text">Creating builds</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用配置"><span class="nav-number">4.</span> <span class="nav-text">使用配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义多个子工程"><span class="nav-number">5.</span> <span class="nav-text">定义多个子工程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Putting_it_all_together"><span class="nav-number">6.</span> <span class="nav-text">Putting it all together</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译代码"><span class="nav-number">7.</span> <span class="nav-text">编译代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Finding_your_source"><span class="nav-number">7.1.</span> <span class="nav-text">Finding your source</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#源文件"><span class="nav-number">7.1.1.</span> <span class="nav-text">源文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#资源文件"><span class="nav-number">7.1.2.</span> <span class="nav-text">资源文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#测试源文件"><span class="nav-number">7.1.3.</span> <span class="nav-text">测试源文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#自定义源文件组织"><span class="nav-number">7.1.4.</span> <span class="nav-text">自定义源文件组织</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#过滤需要的源文件"><span class="nav-number">7.1.5.</span> <span class="nav-text">过滤需要的源文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#依赖库"><span class="nav-number">7.1.6.</span> <span class="nav-text">依赖库</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工程打包"><span class="nav-number">8.</span> <span class="nav-text">工程打包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Effective_sbt"><span class="nav-number">9.</span> <span class="nav-text">Effective sbt</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
