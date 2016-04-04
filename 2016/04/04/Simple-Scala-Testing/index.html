@@ -1,0 +1,877 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Scala中的测试模块Specs2.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Simple Scala: Testing">
+<meta property="og:url" content="http://yoursite.com/2016/04/04/Simple-Scala-Testing/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Scala中的测试模块Specs2.">
+<meta property="og:updated_time" content="2016-04-04T14:29:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Simple Scala: Testing">
+<meta name="twitter:description" content="Scala中的测试模块Specs2.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> Simple Scala: Testing | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              Simple Scala: Testing
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-04-04T14:51:29+08:00" content="2016-04-04">
+            2016-04-04
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="依赖">依赖</h2><pre><code>libraryDependencies ++= <span class="function"><span class="title">Seq</span><span class="params">(<span class="string">"org.specs2"</span> %% <span class="string">"specs2-core"</span> % <span class="string">"3.7.2"</span> % <span class="string">"test"</span>)</span></span>
+
+scalacOptions <span class="keyword">in</span> Test ++= <span class="function"><span class="title">Seq</span><span class="params">(<span class="string">"-Yrangepos"</span>)</span></span>
+</code></pre><h2 id="一个简单的实例">一个简单的实例</h2><p>编写一个测试用例:</p>
+<pre><code><span class="keyword">import</span> org.specs2._
+
+<span class="class"><span class="keyword">class</span> <span class="title">QuickStartSpec</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">Specification</span> {</span> <span class="function"><span class="keyword">def</span> <span class="title">is</span> =</span> s2<span class="string">"""
+
+ This is my first specification
+   it is working                 $ok
+   really working!               $ok
+                                 """</span>
+}
+</code></pre><p>然后在sbt中运行该用例:</p>
+<pre><code>sbt&gt; <span class="built_in">test</span>Only QuickStartSpec
+</code></pre><h2 id="Structure">Structure</h2><h3 id="Styles">Styles</h3><p>在测试说明中一般需要包含两件事:</p>
+<ol>
+<li>一些非正式的文本,用于描述系统,应用或函数要完成的工作</li>
+<li>一些明确指定了输入值和预期输出结果的Scala代码</li>
+</ol>
+<p>在specs2中有两种主要的方式来完成以上工作:</p>
+<ol>
+<li><p>可以创建一个<code>Acceptance</code>说明,把说有的非正式文本放在一个地方,代码写在另一个地方.<code>Acceptance</code>的意思是让一些非开发者更易于理解这些说明文本来验证测试.</p>
+</li>
+<li><p>可以创建一个<code>Unit</code>说明,代码和文本交叉编写在一起,<code>unit</code>的意思是这样的说明有一个结果,类似于经典单元测试框架<code>Junit</code>.</p>
+</li>
+</ol>
+<p>两种编写说明的方法都是有利有弊的:</p>
+<ol>
+<li>认可说明和故事一样易读,但是需要在代码和文本之间做导航,同时需要定义一个<code>is</code>方法来包含整个说明的实体.</li>
+<li>单元说明更易于操纵但是文本可能在代码的海洋里丢失.</li>
+</ol>
+<h3 id="Acceptance_specification">Acceptance specification</h3><p>需要继承<code>org.specs2.Specification</code>并定义一个<code>is</code>方法,可以通过一个<code>s2</code>类型的字符串来实现这个方法:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">MySpecification</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">org</span>.<span class="title">specs2</span>.<span class="title">Specification</span> {</span> <span class="function"><span class="keyword">def</span> <span class="title">is</span> =</span> s2<span class="string">"""
+
+ this is my specification
+   where example 1 must be true           $e1
+   where example 2 must be true           $e2
+                                          """</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">e1</span> =</span> <span class="number">1</span> must_== <span class="number">1</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">e2</span> =</span> <span class="number">2</span> must_== <span class="number">2</span>
+}
+</code></pre><p>这个<code>s2</code>字符串包含了说明,同时引用了<code>e1</code>和<code>e2</code>两个方法来定义结果.当用例执行时,这个<code>s2</code>字符串会被分析,同时会创建两个<code>Example</code>会被创建并执行:</p>
+<ol>
+<li>第一个<code>Example</code>: 描述文本<code>where example 1 must be true</code>和代码<code>1 must_== 1</code><br>2, 第二个<code>Example</code>: 描述文本<code>where example 2 must be true</code>和代码<code>2 must_== 2</code></li>
+</ol>
+<p><code>this is my specification</code>会被分析为一个<code>Text</code>而不会执行.</p>
+<h3 id="Unit_specification">Unit specification</h3><p>继承自<code>org.specs2.mutable.Specification</code>,使用<code>&gt;&gt;</code>操作符来创建包含<code>Examples</code>和<code>Texts</code>的块:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">MySpecification</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">org</span>.<span class="title">specs2</span>.<span class="title">mutable</span>.<span class="title">Specification</span> {</span>
+  <span class="string">"this is my specification"</span> &gt;&gt; {
+    <span class="string">"where example 1 must be true"</span> &gt;&gt; {
+      <span class="number">1</span> must_== <span class="number">1</span>
+    }
+    <span class="string">"where example 2 must be true"</span> &gt;&gt; {
+      <span class="number">2</span> must_== <span class="number">2</span>
+    }
+  }
+}
+</code></pre><p>这个用例创建了一个<code>Text</code>和两个<code>Example</code>:</p>
+<ol>
+<li>不再需要定义一个<code>is</code>方法</li>
+<li>代码和它指定的文本描述离的更近</li>
+</ol>
+<p>然而一旦一个用例穿件了所有<code>Texts</code>和<code>Examples</code>,执行器都会是一样的,无论是<code>Acceptance</code>还是<code>Unit</code>.</p>
+<p>由<code>&gt;&gt;</code>操作符构成的块可以是嵌套的,这样就可以组织自己的用例机构,比如外部用来描述一个通用的上下文,内部来描述一个特殊的上下文.</p>
+<h3 id="Expectations">Expectations</h3><p>两种编写方式还有一个不同,第一种风格鼓励<code>每个预期提供一个样例</code>,而第二种风格可以提供多个样例.当测试用例失败时,一个预期一个样例是很有帮助的,可以直接知道是哪里出错了.但是有时候为一个样例创建数据的成本很高,这时,多个预期结果使用一份数据的创建会比较合适.</p>
+<p>对于两种风格,如果感觉默认的<code>预期模式</code>不合适的话,可以精确的进行制定.</p>
+<h4 id="Functional_expectations">Functional expectations</h4><p>在<code>acceptance</code>中,默认情况下,<code>Example</code>的<code>Result</code>总是在用例体的最后一个语句提供.下面的实例中,用例永远不会失败,因为第一个预期已经<code>lost</code>:</p>
+<pre><code><span class="comment">// this will never fail!</span>
+s2<span class="string">"""
+  my example on strings $e1
+"""</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">e1</span> =</span> {
+    <span class="comment">// because this expectation will not be returned,...</span>
+    <span class="string">"hello"</span> must have size (<span class="number">10000</span>)
+    <span class="string">"hello"</span> must startWith(<span class="string">"hell"</span>)
+  }
+</code></pre><p>如果同时需要两个预期,可以使用<code>both</code>将他们连接:</p>
+<pre><code>s2<span class="string">"""
+  my example on strings $e1
+"""</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">e1</span> =</span> (<span class="string">"hello"</span> must have size (<span class="number">10000</span>)) and
+           (<span class="string">"hello"</span> must startWith(<span class="string">"hell"</span>))
+</code></pre><p>这种用法给人的体验不是很好,因此这也就是这种风格鼓励每个样例一个预期的原因.</p>
+<h4 id="Thrown_expectations">Thrown expectations</h4><p>在单元式说明中默认会得到一个<code>thrown expectations</code>,当一个预期失败时它会抛出一个异常,后续的用例也不会再执行.</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">MySpecification</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">org</span>.<span class="title">specs2</span>.<span class="title">mutable</span>.<span class="title">Specification</span> {</span>
+  <span class="string">"This is my example"</span> &gt;&gt; {
+    <span class="number">1</span> must_== <span class="number">2</span> <span class="comment">// this fails</span>
+    <span class="number">1</span> must_== <span class="number">1</span> <span class="comment">// this is not executed</span>
+  }
+}
+</code></pre><h2 id="Matchers">Matchers</h2><p>使用specs2测试预期行为最常用的方式是使用<code>matchers</code>,通常是执行一个动作,命令或函数,然后检查得到的结果与预期是否一致.</p>
+<p>比如,利用路径为一个对象创建一个测试用例:</p>
+<pre><code><span class="comment">// describe the functionality</span>
+s2<span class="string">"the directoryPath method should return well-formed paths $e1"</span>
+
+<span class="comment">// give an example with some code</span>
+def e1 = Paths.<span class="function"><span class="title">directoryPath</span><span class="params">(<span class="string">"/tmp/path/to/dir"</span>)</span></span> must <span class="function"><span class="title">beEqualTo</span><span class="params">(<span class="string">"/tmp/path/to/dir/"</span>)</span></span>
+</code></pre><p><code>must</code>操作符使用<code>directoryPath</code>返回的结果应用到由预期值构建的<code>Matcher</code>上.<code>beEqualTo</code>是一种specs2中的<code>Matcher</code>,仅仅用于判断值是否相等.</p>
+<h3 id="Equality">Equality</h3><p>匹配器常用的类型<code>beEqualTo</code>用于测试两个值的相等.可以使用多种不同的语法:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Matcher</th>
+<th style="text-align:left">Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>1 must beEqualTo(1)</code></td>
+<td style="text-align:left">the normal way</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>1 must be_==(1)</code></td>
+<td style="text-align:left">with a symbol</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>1 must_== 1</code></td>
+<td style="text-align:left">my favorite!</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>1 mustEqual 1</code></td>
+<td style="text-align:left">if you dislike underscores</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>1 should_== 1</code></td>
+<td style="text-align:left">for should lovers</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>1 === 1</code></td>
+<td style="text-align:left">the ultimate shortcut</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>1 must be equalTo(1)</code></td>
+<td style="text-align:left">with a literate style</td>
+</tr>
+</tbody>
+</table>
+<p>还有一些别的比较类型:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Matcher</th>
+<th style="text-align:left">Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>beTypedEqualTo</code></td>
+<td style="text-align:left">类型相等性比较</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>be_===</code></td>
+<td style="text-align:left">与<code>beTypedEqualTo</code>一样</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>a ==== b</code></td>
+<td style="text-align:left">与<code>a must beTypedEqualTo(b)</code>一样</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>a must_=== b</code></td>
+<td style="text-align:left">与<code>a must_== b</code>一样,但是当ab类型不同时不进行类型检查</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>be_==~</code></td>
+<td style="text-align:left">当有一个从A到B的隐式类型转换时,检查是否<code>(a: A) == conv(b: B)</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>beTheSameAs</code></td>
+<td style="text-align:left">引用相等,<code>a eq b</code>或<code>a must be(b)</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>be</code></td>
+<td style="text-align:left"><code>a must be(b)</code>,<code>beTheSameAs</code>的同义词</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>beTrue, beFalse</code></td>
+<td style="text-align:left">布尔类型检查</td>
+</tr>
+</tbody>
+</table>
+<p>注意: <code>beEqualTo</code>使用的是scala中的<code>==</code>.但是在比较<code>Array</code>时,Scala的<code>==</code>仅仅比较的是引用相等性,<code>eq</code>.因此在使用<code>beEqualTo</code>来比较<code>Array</code>时使用<code>.deep</code>方法比较好,在比较相等性之前将它转换成<code>IndexedSeqs</code>(允许嵌套),因此会得到<code>Array(1, 2, 3) === Array(1, 2, 3)</code>,尽管事实上<code>Array(1, 2, 3) != Array(1, 2, 3)</code>(比较引用的方式).</p>
+<h3 id="所有Matcher">所有<code>Matcher</code></h3><h4 id="字符串">字符串</h4><table>
+<thead>
+<tr>
+<th style="text-align:left">Matcher</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>beMatching</code> or <code>be matching</code></td>
+<td style="text-align:left">检查字符串是否匹配正则表达式</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>=~(s)</code></td>
+<td style="text-align:left">`beMatching(“(.</td>
+<td>\s)*”+s+”(.</td>
+<td>\s)*”)`的快捷方式</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>find(exp).withGroups(a, b, c)</code></td>
+<td style="text-align:left">检查字符串是否能找到一些group</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>have length</code></td>
+<td style="text-align:left">检查字符串长度</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>have size</code></td>
+<td style="text-align:left">检查字符串大小,作为<code>Iterable[Char]</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>be empty</code></td>
+<td style="text-align:left">检查是否为空</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>beEqualTo(b).ignoreCase</code></td>
+<td style="text-align:left">排除一些情况后检查两个字符串相等</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>beEqualTo(b).ignoreSpace</code></td>
+<td style="text-align:left">执行<code>replaceAll(&quot;\\s&quot;, &quot;&quot;)</code>后比较相等</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>beEqualTo(b).trimmed</code></td>
+<td style="text-align:left">截除两端后比较是否相等</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>beEqualTo(b).ignoreSpace.ignoreCase</code></td>
+<td style="text-align:left">组合比较</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>contain(b)</code></td>
+<td style="text-align:left">检查是否包含另一个</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>startWith(b)</code></td>
+<td style="text-align:left">检查是否已另一个起始</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>endWith(b)</code></td>
+<td style="text-align:left">检查是否已另一个结尾</td>
+</tr>
+</tbody>
+</table>
+<h4 id="Traversable">Traversable</h4><p>可遍历对象能够使用多种匹配器,比如检查他们的长度:</p>
+<ol>
+<li><p>检查非空:</p>
+<pre><code>Se<span class="string">q()</span> must be empty
+Se<span class="string">q(1, 2, 3)</span> must <span class="keyword">not</span> be empty
+</code></pre></li>
+<li><p>检查长度:</p>
+<pre><code><span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span> must have <span class="function"><span class="title">size</span><span class="params">(<span class="number">2</span>)</span></span>
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span> must have <span class="function"><span class="title">length</span><span class="params">(<span class="number">2</span>)</span></span>           <span class="comment">// equivalent to size</span>
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span> must have <span class="function"><span class="title">size</span><span class="params">(be_&gt;=(<span class="number">1</span>)</span></span>)      <span class="comment">// with a matcher</span>
+</code></pre><p> 注意: 在使用一些连接符时需要给<code>haveSize</code>添加注解,比如: <code>(futures: Future[Seq[Int]]) must haveSize[Seq[Int]](1).await</code></p>
+</li>
+<li><p>检查顺序,适用于所有拥有<code>Ordering</code>的类型<code>T</code>:</p>
+<pre><code>Se<span class="string">q(1, 2, 3)</span> must beSorted
+</code></pre></li>
+</ol>
+<h4 id="分别检查各个元素">分别检查各个元素</h4><p>可以检查包含在可比案例对象中的元素.</p>
+<ol>
+<li><p>是否包含一个元素: <code>Seq(1, 2, 3) must contain(2)</code></p>
+</li>
+<li><p>是否包含一个匹配指定匹配器的元素: <code>Seq(1, 2, 3) must contain(be_&gt;=(2))</code></p>
+</li>
+<li><p>是否包含通过将值传递给函数返回的<code>Result</code>: <code>Seq(1, 2, 3) must contain((i: Int) =&gt; i must be_&gt;=(2))</code></p>
+</li>
+<li><p>注意<code>Seq[A]</code>也是一个<code>Int =&gt; A</code>函数,检查一个序列是否包含另一个序列: <code>Seq(Seq(1)) must contain(===(Seq(1)))</code></p>
+</li>
+<li><p>有连个专门的匹配器用于检查元素的字符串表达式:</p>
+<pre><code><span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1234</span>, <span class="number">6237</span>)</span></span> must <span class="function"><span class="title">containMatch</span><span class="params">(<span class="string">"23"</span>)</span></span>         <span class="comment">// matches with ".*23.*"</span>
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1234</span>, <span class="number">6234</span>)</span></span> must <span class="function"><span class="title">containPattern</span><span class="params">(<span class="string">".*234"</span>)</span></span>    <span class="comment">// matches with !.*234"</span>
+</code></pre></li>
+</ol>
+<p>上面的所有检查都可以指定需要满足的次数:</p>
+<pre><code><span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span></span> must <span class="function"><span class="title">contain</span><span class="params">(be_&gt;(<span class="number">0</span>)</span></span>)<span class="class">.forall</span>           <span class="comment">// this will stop after the first failure</span>
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span></span> must <span class="function"><span class="title">contain</span><span class="params">(be_&gt;(<span class="number">0</span>)</span></span>)<span class="class">.foreach</span>          <span class="comment">// this will report all failures</span>
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span></span> must <span class="function"><span class="title">contain</span><span class="params">(be_&gt;(<span class="number">0</span>)</span></span>)<span class="class">.atLeastOnce</span>
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span></span> must <span class="function"><span class="title">contain</span><span class="params">(be_&gt;(<span class="number">2</span>)</span></span>)<span class="class">.atMostOnce</span>
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span></span> must <span class="function"><span class="title">contain</span><span class="params">(be_&gt;(<span class="number">2</span>)</span></span>).<span class="function"><span class="title">exactly</span><span class="params">(<span class="number">1</span>.times)</span></span>
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span></span> must <span class="function"><span class="title">contain</span><span class="params">(be_&gt;(<span class="number">2</span>)</span></span>).<span class="function"><span class="title">exactly</span><span class="params">(<span class="number">1</span>)</span></span>
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span></span> must <span class="function"><span class="title">contain</span><span class="params">(be_&gt;(<span class="number">1</span>)</span></span>).<span class="function"><span class="title">between</span><span class="params">(<span class="number">1</span>.times, <span class="number">2</span>.times)</span></span>
+<span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span></span> must <span class="function"><span class="title">contain</span><span class="params">(be_&gt;(<span class="number">1</span>)</span></span>).<span class="function"><span class="title">between</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span>
+</code></pre><h4 id="检查所有元素">检查所有元素</h4><p>另一种类型的检查是将可遍历对象的元素与其他元素(值,匹配器,函数返回一个<code>Result</code>)进行比较.</p>
+<ol>
+<li><p>一组值:</p>
+<pre><code>Seq(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>) <span class="function">must <span class="title">contain</span><span class="params">(<span class="number">2</span>, <span class="number">4</span>)</span></span>
+</code></pre><p> 或:</p>
+<pre><code><span class="function"><span class="title">Seq</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>)</span></span> must <span class="function"><span class="title">contain</span><span class="params">(allOf(<span class="number">2</span>, <span class="number">4</span>)</span></span>)
+</code></pre></li>
+<li><p>一组匹配器:</p>
+<pre><code>Seq<span class="list">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>)</span> must contain<span class="list">(<span class="keyword">allOf</span><span class="list">(<span class="keyword">be_&gt;</span><span class="list">(<span class="number">0</span>)</span>, be_&gt;<span class="list">(<span class="number">1</span>)</span>)</span>)</span>
+</code></pre></li>
+<li><p>检查是否满足顺序:</p>
+<pre><code>Seq<span class="list">(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>)</span> must contain<span class="list">(<span class="keyword">allOf</span><span class="list">(<span class="keyword">be_&gt;</span><span class="list">(<span class="number">0</span>)</span>, be_&gt;<span class="list">(<span class="number">1</span>)</span>)</span>.inOrder)</span>
+</code></pre></li>
+</ol>
+<p>….</p>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/04/Notes-of-Programming-Scala-Type-Less-Do-more/" rel="prev">Notes of Programming Scala: Type Less, Do more</a>
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/03/Simple-SBT-Getting-start/" rel="next">Simple SBT: Getting start</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">134</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">40</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#依赖"><span class="nav-number">1.</span> <span class="nav-text">依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一个简单的实例"><span class="nav-number">2.</span> <span class="nav-text">一个简单的实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Structure"><span class="nav-number">3.</span> <span class="nav-text">Structure</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Styles"><span class="nav-number">3.1.</span> <span class="nav-text">Styles</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Acceptance_specification"><span class="nav-number">3.2.</span> <span class="nav-text">Acceptance specification</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Unit_specification"><span class="nav-number">3.3.</span> <span class="nav-text">Unit specification</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Expectations"><span class="nav-number">3.4.</span> <span class="nav-text">Expectations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Functional_expectations"><span class="nav-number">3.4.1.</span> <span class="nav-text">Functional expectations</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Thrown_expectations"><span class="nav-number">3.4.2.</span> <span class="nav-text">Thrown expectations</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Matchers"><span class="nav-number">4.</span> <span class="nav-text">Matchers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Equality"><span class="nav-number">4.1.</span> <span class="nav-text">Equality</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#所有Matcher"><span class="nav-number">4.2.</span> <span class="nav-text">所有Matcher</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#字符串"><span class="nav-number">4.2.1.</span> <span class="nav-text">字符串</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Traversable"><span class="nav-number">4.2.2.</span> <span class="nav-text">Traversable</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#分别检查各个元素"><span class="nav-number">4.2.3.</span> <span class="nav-text">分别检查各个元素</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#检查所有元素"><span class="nav-number">4.2.4.</span> <span class="nav-text">检查所有元素</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
