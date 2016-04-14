@@ -45,7 +45,7 @@
 <meta property="og:url" content="http://yoursite.com/2016/04/09/Simple-Scala-DI-in-Scala-guide/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="Scala中的依赖注入.">
-<meta property="og:updated_time" content="2016-04-09T15:50:26.000Z">
+<meta property="og:updated_time" content="2016-04-14T15:50:21.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Simple Scala: DI in Scala: guide">
 <meta name="twitter:description" content="Scala中的依赖注入.">
@@ -369,6 +369,300 @@
 <p>在每个<code>trait</code>中用于完成各种目的的任务被称为一个<code>module</code>,来创建对象图表的一部分.最后把需要的特质放在一起进行重组.</p>
 <p>有多种不同的规则用于将代码拆分到不同的module.一种好的方式是每个<code>package</code>创建一个<code>预连接</code>的module.没个package需要包含一组类,共享或实现一些指定的功能.最可能的就是这些类通过一些方式进行拆分,以便能够进行连线.</p>
 <p>传递package的一个额外好处是不仅能够使用代码,同时可以使用一个对象图表片段,这会使代码的使用更加清晰.使用以连线的module并没有一些必须的要求,因此可以通过不同的方式完成.</p>
+<p>通常module不能作为单独的形式存在,经常会会依赖于其他module中的类,有两种方式表示依赖.</p>
+<h3 id="通过抽象成员表示依赖">通过抽象成员表示依赖</h3><p>由于一些module是一个trait,这允许留下一些未明确的依赖,作为抽象成员.这些抽象成员可以在连线(手动或wire)时使用,但是并不需要提供指定的实现.</p>
+<p>当所有的module在应用中组合时,编译器会验证所有这些被定义为抽象成员的实际定义.</p>
+<p>注意我们可以声明所有的抽象成员为<code>def</code>,然后在后来可以被实现为<code>val</code>或者<code>lazy val</code>,或者仍然为<code>def</code>,使用<code>def</code>可以保留所有可能的选项.</p>
+<p>我们样例代码的连线可以按如下方式拆分,这些类被分组为pakage:</p>
+<pre><code><span class="title">package</span> shunting {
+<span class="class">   <span class="keyword">class</span> <span class="type">PointSwitcher</span><span class="container">()</span>
+   <span class="keyword">class</span> <span class="type">TrainCarCoupler</span><span class="container">()</span>
+   <span class="keyword">class</span> <span class="type">TrainShunter</span><span class="container">(
+      <span class="title">pointSwitcher</span>: <span class="type">PointSwitcher</span>, 
+      <span class="title">trainCarCoupler</span>: <span class="type">TrainCarCoupler</span>)</span>
+} 
+
+package loading {
+   <span class="keyword">class</span> <span class="type">CraneController</span><span class="container">()</span>
+   <span class="keyword">class</span> <span class="type">TrainLoader</span><span class="container">(
+      <span class="title">craneController</span>: <span class="type">CraneController</span>, 
+      <span class="title">pointSwitcher</span>: <span class="type">PointSwitcher</span>)</span>
+}
+
+package station {
+   <span class="keyword">class</span> <span class="type">TrainDispatch</span><span class="container">()</span>
+
+   <span class="keyword">class</span> <span class="type">TrainStation</span><span class="container">(
+      <span class="title">trainShunter</span>: <span class="type">TrainShunter</span>, 
+      <span class="title">trainLoader</span>: <span class="type">TrainLoader</span>, 
+      <span class="title">trainDispatch</span>: <span class="type">TrainDispatch</span>)</span> {
+
+      def prepareAndDispatchNextTrain<span class="container">()</span> { ... }
+   }
+}</span>
+</code></pre><p>每个package相当于一个<code>trait-module</code>,注意<code>shunting</code>和<code>loading</code>包之间的依赖表示为一个抽象成员:</p>
+<pre><code><span class="keyword">package</span> shunting {
+   <span class="class"><span class="keyword">trait</span> <span class="title">ShuntingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">pointSwitcher</span> =</span> wire[<span class="type">PointSwitcher</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainCarCoupler</span> =</span> wire[<span class="type">TrainCarCoupler</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainShunter</span> =</span> wire[<span class="type">TrainShunter</span>] 
+   }
+}
+
+<span class="keyword">package</span> loading {
+   <span class="class"><span class="keyword">trait</span> <span class="title">LoadingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">craneController</span> =</span> wire[<span class="type">CraneController</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainLoader</span> =</span> wire[<span class="type">TrainLoader</span>] 
+
+      <span class="comment">// dependency of the module</span>
+      <span class="function"><span class="keyword">def</span> <span class="title">pointSwitcher</span>:</span> <span class="type">PointSwitcher</span>
+   }
+}
+
+<span class="keyword">package</span> station {
+   <span class="class"><span class="keyword">trait</span> <span class="title">StationModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainDispatch</span> =</span> wire[<span class="type">TrainDispatch</span>]
+
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainStation</span> =</span> wire[<span class="type">TrainStation</span>]
+
+      <span class="comment">// dependencies of the module</span>
+      <span class="function"><span class="keyword">def</span> <span class="title">trainShunter</span>:</span> <span class="type">TrainShunter</span> 
+      <span class="function"><span class="keyword">def</span> <span class="title">trainLoader</span>:</span> <span class="type">TrainLoader</span>
+   }
+}
+
+<span class="class"><span class="keyword">object</span> <span class="title">TrainStation</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">App</span> {</span>
+   <span class="function"><span class="keyword">val</span> <span class="title">modules</span> =</span> <span class="keyword">new</span> <span class="type">ShuntingModule</span>
+      <span class="keyword">with</span> <span class="type">LoadingModule</span>
+      <span class="keyword">with</span> <span class="type">StationModule</span>
+
+   modules.trainStation.prepareAndDispatchNextTrain()   
+} 
+</code></pre><p>以这样的方式实现依赖需要一个一致的命名约定,比如抽象成员和实现的名字一样.类实例的名字和类的一致然后首字母小写,也是一个很好的命名约定.</p>
+<p>这个个方法在一些部分类似于蛋糕模式,因此命名为<code>Thin Cake Pattern</code>.</p>
+<h3 id="通过self-types表示依赖">通过<code>self-types</code>表示依赖</h3><p>另一种表示依赖的方式是通过<code>self-types</code>或者扩展其他的<code>trait-modules</code>.这种方式在两个模块之间建立了强烈的连接关系,取代了解耦的抽象成员方式,但是在有些场景也是有应用价值的.</p>
+<p>比如,我们可以通过集成一个<code>trait-module</code>来表示<code>shunting,loading,station</code>之间的依赖,而不是使用抽象成员:</p>
+<pre><code><span class="keyword">package</span> shunting {
+   <span class="class"><span class="keyword">trait</span> <span class="title">ShuntingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">pointSwitcher</span> =</span> wire[<span class="type">PointSwitcher</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainCarCoupler</span> =</span> wire[<span class="type">TrainCarCoupler</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainShunter</span> =</span> wire[<span class="type">TrainShunter</span>] 
+   }
+}
+
+<span class="keyword">package</span> loading {
+   <span class="class"><span class="keyword">trait</span> <span class="title">LoadingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">craneController</span> =</span> wire[<span class="type">CraneController</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainLoader</span> =</span> wire[<span class="type">TrainLoader</span>] 
+
+      <span class="comment">// dependency expressed using an abstract member</span>
+      <span class="function"><span class="keyword">def</span> <span class="title">pointSwitcher</span>:</span> <span class="type">PointSwitcher</span>
+   }
+}
+
+<span class="keyword">package</span> station {
+   <span class="comment">// dependencies expressed using extends</span>
+   <span class="class"><span class="keyword">trait</span> <span class="title">StationModule</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">ShuntingModule</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">LoadingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainDispatch</span> =</span> wire[<span class="type">TrainDispatch</span>]
+
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainStation</span> =</span> wire[<span class="type">TrainStation</span>]
+   }
+}
+
+<span class="class"><span class="keyword">object</span> <span class="title">TrainStation</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">App</span> {</span>
+   <span class="function"><span class="keyword">val</span> <span class="title">modules</span> =</span> <span class="keyword">new</span> <span class="type">ShuntingModule</span>
+      <span class="keyword">with</span> <span class="type">LoadingModule</span>
+      <span class="keyword">with</span> <span class="type">StationModule</span>
+
+   modules.trainStation.prepareAndDispatchNextTrain()   
+}
+</code></pre><p>使用<code>self-type</code>可以实现一个类似的效果.</p>
+<p>这种方式有利于在多个小的模块之外创建一个大型的模块,而不需要重新表示各个小模块之间的依赖.只需要定义一个<code>bigger-module-trait</code>来继承多个<code>smaller-module-traits</code>.</p>
+<h3 id="组合模块">组合模块</h3><p>模块可以通过组合的方式结合在一起,可以嵌套多个模块,然后在嵌套的模块内使用依赖来连接(wire)对象.</p>
+<p>比如,我们可以给列车管理应用添加一个插件以提供数据收集统计:</p>
+<pre><code><span class="keyword">package</span> stats {
+   <span class="class"><span class="keyword">class</span> <span class="title">LoadingStats</span>(</span>trainLoader: <span class="type">TrainLoader</span>)
+   <span class="class"><span class="keyword">class</span> <span class="title">ShuntingStats</span>(</span>trainShunter: <span class="type">TrainShunter</span>)
+
+   <span class="class"><span class="keyword">class</span> <span class="title">StatsModule</span>(</span>
+      shuntingModule: <span class="type">ShuntingModule</span>,
+      loadingModule: <span class="type">LoadingModule</span>) {
+
+      <span class="keyword">import</span> shuntingModule._
+      <span class="keyword">import</span> loadingModule._
+
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">loadingStats</span> =</span> wire[<span class="type">LoadingStats</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">shuntingStats</span> =</span> wire[<span class="type">ShuntingStats</span>]    
+   }   
+}
+</code></pre><p>注意<code>import</code>语句,用于将定义在嵌套模块内的依赖引入到当前作用域.</p>
+<p>如果给<code>trait/class</code>模块使用实验性质的<code>@Module</code>注解会更加简洁.嵌套模块中带有这个注解的成员会在连线时自动引入.</p>
+<pre><code><span class="keyword">package</span> loading {
+   <span class="annotation">@Module</span>
+   <span class="class"><span class="keyword">trait</span> <span class="title">LoadingModule</span> {</span> ... }
+}
+
+<span class="keyword">package</span> shunting {
+   <span class="annotation">@Module</span>
+   <span class="class"><span class="keyword">trait</span> <span class="title">ShuntingModule</span> {</span> ... }
+}
+
+<span class="keyword">package</span> stats {
+   <span class="class"><span class="keyword">class</span> <span class="title">LoadingStats</span>(</span>trainLoader: <span class="type">TrainLoader</span>)
+   <span class="class"><span class="keyword">class</span> <span class="title">ShuntingStats</span>(</span>trainShunter: <span class="type">TrainShunter</span>)
+
+   <span class="class"><span class="keyword">class</span> <span class="title">StatsModule</span>(</span>
+      shuntingModule: <span class="type">ShuntingModule</span>,
+      loadingModule: <span class="type">LoadingModule</span>) {
+
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">loadingStats</span> =</span> wire[<span class="type">LoadingStats</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">shuntingStats</span> =</span> wire[<span class="type">ShuntingStats</span>]    
+   }   
+}
+</code></pre><p>这种方案就不需要再进行<code>import</code>引入了.</p>
+<h2 id="多种实现">多种实现</h2><p>一个功能经常会有多种实现,然后我们根据配置进行选择.这种情况可以至少使用两种模式进行模拟.</p>
+<p>首先,我们可以有一个单独的模块,包含一个条件逻辑来选择合适的实现.加入火车分流(shunting)有两个选项,传统或者隐形传输,然后是一个配置:</p>
+<pre><code><span class="keyword">package</span> shunting {
+   <span class="class"><span class="keyword">trait</span> <span class="title">TrainShunter</span>
+</span>
+   <span class="class"><span class="keyword">class</span> <span class="title">PointSwitcher</span>(</span>)
+   <span class="class"><span class="keyword">class</span> <span class="title">TrainCarCoupler</span>(</span>)
+   <span class="class"><span class="keyword">class</span> <span class="title">TraditionalTrainShunter</span>(</span>
+      pointSwitcher: <span class="type">PointSwitcher</span>,
+      trainCarCoupler: <span class="type">TrainCarCoupler</span>) 
+      <span class="keyword">extends</span> <span class="type">TrainShunter</span>
+
+   <span class="class"><span class="keyword">class</span> <span class="title">TeleportingTrainShunter</span>(</span>) <span class="keyword">extends</span> <span class="type">TrainShunter</span>
+
+   <span class="class"><span class="keyword">trait</span> <span class="title">ShuntingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">pointSwitcher</span> =</span> wire[<span class="type">PointSwitcher</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainCarCoupler</span> =</span> wire[<span class="type">TrainCarCoupler</span>]
+
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainShunter</span> =</span> <span class="keyword">if</span> (config.modern) {
+         wire[<span class="type">TeleportingTrainShunter</span>]
+      } <span class="keyword">else</span> {
+         wire[<span class="type">TraditionalTrainShunter</span>]
+      }  
+
+      <span class="function"><span class="keyword">def</span> <span class="title">config</span>:</span> <span class="type">Config</span>
+   }
+}
+</code></pre><p>然后,一个模块可以有多个实现.这种场景下,我们可以创建一个仅包含抽象成员的<code>interface-module</code>,这些成员在合适的模块中被实现.这样一个<code>interface-module</code>同时可以很好的用来表示依赖(不用命名约定),并能建立强力的联系:</p>
+<pre><code><span class="keyword">package</span> shunting {
+   <span class="class"><span class="keyword">trait</span> <span class="title">TrainShunter</span>
+</span>
+   <span class="class"><span class="keyword">class</span> <span class="title">PointSwitcher</span>(</span>)
+   <span class="class"><span class="keyword">class</span> <span class="title">TrainCarCoupler</span>(</span>)
+   <span class="class"><span class="keyword">class</span> <span class="title">TraditionalTrainShunter</span>(</span>
+      pointSwitcher: <span class="type">PointSwitcher</span>, 
+      trainCarCoupler: <span class="type">TrainCarCoupler</span>) 
+      <span class="keyword">extends</span> <span class="type">TrainShunter</span>
+
+   <span class="class"><span class="keyword">class</span> <span class="title">TeleportingTrainShunter</span>(</span>) <span class="keyword">extends</span> <span class="type">TrainShunter</span>
+
+   <span class="class"><span class="keyword">trait</span> <span class="title">ShuntingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">pointSwitcher</span> =</span> wire[<span class="type">PointSwitcher</span>]
+
+      <span class="function"><span class="keyword">def</span> <span class="title">trainShunter</span>:</span> <span class="type">TrainShunter</span>
+   }
+
+   <span class="class"><span class="keyword">trait</span> <span class="title">TraditionalShuntingModule</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">ShuntingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainCarCoupler</span> =</span> wire[<span class="type">TrainCarCoupler</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainShunter</span> =</span> wire[<span class="type">TraditionalTrainShunter</span>]
+   }
+
+   <span class="class"><span class="keyword">trait</span> <span class="title">ModernShuntingModule</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">ShuntingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainShunter</span> =</span> wire[<span class="type">TeleportingTrainShunter</span>]
+   } 
+}  
+
+<span class="comment">// ...</span>
+
+<span class="class"><span class="keyword">object</span> <span class="title">TrainStation</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">App</span> {</span>
+   <span class="function"><span class="keyword">val</span> <span class="title">traditionalModules</span> =</span> <span class="keyword">new</span> <span class="type">TraditionalShuntingModule</span>
+      <span class="keyword">with</span> <span class="type">LoadingModule</span>
+      <span class="keyword">with</span> <span class="type">StationModule</span>
+
+   <span class="function"><span class="keyword">val</span> <span class="title">modernModules</span> =</span> <span class="keyword">new</span> <span class="type">ModernShuntingModule</span>
+      <span class="keyword">with</span> <span class="type">LoadingModule</span>
+      <span class="keyword">with</span> <span class="type">StationModule</span> 
+
+   traditionalModules.trainStation.prepareAndDispatchNextTrain()   
+   modernModules.trainStation.prepareAndDispatchNextTrain()   
+} 
+</code></pre><p>这个方式缺陷在于模块栈必须在编译时知道,不能动态的选择.</p>
+<h2 id="测试">测试</h2><p>每个单独的组件可以通过提供所依赖的<code>mock/stub</code>实现进行测试.而且,使用<code>thin cake pattern</code>时,模块可以进行整合测试(integration-tested),使用定义在模块中的<code>wiring</code>.</p>
+<p>当然,我们也需要为那些表示为抽象成员的依赖提供一些实现,可以是<code>mock/stub</code>.同时,能够对一些依赖进行重写来提供一个替代实现以用于测试.这些依赖用于连接模块中定义的图片段.</p>
+<p>比如测试分流模块,可以模拟一个与外部系统相互作用的<code>point switcher</code>,然后写一个整合测试:</p>
+<pre><code><span class="comment">// main code</span>
+<span class="keyword">package</span> shunting {
+   <span class="class"><span class="keyword">trait</span> <span class="title">ShuntingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">pointSwitcher</span> =</span> wire[<span class="type">PointSwitcher</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainCarCoupler</span> =</span> wire[<span class="type">TrainCarCoupler</span>]
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainShunter</span> =</span> wire[<span class="type">TrainShunter</span>] 
+   }
+} 
+
+<span class="comment">// test</span>
+<span class="class"><span class="keyword">class</span> <span class="title">ShuntingModuleItTest</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">FlatSpec</span> {</span>
+   it should <span class="string">"work"</span> in {
+      <span class="comment">// given</span>
+      <span class="function"><span class="keyword">val</span> <span class="title">mockPointSwitcher</span> =</span> mock[<span class="type">PointSwitcher</span>]
+
+      <span class="comment">// when</span>
+      <span class="function"><span class="keyword">val</span> <span class="title">moduleToTest</span> =</span> <span class="keyword">new</span> <span class="type">ShuntingModule</span> {
+         <span class="comment">// the mock implementation will be used to wire the graph</span>
+         <span class="keyword">override</span> <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">pointSwitcher</span> =</span> mockPointSwitcher
+      }
+      moduleToTest.trainShunter.shunt()
+
+      <span class="comment">// then</span>
+      verify(mockPointSwitcher).switch(...)
+   }
+}
+</code></pre><h2 id="拦截器(Interceptors)">拦截器(Interceptors)</h2><p>拦截器在实现<code>横切关注点(cross-cutting concerns)</code>时非常有用,几乎是所有依赖框架或容器的一部分.然而在Scala中没有拦截器的直接支持,使用一个薄的库层(由MacWire提供),也可以很简单的编写或使用拦截器.</p>
+<p>使用拦截器是一个两步的过程.首先需要声明什么需要被拦截.概念上,这不能牵涉任何拦截器的具体实现.然后,需要定义拦截器需要做什么,即行为.</p>
+<p>在实现第一部分时我们定义一个抽象拦截器,然后把他应用于已选择的值.比如我们要核查所有的<code>point switches</code>和<code>car couplings</code>事件到外部系统.因此我们要拦截所有作用到<code>PointSwitcher</code>和<code>TrainCarCoupler</code>服务的方法调用:</p>
+<pre><code><span class="keyword">package</span> shunting {
+   <span class="class"><span class="keyword">trait</span> <span class="title">ShuntingModule</span> {</span>
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">pointSwitcher</span>:</span> <span class="type">PointSwitcher</span> = 
+            logEvents(wire[<span class="type">PointSwitcher</span>])
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainCarCoupler</span>:</span> <span class="type">TrainCarCoupler</span> = 
+            logEvents(wire[<span class="type">TrainCarCoupler</span>])
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">trainShunter</span> =</span> wire[<span class="type">TrainShunter</span>] 
+
+      <span class="function"><span class="keyword">def</span> <span class="title">logEvents</span>:</span> <span class="type">Interceptor</span>
+   }
+}
+</code></pre><p>上面我们已经声明了我们想要把<code>logEvents</code>拦截器作用到<code>pointSwitcher</code>和<code>trainCarCoupler</code>服务.注意到目前还没有提及实现方式.我们仅使用了一个抽象的<code>Interceptor</code>特质,它用于一个<code>apply</code>方法,然后返回通过参数传递给他的相同的类型.</p>
+<p>当然我们需要指定一个实现.我们可以尽可能晚的来做这件事,比如在应用的mian实体的最后位置:</p>
+<pre><code><span class="class"><span class="keyword">object</span> <span class="title">TrainStation</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">App</span> {</span>
+   <span class="function"><span class="keyword">val</span> <span class="title">modules</span> =</span> <span class="keyword">new</span> <span class="type">ShuntingModule</span>
+      <span class="keyword">with</span> <span class="type">LoadingModule</span>
+      <span class="keyword">with</span> <span class="type">StationModule</span> {
+
+      <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">logEvents</span> =</span> <span class="type">ProxyingInterceptor</span> { ctx =&gt;
+         println(<span class="string">"Calling method: "</span> + ctx.method.getName())
+         ctx.proceed()
+      }
+   }
+
+   modules.trainStation.prepareAndDispatchNextTrain()   
+}
+</code></pre><p>这里指定了我们想要创建一个代理拦截器(会创建一个java代理),并提供了响应的行为.注意在处理代理调用时,我们可以使用定义在模块中的所有服务.</p>
+<p>在测试时跳过拦截器会比较有利.可以通过提供一个<code>no-op</code>拦截器实现:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">ShuntingModuleItTest</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">FlatSpec</span> {</span>
+   it should <span class="string">"work"</span> in {
+      <span class="comment">// given</span>
+      <span class="function"><span class="keyword">val</span> <span class="title">moduleToTest</span> =</span> <span class="keyword">new</span> <span class="type">ShuntingModule</span> {
+         <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">logEvents</span> =</span> <span class="type">NoOpInterceptor</span>
+      }
+
+      <span class="comment">// ...</span>
+   }
+} 
+</code></pre><h2 id="Advanced_scoping">Advanced scoping</h2><p>……</p>
+<p><a href="http://di-in-scala.github.io" title="DI in Scala: guide" target="_blank" rel="external">DI in Scala: guide</a></p>
 </span>
       
     </div>
@@ -494,7 +788,7 @@
           <div class="post-toc">
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是依赖注入"><span class="nav-number">2.</span> <span class="nav-text">什么是依赖注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他方式"><span class="nav-number">3.</span> <span class="nav-text">其他方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行实例"><span class="nav-number">4.</span> <span class="nav-text">运行实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#手动依赖注入"><span class="nav-number">5.</span> <span class="nav-text">手动依赖注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#手动DI的建议"><span class="nav-number">6.</span> <span class="nav-text">手动DI的建议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#val_vs-_lazy_val"><span class="nav-number">6.1.</span> <span class="nav-text">val vs. lazy val</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用MacWire进行架线"><span class="nav-number">6.2.</span> <span class="nav-text">使用MacWire进行架线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wire的工作方式"><span class="nav-number">6.3.</span> <span class="nav-text">wire的工作方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用隐式参数"><span class="nav-number">6.4.</span> <span class="nav-text">使用隐式参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Simple_scoping"><span class="nav-number">7.</span> <span class="nav-text">Simple scoping</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模块化对象图表创建"><span class="nav-number">8.</span> <span class="nav-text">模块化对象图表创建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#蛋糕模式"><span class="nav-number">8.1.</span> <span class="nav-text">蛋糕模式</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#什么是依赖注入"><span class="nav-number">2.</span> <span class="nav-text">什么是依赖注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他方式"><span class="nav-number">3.</span> <span class="nav-text">其他方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行实例"><span class="nav-number">4.</span> <span class="nav-text">运行实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#手动依赖注入"><span class="nav-number">5.</span> <span class="nav-text">手动依赖注入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#手动DI的建议"><span class="nav-number">6.</span> <span class="nav-text">手动DI的建议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#val_vs-_lazy_val"><span class="nav-number">6.1.</span> <span class="nav-text">val vs. lazy val</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用MacWire进行架线"><span class="nav-number">6.2.</span> <span class="nav-text">使用MacWire进行架线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#wire的工作方式"><span class="nav-number">6.3.</span> <span class="nav-text">wire的工作方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用隐式参数"><span class="nav-number">6.4.</span> <span class="nav-text">使用隐式参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Simple_scoping"><span class="nav-number">7.</span> <span class="nav-text">Simple scoping</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模块化对象图表创建"><span class="nav-number">8.</span> <span class="nav-text">模块化对象图表创建</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#蛋糕模式"><span class="nav-number">8.1.</span> <span class="nav-text">蛋糕模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过抽象成员表示依赖"><span class="nav-number">8.2.</span> <span class="nav-text">通过抽象成员表示依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#通过self-types表示依赖"><span class="nav-number">8.3.</span> <span class="nav-text">通过self-types表示依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组合模块"><span class="nav-number">8.4.</span> <span class="nav-text">组合模块</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多种实现"><span class="nav-number">9.</span> <span class="nav-text">多种实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试"><span class="nav-number">10.</span> <span class="nav-text">测试</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#拦截器(Interceptors)"><span class="nav-number">11.</span> <span class="nav-text">拦截器(Interceptors)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Advanced_scoping"><span class="nav-number">12.</span> <span class="nav-text">Advanced scoping</span></a></li></ol></div>
             
           </div>
           <div class="post-toc-indicator-bottom post-toc-indicator"></div>
