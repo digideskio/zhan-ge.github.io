@@ -1,0 +1,973 @@
+<!doctype html>
+<html class="theme-next use-motion theme-next-mist">
+<head>
+  
+
+<meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5"/>
+
+
+
+
+<link rel="stylesheet" type="text/css" href="/css/main.css?v=0.4.5.1"/>
+
+
+    <meta name="description" content="Zhange's notes" />
+
+
+
+  <meta name="keywords" content="Play2,Scala," />
+
+
+
+
+
+  <link rel="shorticon icon" type="image/x-icon" href="/favicon.ico?v=0.4.5.1" />
+
+
+<meta name="description" content="Play2中的依赖注入.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DI in Play Framework Using Scala">
+<meta property="og:url" content="http://yoursite.com/2016/04/15/DI-in-Play-Framework-Using-Scala/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Play2中的依赖注入.">
+<meta property="og:updated_time" content="2016-04-15T07:55:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DI in Play Framework Using Scala">
+<meta name="twitter:description" content="Play2中的依赖注入.">
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: 'post'
+  };
+</script>
+
+  <title> DI in Play Framework Using Scala | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  <!--[if lte IE 8]>
+  <div style=' clear: both; height: 59px; padding:0 0 0 15px; position: relative;margin:0 auto;'>
+    <a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home?ocid=ie6_countdown_bannercode">
+      <img src="http://7u2nvr.com1.z0.glb.clouddn.com/picouterie.jpg" border="0" height="42" width="820"
+           alt="You are using an outdated browser. For a faster, safer browsing experience, upgrade for free today or use other browser ,like chrome firefox safari."
+           style='margin-left:auto;margin-right:auto;display: block;'/>
+    </a>
+  </div>
+<![endif]-->
+  
+
+
+
+  <div class="container one-column page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><h1 class="site-meta">
+  <span class="logo-line-before"><i></i></span>
+  <a href="/" class="brand" rel="start">
+      <span class="logo">
+        <i class="icon-next-logo"></i>
+      </span>
+      <span class="site-title">Zhange's notes</span>
+  </a>
+  <span class="logo-line-after"><i></i></span>
+</h1>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            <i class="menu-item-icon icon-next-home"></i> <br />
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            <i class="menu-item-icon icon-next-archives"></i> <br />
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            <i class="menu-item-icon icon-next-tags"></i> <br />
+            标签
+          </a>
+        </li>
+      
+
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div id="content" class="content"> 
+
+  <div id="posts" class="posts-expand">
+    
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <header class="post-header">
+
+      
+      
+        <h1 class="post-title" itemprop="name headline">
+          
+          
+            
+              DI in Play Framework Using Scala
+            
+          
+        </h1>
+      
+
+      <div class="post-meta">
+        <span class="post-time">
+          发表于
+          <time itemprop="dateCreated" datetime="2016-04-15T11:16:21+08:00" content="2016-04-15">
+            2016-04-15
+          </time>
+        </span>
+
+        
+
+        
+          
+        
+      </div>
+    </header>
+
+    <div class="post-body">
+
+      
+      
+
+      
+        <span itemprop="articleBody"><h2 id="简介">简介</h2><p>Play可以被认为是一个灵活的框架,用户不需要遵循设计者设定的的路线.在需要引入依赖注入机制时有很多方式可以选择.默认的解决方案是由Play提供的<code>JSR 330</code>并由<code>Guice</code>实现.实时上Play是<code>DI-agnostic(DI的无知论者)</code> - 可以使用多样的运行时依赖注入,包含蛋糕模式和功能技术,比如<code>reader monad</code>.或者有些时候需要混入不同的技术.我会尝试描述其中的一些方式,并且其中一些并不是为Play专门提供的,同样可以在一些其他的Scala应用中使用.</p>
+<h2 id="样例应用">样例应用</h2><p>这节的内容包含了一些对Play应用中依赖注入的描述.他们都提供了一些简单的功能.</p>
+<p>样例程序暴漏了三个HTTP端点: 一个返回图书列表,一个通过ID返回一本图书,一个用于更新图书的标题.所有的HTTP请求都通过一个基于<code>BooksService</code>的<code>BooksController</code>进行处理,而<code>BooksService</code>用以提供数据.<code>BooksService</code>的实现 - <code>CachingBooksService</code>基于由Play提供的<code>CacheApi</code>组件.因此,我们来看一下如何来声明各个组件的依赖关系,定义我们自己的<code>可注入组件(BooksService)</code>然后访问由Play提供的<code>CacheApi</code>组件.</p>
+<p>这个应用非常简单,仅用来展示DI的用法,并没有HTML视图,使用版本为Play 2.5.0和Scala 2.11.</p>
+<p>下面首先是不包含DI的代码,所有的依赖仅声明为构造器参数:</p>
+<pre><code><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Book</span>(</span>id: <span class="type">Int</span>, title: <span class="type">String</span>)
+
+<span class="class"><span class="keyword">object</span> <span class="title">Book</span> {</span>
+  <span class="keyword">implicit</span> <span class="function"><span class="keyword">val</span> <span class="title">jsonFormat</span> =</span> <span class="type">Json</span>.format[<span class="type">Book</span>]
+}
+
+<span class="class"><span class="keyword">trait</span> <span class="title">BooksService</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">list</span>:</span> <span class="type">Seq</span>[<span class="type">Book</span>]
+  <span class="function"><span class="keyword">def</span> <span class="title">get</span>(</span>id: <span class="type">Int</span>): <span class="type">Option</span>[<span class="type">Book</span>]
+  <span class="function"><span class="keyword">def</span> <span class="title">save</span>(</span>book: <span class="type">Book</span>): <span class="type">Unit</span>
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">CachingBooksService</span>(</span>cache: <span class="type">CacheApi</span>) <span class="keyword">extends</span> <span class="type">BooksService</span> {
+
+  <span class="keyword">private</span> <span class="function"><span class="keyword">val</span> <span class="title">db</span> =</span> mutable.<span class="type">Map</span>(
+    <span class="number">1</span> -&gt; <span class="type">Book</span>(<span class="number">1</span>, <span class="string">"Twilight"</span>),
+    <span class="number">2</span> -&gt; <span class="type">Book</span>(<span class="number">2</span>, <span class="string">"50 Shades of Grey"</span>)) <span class="comment">//simulates some persistent storage</span>
+
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">list</span>:</span> <span class="type">Seq</span>[<span class="type">Book</span>] = {
+    <span class="comment">//get "books" entry from cache, if it doesn't exist fetch fresh list from the "DB"</span>
+    cache.getOrElse(<span class="string">"books"</span>) {
+      <span class="function"><span class="keyword">def</span> <span class="title">freshBooks</span> =</span> fetchFreshBooks()
+      cache.set(<span class="string">"books"</span>, freshBooks, <span class="number">2.</span>minutes) <span class="comment">//cache freshly fetched books for 2 minutes</span>
+      freshBooks
+    }
+  }
+
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">get</span>(</span>id: <span class="type">Int</span>): <span class="type">Option</span>[<span class="type">Book</span>] = {
+    cache.getOrElse(s<span class="string">"book$id"</span>) {
+      <span class="function"><span class="keyword">def</span> <span class="title">freshBook</span> =</span> fetchFreshBook(id)
+      cache.set(s<span class="string">"book$id"</span>, freshBook, <span class="number">2.</span>minutes)
+      freshBook
+    }
+  }
+
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">save</span>(</span>book: <span class="type">Book</span>): <span class="type">Unit</span> = {
+    db(book.id) = book
+  }
+
+  <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">fetchFreshBooks</span>(</span>): <span class="type">Seq</span>[<span class="type">Book</span>] = {
+    db.values.toSeq.sortBy(_.id)
+  }
+
+  <span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">fetchFreshBook</span>(</span>id: <span class="type">Int</span>): <span class="type">Option</span>[<span class="type">Book</span>] = {
+    db.get(id)
+  }
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">BooksController</span>(</span>booksService: <span class="type">BooksService</span>) <span class="keyword">extends</span> <span class="type">Controller</span> {
+  <span class="function"><span class="keyword">def</span> <span class="title">get</span>(</span>id: <span class="type">Int</span>) = <span class="type">Action</span> {
+    booksService.get(id).fold(<span class="type">NotFound</span>: <span class="type">Result</span>) { book =&gt;
+      <span class="type">Ok</span>(<span class="type">Json</span>.toJson(book))
+    }
+  }
+
+  <span class="function"><span class="keyword">def</span> <span class="title">list</span> =</span> <span class="type">Action</span> {
+    <span class="function"><span class="keyword">def</span> <span class="title">books</span> =</span> booksService.list
+    <span class="type">Ok</span>(<span class="type">Json</span>.toJson(books))
+  }
+
+  <span class="function"><span class="keyword">def</span> <span class="title">updateTitle</span>(</span>id: <span class="type">Int</span>) = <span class="type">Action</span>(parse.text) { request =&gt;
+    booksService.get(id).fold(<span class="type">NotFound</span>: <span class="type">Result</span>) { book =&gt;
+      <span class="function"><span class="keyword">val</span> <span class="title">updatedBook</span> =</span> book.copy(title = request.body)
+      booksService.save(updatedBook)
+      <span class="type">NoContent</span>
+    }
+  }
+}
+</code></pre><p>然后是<code>routes</code>的定义:</p>
+<pre><code>GET    /books/:id               controllers<span class="class">.BooksController</span><span class="class">.get</span>(id: Int)
+GET    /books                   controllers<span class="class">.BooksController</span><span class="class">.list</span>
+POST   /books/:id/updateTitle   controllers<span class="class">.BooksController</span><span class="class">.updateTitle</span>(id: Int)
+</code></pre><h2 id="默认的Guice">默认的Guice</h2><p><code>JSR 330</code>方式由Play框架之外提供,默认的实现是Guice库.同时作为默认方式和运行时依赖注入,这种技术需要最少的开发者精力来进行配置.框架所提供的所有组件都已准备就绪以用于注入.如果你使用默认的路由器,就无需烦恼于它的初始化,带有控制器(controller)的路由器(router)会自动被注入.并且这种机制不需要创建自定义的载入器(loader)来工作.</p>
+<h3 id="定义组件">定义组件</h3><p>在组件中不需要明确的指定一个特定的类(class),因此在创建可注入组件时只需要简单的创建一个类.如果你想创建一个组件来实现接口(interface)并使这个接口可注入(injectable)(注:这也是最常用的方式),这时候需要使用<code>@ImplementedBy</code>注解或者创建一个模块类(module class).</p>
+<pre><code><span class="keyword">import</span> com.google.inject.<span class="type">ImplementedBy</span>
+
+<span class="annotation">@ImplementedBy</span>(classOf[<span class="type">ConcreteBooksService</span>])
+<span class="class"><span class="keyword">trait</span> <span class="title">BooksService</span> {</span>
+    <span class="comment">// ...</span>
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">ConcreteBooksService</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">BooksService</span> {</span>
+    <span class="comment">// ...</span>
+}
+</code></pre><p>上面例子中的方式需要最少的操作,但是<code>BookService</code>需要知道实现类<code>ConcreteBooksService</code>的存在.缺陷在于<code>BookService</code>可能来自外部的库因此你不能对他进行注解.我的意思是这并不是一个很好的实践,<code>@ImplementedBy</code>注解并不能适用于所有场景,因为它只能假设定义一个默认的依赖,并能在绑定(bind)的代码中覆写.可以定义一个Guice模块来取代<code>@ImplementedBy</code>注解:</p>
+<pre><code><span class="import"><span class="keyword">import</span> com.google.inject.AbstractModule</span>
+<span class="import"><span class="keyword">import</span> play.api.{Configuration, Environment}</span>
+<span class="class">
+<span class="keyword">class</span> <span class="type">GuiceModule</span><span class="container">(<span class="title">environment</span>: <span class="type">Environment</span>, <span class="title">configuration</span>: <span class="type">Configuration</span>)</span>
+  extends <span class="type">AbstractModule</span> {
+
+  override def configure<span class="container">()</span> = {
+    bind<span class="container">(<span class="title">classOf</span>[<span class="type">BooksService</span>])</span>.to<span class="container">(<span class="title">classOf</span>[<span class="type">ConcreteBooksService</span>])</span>
+  }
+}</span>
+</code></pre><p>这里,将<code>ConcreteBooksService</code>绑定为<code>BooksService</code>的一个实现.同时可以注意到,<code>GuiceModule</code>类同时访问了<code>environment</code>和<code>configuration</code>两个对象,因此可以根据这两个参数来绑定不同的实现.为了使用这个模块,需要在<code>application.conf</code>配置文件中使用<code>play.modules.enabled</code>配置属性首先启动它:</p>
+<pre><code>play<span class="class">.modules</span><span class="class">.enabled</span> += <span class="string">"modules.GuiceModule"</span>
+</code></pre><h3 id="根据组件">根据组件</h3><p>使用<code>JSR 330</code>意味着要使用<code>javax.inject</code>包的注解.在一些组件中声明依赖时可以注解其类的构造器为<code>@Inject</code>:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">BooksController</span> @<span class="title">Inject</span>()(<span class="title">booksService</span>: <span class="title">BooksService</span>)
+  <span class="keyword">extends</span> <span class="title">Controller</span> </span>{
+  <span class="comment">// ...</span>
+}
+</code></pre><p>构造器注入并不是注入依赖的唯一方式,但是<code>setter-injection</code>注入是一个不好的实践,因此会跳过它.</p>
+<p>如之前所说,由Play提供的APIs都可以用来注入,因此可以通过<code>@Inject</code>来依赖他们而不需要任何其他配置:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">CachingBooksService</span> @<span class="title">Inject</span>()(<span class="title">cache</span>: <span class="title">CacheApi</span>)
+  <span class="keyword">extends</span> <span class="title">BooksService</span> </span>{
+  <span class="comment">// ...</span>
+}
+</code></pre><h3 id="总结">总结</h3><p>使用Guice有一些优点: 易于配置,灵活,需要很少的模板代码而且由Play在框架之外提供.最主要的优势是它是一个运行时依赖注入机制,这表示编译器不会发现组件连接问题,除了在应用初始化时,在后续的逻辑执行过程中也可以发现错误.</p>
+<h2 id="自己来做:手动依赖注入">自己来做:手动依赖注入</h2><p>依赖注入主要是控制反转 - 你的组件并不复杂构造依赖,而是通过注入获得依赖.你会任何这些很容易实现,因为你并不需要一些指定的结构或库来达到这种效果.如果你的组件类在构造器参数列表中声明依赖,你可以创建一个模块类然后手动的组件所有模块:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Module</span> {</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">cache</span>:</span> <span class="type">CacheApi</span>                  = <span class="keyword">new</span> <span class="comment">// ...</span>
+  <span class="function"><span class="keyword">val</span> <span class="title">booksService</span>:</span> <span class="type">BooksService</span>       = <span class="keyword">new</span> <span class="type">CachingBookService</span>(cache)
+  <span class="function"><span class="keyword">val</span> <span class="title">booksController</span>:</span> <span class="type">BooksController</span> = <span class="keyword">new</span> <span class="type">BooksController</span>(booksService)
+}
+</code></pre><p>可以发现,这个<code>Module</code>类,一旦启动会访问所有的组件,然后这些组件就会完成他们的依赖注入.在应用代码中,通过一个<code>Module</code>实例来访问所有的组件.<code>DI</code>模块,或者称为装配工,它本身对于手动DI来说并没有什么不同,它是所有依赖注入机制的概念,只是有些框架对开发者进行了隐藏.</p>
+<p>并没有什么特殊的方式来声明一个依赖或组件,任何提供了公共(public)构造器或工厂方法的类,都可以通过在模块中初始化来作为一个组件.所有的Play组件都满足这个条件(像上面所说的,无需配置可以直接根据需要注入).</p>
+<h3 id="Play中手动注入">Play中手动注入</h3><p>为了使用一个跟Guice不同的方式来使用DI,你需要创建一个自动以的<code>ApplicationLoader</code>实现.你需要同时连接所有Play自身和你应用中所有需要的组件.Play提供了一个<code>BuiltInComponentsFromContext</code>抽象类来帮助你实现这种方式:</p>
+<pre><code><span class="keyword">import</span> controllers.<span class="type">BooksController</span>
+<span class="keyword">import</span> play.api.<span class="type">BuiltInComponents</span>
+<span class="keyword">import</span> play.api.cache.<span class="type">EhCacheComponents</span>
+<span class="keyword">import</span> services.{<span class="type">BooksService</span>, <span class="type">CachingBooksService</span>}
+<span class="keyword">import</span> router.<span class="type">Routes</span>
+
+<span class="class"><span class="keyword">class</span> <span class="title">ApplicationLoader</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">play</span>.<span class="title">api</span>.<span class="title">ApplicationLoader</span> {</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">load</span>(</span>context: <span class="type">Context</span>) = <span class="keyword">new</span> <span class="type">ApplicationModule</span>(context).application
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">ApplicationModule</span>(</span>context: <span class="type">Context</span>)
+  <span class="keyword">extends</span> <span class="type">BuiltInComponentsFromContext</span>(context)
+  <span class="keyword">with</span> <span class="type">EhCacheComponents</span> {
+
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">booksService</span>:</span> <span class="type">BooksService</span> = <span class="keyword">new</span> <span class="type">CachingBooksService</span>(defaultCacheApi)
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">booksController</span>            =</span> <span class="keyword">new</span> <span class="type">BooksController</span>(booksService)
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">router</span>                     =</span> <span class="keyword">new</span> <span class="type">Routes</span>(httpErrorHandler, booksController)
+}
+</code></pre><p>上面的例子中,<code>ApplicationModule</code>类定义了一个DI模块,它继承<code>BuiltInComponentsFromContext</code>来提供Play自身需要的组件,比如<code>Configuration</code>和<code>HttpErrorHandler</code>实例,继承<code>EhCacheComponents</code>特质来提供<code>BookService</code>需要的缓存实现.然后构造了<code>BooksService</code>和<code>BooksController</code>组件.路由器的实现不能通过<code>BuiltInComponentsFromContext</code>由Play自动提供,因为他有<code>routes</code>文本文件生成然后提供给<code>router.Routes</code>类,因此需要手动构造.因此,所有的依赖必须由你自己手动构造并连接.</p>
+<p>你会注意到<code>lazy val</code>的用法而不是通常的<code>val</code>,如果只是使用简单的<code>val</code>定义,在提前使用其他项时会遇到<code>NullPointerExceptions</code>错误.<code>lazy</code>定义保证了正确的初始化顺序,因此不需要担心它,但是也是有代价的 - 必须以同步的方式访问他们.</p>
+<p>为了使用这个模块,必须定义一个自定义的加载器<code>ApplicationLoader</code>.为了覆盖Play默认的加载器,必须在<code>application.conf</code>配置文件中提供<code>play.application.loader</code>属性并为加载器提供完整的类名.</p>
+<h3 id="总结-1">总结</h3><p>手动DI的优点主要是编译时的连接正确性验证.相对于Guice方案,你可以通过它在运行应用是感到更安全一点.第二点是不需要任何依赖库.缺陷是需要手动构造并连接所有的组件,这在组件数量很多时会比较令人头痛.在简单应用中,Guice或许过度庞大,因此手动DI也是值得尝试的.</p>
+<h2 id="MacWire库_-_宏命令(Macros)">MacWire库 - 宏命令(Macros)</h2><p>MacWire 是一个提供了Scala宏命令的库,这会使手动DI不那么难用.这个概念和手动DI类似,但是MacWire提供了连接的处理和检查,并且是在编译时进行.这个库不只是提供了一些宏命令,不过本文中仅接受宏命令部分.</p>
+<h3 id="简化手动DI">简化手动DI</h3><p>还记得上一节中手动DI的模块定义吗,然我们用MacWire来重写它:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Module</span> </span>{
+  <span class="keyword">import</span> com.softwaremill.macwire._
+
+  <span class="variable"><span class="keyword">val</span> cache</span>: CacheApi                  = <span class="comment">// ...</span>
+  <span class="variable"><span class="keyword">val</span> booksService</span>: BooksService       = wire[CachingBookService]
+  <span class="variable"><span class="keyword">val</span> booksController</span>: BooksController = wire[BooksController]
+}
+</code></pre><p>可以发现,构造器调用使用了<code>wire</code>宏命令进行替换.宏命令来获取依赖,并且和手动ID的代码很相似,甚至是相同.如果无法找到依赖,则会出现编译错误和说明信息.</p>
+<h3 id="在Play中使用MacWire">在Play中使用MacWire</h3><p>由于MacWire的主要功能是用于简化手动DI,因此它在Play中的用法跟手动DI很相似.仍然需要实现一个自定义的应用加载器来初始化DI模块:</p>
+<pre><code><span class="keyword">import</span> controllers.<span class="type">BooksController</span>
+<span class="keyword">import</span> play.api.<span class="type">BuiltInComponents</span>
+<span class="keyword">import</span> play.api.cache.<span class="type">EhCacheComponents</span>
+<span class="keyword">import</span> services.{<span class="type">BooksService</span>, <span class="type">CachingBooksService</span>}
+<span class="keyword">import</span> router.<span class="type">Routes</span>
+
+<span class="class"><span class="keyword">class</span> <span class="title">ApplicationLoader</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">play</span>.<span class="title">api</span>.<span class="title">ApplicationLoader</span> {</span>
+
+  <span class="function"><span class="keyword">def</span> <span class="title">load</span>(</span>context: <span class="type">Context</span>) = <span class="keyword">new</span> <span class="type">ApplicationModule</span>(context).application
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">ApplicationModule</span>(</span>context: <span class="type">Context</span>)
+  <span class="keyword">extends</span> <span class="type">BuiltInComponentsFromContext</span>(context)
+  <span class="keyword">with</span> <span class="type">EhCacheComponents</span> {
+
+  <span class="keyword">import</span> com.softwaremill.macwire._
+
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">cache</span>:</span> <span class="type">CacheApi</span>            = defaultCacheApi
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">booksService</span>:</span> <span class="type">BooksService</span> = wire[<span class="type">CachingBooksService</span>]
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">booksController</span>            =</span> wire[<span class="type">BooksController</span>]
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">router</span>                     =</span> wire[<span class="type">Routes</span>]
+}
+</code></pre><p>上面例子中有趣的部分是<code>ApplicationModule</code>模块中<code>cache</code>项也必须被声明,尽管<code>EhCacheComponents</code>已经提供了<code>defaultCacheApi</code>.这是因为<code>EhCacheComponents</code>两个成员都包含<code>CacheApi</code>值,<code>wire</code>宏命令不能通过自身来决定在装载<code>CachingBooksService</code>时使用哪个值,通过定义一个<code>cache</code>来告诉<code>wire</code>使用<code>defaultCacheApi</code>.</p>
+<h3 id="总结-2">总结</h3><p>MacWire是一个拥有手动DI所有好处的库,同时又通过<code>wire</code>提供了很多帮助.如果你想要一个编译时DI并且不担心宏命令会打乱你的代码,这是一个可靠的选择.</p>
+<h2 id="蛋糕模式">蛋糕模式</h2><p>蛋糕模式是一个流行的编译时依赖注入机制,使用Scala的语言特性将组件进行连接.在这种模式中,你所创建的每个组件都需要实现一个特质来描述他.一个DI模块(蛋糕)通过”堆叠”组件特质的方式创建,比如模块类混入了所有组件特质.Play提供了准备完成的组件特质来支持这种方式.相对于Guice的方案,这种方式需要更多的模板代码和隐式配置.</p>
+<h3 id="定义组件-1">定义组件</h3><p>最简单的方式中,一个依赖于<code>CacheApi</code>的<code>BookService</code>可以这么定义:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">BookServiceComponent</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">cache</span>:</span> <span class="type">CacheApi</span> <span class="comment">//a dependency</span>
+
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">bookService</span> =</span> <span class="keyword">new</span> <span class="type">BookService</span>(cacheApi)
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">BookService</span>(</span>cache: cacheApi) {
+  <span class="comment">// ...</span>
+}
+</code></pre><p>另一种方式是使用<code>self-type</code>注解:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">CacheComponent</span> {</span>
+   <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">cache</span>:</span> <span class="type">CacheApi</span> = <span class="comment">// ...</span>
+}
+</code></pre><p>然后:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">BookServiceComponent</span> {</span>
+  <span class="keyword">this</span>: <span class="type">CacheComponent</span> =&gt; <span class="comment">//a dependency</span>
+
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">bookService</span> =</span> <span class="keyword">new</span> <span class="type">BookService</span>(cacheApi)
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">BookService</span>(</span>cache: cacheApi) {
+  <span class="comment">// ...</span>
+}
+</code></pre><p>上面的例子中我们不必要求<code>BookServiceComponent</code>特质合适被混入,但是混入它的类必须实现一个<code>CacheComponent</code>特质.可以同时声明多个依赖:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">BookServiceComponent</span> {</span>
+  <span class="keyword">this</span>: <span class="type">CacheComponent</span> <span class="keyword">with</span> <span class="type">OtherComponent</span> =&gt;
+
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">bookService</span> =</span> <span class="keyword">new</span> <span class="type">BookService</span>(cacheApi, otherComponent)
+}
+</code></pre><p>然后是模块的定义方式:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">Module</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">CacheComponent</span> <span class="keyword"><span class="keyword">with</span></span> <span class="title">BookServiceComponent</span></span>
+</code></pre><p>然后当你初始化一个<code>Moudle</code>类时,模块中的所有组件都会对他们的依赖进行注入 - 只是按照语言规则进行.最后可以通过这个<code>Module</code>实例来获得所有组件的实例.</p>
+<h3 id="从接口中分离实现">从接口中分离实现</h3><p>在真实的应用中,你通常会为组件定义一个接口特质和实现.使用<code>self-type</code>的蛋糕模式可以以类似的方式实现:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">BookService</span> {</span>
+  <span class="comment">// ...</span>
+}
+
+<span class="class"><span class="keyword">trait</span> <span class="title">BookServiceComponent</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">bookService</span>:</span> <span class="type">BookService</span>
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">CachingBookService</span>(</span>cache: cacheApi) <span class="keyword">extends</span> <span class="type">BookService</span> {
+  <span class="comment">// ...</span>
+}
+
+<span class="class"><span class="keyword">trait</span> <span class="title">CachingBookServiceComponent</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">BookServiceComponent</span> {</span>
+  <span class="keyword">this</span>: <span class="type">CacheComponent</span> =&gt;
+
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">bookService</span> =</span> <span class="keyword">new</span> <span class="type">CachingBookService</span>(cache)
+}
+</code></pre><p>如果使用上述片段中的方式,你可以创建一个依赖于其他组件的组件,而不需要真正知道他们实际的实现:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">BooksControllerComponent</span> {</span>
+  <span class="keyword">this</span>: <span class="type">BookServiceComponent</span> =&gt; <span class="comment">//dependency on any implementation of BookServiceComponent</span>
+  <span class="comment">// ...</span>
+}
+</code></pre><h3 id="在Play中实现蛋糕模式">在Play中实现蛋糕模式</h3><p>和手动DI一样,你需要创建一个自定义的<code>ApplicationLoader</code>实现.同样,<code>BuiltInComponentsFromContext</code>类会为你的蛋糕提供Play的核心组件.</p>
+<pre><code><span class="keyword">import</span> controllers.<span class="type">BooksControllerComponent</span>
+<span class="keyword">import</span> play.api.<span class="type">ApplicationLoader</span>.<span class="type">Context</span>
+<span class="keyword">import</span> play.api.cache.<span class="type">EhCacheComponents</span>
+<span class="keyword">import</span> router.<span class="type">Routes</span>
+<span class="keyword">import</span> services.<span class="type">CachingBooksServiceComponent</span>
+
+<span class="class"><span class="keyword">class</span> <span class="title">ApplicationLoader</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">play</span>.<span class="title">api</span>.<span class="title">ApplicationLoader</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">load</span>(</span>context: <span class="type">Context</span>) = <span class="keyword">new</span> <span class="type">ApplicationModule</span>(context).application
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">ApplicationModule</span>(</span>context: <span class="type">Context</span>)
+  <span class="keyword">extends</span> <span class="type">BuiltInComponentsFromContext</span>(context)
+  <span class="keyword">with</span> <span class="type">BooksControllerComponent</span>
+  <span class="keyword">with</span> <span class="type">CachingBooksServiceComponent</span>
+  <span class="keyword">with</span> <span class="type">EhCacheComponents</span> {
+
+  <span class="keyword">lazy</span> <span class="function"><span class="keyword">val</span> <span class="title">router</span> =</span> <span class="keyword">new</span> <span class="type">Routes</span>(httpErrorHandler, booksController)
+}
+</code></pre><p>上面的例子中,<code>ApplicationLoader</code>类中定义了初始化一个蛋糕类似的<code>ApplicationModule</code>类来提供服务.<code>BuiltInComponentsFromContext</code>提供了Play内部组件的默认实现,比如<code>Application</code>和<code>Configuration</code>实例.<code>CachingBooksServiceComponent</code>需要一个缓存实现,因此Play的<code>EhCacheComponents</code>特质同样混入到了模块中.如果你使用了默认的路由器,<code>Routes</code>会在运行时通过<code>routes</code>文件生成,因此不能再<code>BuiltInComponentsFromContext</code>创建,需要你自己进行初始化.</p>
+<h3 id="总结-3">总结</h3><p>类似于手动DI,蛋糕模式的好处是进行编译时的连接验证,并且不依赖于外部的库.组件的构造是手动的,但是与手动DI不同的是连接过程有Scala编译器自动完成.不好的地方是需要你编写比手动DI更多的代码.</p>
+<h2 id="THE_READER_MONAD">THE READER MONAD</h2><h3 id="这是个什么东西">这是个什么东西</h3><p>读者monad根本上是一个一元函数的monad,它使用<code>Function1.andThen</code>方法作为一个monadic的<code>map</code>操作.</p>
+<p>要理解读者(reader)是什么,首先考虑下面的代码:</p>
+<pre><code>val square = <span class="function"><span class="params">(x: Int)</span> =&gt;</span> x * x
+val divBy2 = <span class="function"><span class="params">(x: Int)</span> =&gt;</span> x / <span class="number">2.0</span>
+</code></pre><p><code>square</code>函数的类型是<code>Int =&gt; Int</code>,<code>divBy2</code>的类型是<code>Int =&gt; Double</code>,你可以将他们链接在一起,然后生成一个新的<code>Int =&gt; Double</code>函数:</p>
+<pre><code>val chained = square.<span class="function"><span class="title">andThen</span><span class="params">(divBy2)</span></span>
+<span class="function"><span class="title">chained</span><span class="params">(<span class="number">3</span>)</span></span> <span class="comment">//equal to divBy2(square(3))</span>
+</code></pre><p>reader会把你的一元函数转换为monad,转换后允许你在for表达式中进行链接调用或者其他的monad操作.你可以定义自己的reader实现或者使用现有库中提供的实现.这里我会使用<code>scalaz</code>作为示例:</p>
+<pre><code><span class="keyword">import</span> scalaz.Reader
+
+<span class="variable"><span class="keyword">val</span> square</span> = Reader((x: <span class="typename">Int</span>) =&gt; x * x)
+<span class="variable"><span class="keyword">val</span> divBy2</span> = Reader((x: <span class="typename">Int</span>) =&gt; x / <span class="number">2.0</span>)
+
+<span class="variable"><span class="keyword">val</span> chained</span> = square.map(divBy2)
+chained(<span class="number">3</span>) <span class="comment">// equivalent to divBy2(square(4))</span>
+</code></pre><p>这个例子跟之前的例子类似但是使用了reader而不是简单的函数.然后看下面的片段:</p>
+<pre><code><span class="keyword">import</span> scalaz._
+
+<span class="function"><span class="keyword">val</span> <span class="title">squareAndDivBy2Sum</span> =</span> <span class="keyword">for</span> {
+  s &lt;- square
+  d &lt;- divBy2
+} <span class="keyword">yield</span> s + d
+
+sumSquareAndDivBy2(<span class="number">4</span>) <span class="comment">// equivalent to square(4) + divBy2(4)</span>
+</code></pre><p>上面的例子创建了一个reader等效于一个函数:</p>
+<pre><code><span class="list">(<span class="keyword">x</span>: Int)</span> =&gt; square<span class="list">(<span class="keyword">x</span>)</span> + divBy2<span class="list">(<span class="keyword">x</span>)</span>
+</code></pre><p>只是通过一个<code>for</code>表达式,它是下面语句的一个语法糖:</p>
+<pre><code>square flatMap <span class="list">(<span class="keyword">s</span> =&gt; divBy2 map <span class="list">(<span class="keyword">d</span> =&gt; s + d)</span>)</span>    
+</code></pre><p>这会根据个人风格提升或降低可读性,或者与函数式编程更加接近的方式.</p>
+<h3 id="释放reader的力量进行DI">释放reader的力量进行DI</h3><p>有多个方法来声明一个依赖,可以声明为一个类的构造器参数,表示整个类需要这个依赖才能工作:</p>
+<pre><code><span class="tag">class</span> <span class="tag">BooksService</span>(<span class="attribute">cache</span>: CacheApi) {
+  <span class="comment">// ...</span>
+}
+</code></pre><p>这根前面章节的方式类似.另一种方式是将依赖声明为一个方法参数,然后,只有这个方法需要这个声明的依赖:</p>
+<pre><code>class <span class="type">BooksService</span> {
+
+  def get(id: <span class="type">Int</span>)(cache: <span class="type">CacheApi</span>) : <span class="type">Book</span> = { //this <span class="keyword">method</span> has a dependency on the cache
+    // ...
+  }
+
+  def doOtherThing(book: <span class="type">Book</span>) { //this <span class="keyword">method</span> doesn't have a dependency on the cache
+    // ...
+  }
+}
+</code></pre><p>这样会非常好,如果一个只需要调用<code>doOtherThing</code>的客户端根本不需要去关心<code>CacheApi</code>.另一个好处是方法不用访问那些他们不需要的实例.缺陷是会是方法的参数列表过于混乱.将包含依赖的参数列表标记为<code>implicit</code>降低这种影响但是也不能完全解决.</p>
+<p>构造器注入和参数注入都需要在方法被调用时这些依赖都已经被初始化并能够使用了.这个使用reader monad不同.那如何来使用reader进行依赖注入呢? 现在看下面的例子:</p>
+<pre><code><span class="class"><span class="keyword">class</span> <span class="title">BooksService</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">get</span><span class="params">(<span class="symbol">id:</span> <span class="constant">Int</span>)</span> = <span class="title">Reader</span>[<span class="title">CacheApi</span>, <span class="title">Book</span>] { <span class="title">cache</span> =<span class="title">&gt;</span></span>
+    cache.getOrElse(id) {
+      <span class="function"><span class="keyword">def</span> <span class="title">freshBook</span> = <span class="title">fetchFreshBook</span><span class="params">(id)</span></span>
+      cache.set(s<span class="string">"book$id"</span>, freshBook, <span class="number">2</span>.minutes)
+      freshBook
+    }
+  }
+}
+</code></pre><p>可以发现,<code>get</code>方法并没有把依赖声明为参数,而是声明为一个返回类型.它并不是返回一个<code>Book</code>,它返回一个 接收依赖(CacheApi)并返回<code>Book</code>的 reader.因此当客户端调用<code>service.get(1)</code>时并不会直接返回一个<code>Book</code>实例,它会返回一个reader,当你提供了相应的依赖时,这里是<code>CacheApi</code>,它才会返回给你一个<code>Book</code>实例.</p>
+<pre><code>val bookReader = service.<span class="function"><span class="title">get</span><span class="params">(<span class="number">4</span>)</span></span> <span class="comment">//get the reader</span>
+val book = bookReader.<span class="function"><span class="title">run</span><span class="params">(cache)</span></span> <span class="comment">//read the value by providing the dependency</span>
+</code></pre><p>上面的片段可以简化为:</p>
+<pre><code>val book = service.<span class="function"><span class="title">get</span><span class="params">(<span class="number">4</span>)</span><span class="params">(cache)</span></span>
+</code></pre><p>好处是可以将<code>service.get(4)</code>返回的reader与其他reader进行组合,进行一些转换,最终提供所有的依赖并获取结果.</p>
+<h3 id="你妈妈没有告诉你的">你妈妈没有告诉你的</h3><p>有些人争论reader monad可以取代其他依赖注入机制的功能.我表示这并不完全对.虽然reader monad是一个非常有用的工具,但是我认为,如果作为一个DI技术,它更好的是跟面向对象的DI机制结合使用.问题是当你在方法签名中声明依赖时,对reader monad来说是完成了,但是你不能从其他接口中拆分当前组件实现的依赖.比如下面的例子:</p>
+<pre><code><span class="class"><span class="keyword">trait</span> <span class="title">BooksService</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">get</span>(</span>id: <span class="type">Int</span>) : <span class="type">Book</span>
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">CachingBooksService</span> <span class="keyword"><span class="keyword">extends</span></span> <span class="title">BooksService</span> {</span>
+  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">get</span>(</span>id: <span class="type">Int</span>) = <span class="type">Reader</span>[<span class="type">CacheApi</span>, <span class="type">Book</span>] {
+   <span class="comment">// ...</span>
+  }
+}
+</code></pre><p>很显然编译会错误,因为<code>CachingBooksService.get</code>方法的返回类型与<code>BooksService.get</code>方法的返回类型不同.通常你希望对<code>BooksService</code>的客户端隐藏对<code>CacheApi</code>的依赖,使用reader monad方式是不能实现的.我的做法是使用面向对象DI机制,然后在可用的地方使用reader monad作为补充.</p>
+<p>让我们看一下Guice是如何跟reader monad一起使用:</p>
+<pre><code><span class="class"><span class="keyword">object</span> <span class="title">Book</span> {</span>
+  <span class="keyword">implicit</span> <span class="function"><span class="keyword">val</span> <span class="title">jsonFormat</span> =</span> <span class="type">Json</span>.format[<span class="type">Book</span>]
+
+  <span class="function"><span class="keyword">def</span> <span class="title">get</span>(</span>id: <span class="type">Int</span>) = <span class="type">Reader</span>[<span class="type">BooksService</span>, <span class="type">Option</span>[<span class="type">Book</span>]] { service =&gt;
+    service.get(id)
+  }
+
+  <span class="function"><span class="keyword">def</span> <span class="title">list</span>(</span>) = <span class="type">Reader</span>[<span class="type">BooksService</span>, <span class="type">Seq</span>[<span class="type">Book</span>]] { service =&gt;
+    service.list
+  }
+}
+
+<span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Book</span>(</span>id: <span class="type">Int</span>, title: <span class="type">String</span>) {
+
+  <span class="function"><span class="keyword">def</span> <span class="title">save</span>(</span>) = <span class="type">Reader</span>[<span class="type">BooksService</span>, <span class="type">Unit</span>] { service =&gt;
+    service.save(<span class="keyword">this</span>)
+  }
+}
+
+
+<span class="class"><span class="keyword">trait</span> <span class="title">BooksService</span> {</span>
+  <span class="function"><span class="keyword">def</span> <span class="title">list</span>:</span> <span class="type">Seq</span>[<span class="type">Book</span>]
+  <span class="function"><span class="keyword">def</span> <span class="title">get</span>(</span>id: <span class="type">Int</span>): <span class="type">Option</span>[<span class="type">Book</span>]
+  <span class="function"><span class="keyword">def</span> <span class="title">save</span>(</span>book: <span class="type">Book</span>): <span class="type">Unit</span>
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">CachingBooksService</span> <span class="title">@Inject</span>(</span>) (cache: <span class="type">CacheApi</span>) <span class="keyword">extends</span> <span class="type">BooksService</span> {
+  <span class="comment">// ...</span>
+}
+
+<span class="class"><span class="keyword">class</span> <span class="title">BooksController</span> <span class="title">@Inject</span>(</span>)(booksService: <span class="type">BooksService</span>) <span class="keyword">extends</span> <span class="type">Controller</span> {
+
+  <span class="function"><span class="keyword">def</span> <span class="title">get</span>(</span>id: <span class="type">Int</span>) = <span class="type">Action</span> {
+    <span class="type">Book</span>.get(id).map {
+      <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="type">NotFound</span>
+      <span class="keyword">case</span> <span class="type">Some</span>(book) =&gt; <span class="type">Ok</span>(<span class="type">Json</span>.toJson(book))
+    }.run(booksService)
+  }
+
+  <span class="function"><span class="keyword">def</span> <span class="title">list</span> =</span> <span class="type">Action</span> {
+    <span class="type">Book</span>.list().map { books =&gt;
+      <span class="type">Ok</span>(<span class="type">Json</span>.toJson(books))
+    }.run(booksService)
+  }
+
+  <span class="function"><span class="keyword">def</span> <span class="title">updateTitle</span>(</span>id: <span class="type">Int</span>) = <span class="type">Action</span>(parse.text) { request =&gt;
+    <span class="type">Book</span>.get(id).map {
+      <span class="keyword">case</span> <span class="type">Some</span>(book) =&gt;
+        book.copy(title = request.body).save()
+        <span class="type">NoContent</span>
+
+      <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="type">NotFound</span>
+    }.run(booksService)
+  }
+}
+</code></pre><p>注意: 事实上定义多个不同的模块比在一个模块中加入逻辑要好.</p>
+<h2 id="参考列表">参考列表</h2><ol>
+<li><a href="https://github.com/google/guice/wiki/JustInTimeBindings#implementedby" title="Guice contributors. Guice User’s Guide: Just-in-time Bindings" target="_blank" rel="external">Guice contributors. Guice User’s Guide: Just-in-time Bindings</a></li>
+<li><a href="https://github.com/google/guice/wiki/MinimizeMutability" title="Guice contributors. Guice User’s Guide: Minimize mutability" target="_blank" rel="external">Guice contributors. Guice User’s Guide: Minimize mutability</a></li>
+<li><a href="http://martinfowler.com/articles/injection.html#FormsOfDependencyInjection" title="Fowler, Martin. Inversion of Control Containers and the Dependency Injection pattern" target="_blank" rel="external">Fowler, Martin. Inversion of Control Containers and the Dependency Injection pattern</a></li>
+<li><a href="http://www.martinfowler.com/bliki/AnemicDomainModel.html" title="Fowler, Martin. Anemic Domain Model" target="_blank" rel="external">Fowler, Martin. Anemic Domain Model</a></li>
+<li><a href="https://www.link-intersystems.com/blog/2011/10/01/anemic-vs-rich-domain-models/" title="Link, René. Anemic vs. Rich Domain Models" target="_blank" rel="external">Link, René. Anemic vs. Rich Domain Models</a></li>
+<li><a href="https://github.com/google/guice/wiki/AvoidConditionalLogicInModules" title="Guice contributors. Guice User’s Guide: Avoid conditional logic in modules" target="_blank" rel="external">Guice contributors. Guice User’s Guide: Avoid conditional logic in modules</a></li>
+<li><a href="http://www.schibsted.pl/2016/04/dependency-injection-play-framework-scala/" title="DI in Play Framework Using Scala" target="_blank" rel="external">DI in Play Framework Using Scala</a></li>
+</ol>
+</span>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Play2/" rel="tag">#Play2</a>
+          
+            <a href="/tags/Scala/" rel="tag">#Scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/09/Simple-Scala-DI-in-Scala-guide/" rel="next">Simple Scala: DI in Scala: guide</a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+ </div>
+
+        
+
+        
+          <div class="comments" id="comments">
+            
+          </div>
+        
+      </div>
+
+      
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" src="http://7xiwca.com1.z0.glb.clouddn.com/headpicture.gif" alt="Zhange" itemprop="image"/>
+          <p class="site-author-name" itemprop="name">Zhange</p>
+        </div>
+        <p class="site-description motion-element" itemprop="description">Zhange's notes</p>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">136</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          <div class="site-state-item site-state-categories">
+            
+              <span class="site-state-item-count">0</span>
+              <span class="site-state-item-name">分类</span>
+              
+          </div>
+
+          <div class="site-state-item site-state-tags">
+            <a href="/tags">
+              <span class="site-state-item-count">40</span>
+              <span class="site-state-item-name">标签</span>
+              </a>
+          </div>
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator"></div>
+          <div class="post-toc">
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#样例应用"><span class="nav-number">2.</span> <span class="nav-text">样例应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#默认的Guice"><span class="nav-number">3.</span> <span class="nav-text">默认的Guice</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定义组件"><span class="nav-number">3.1.</span> <span class="nav-text">定义组件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#根据组件"><span class="nav-number">3.2.</span> <span class="nav-text">根据组件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">3.3.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自己来做:手动依赖注入"><span class="nav-number">4.</span> <span class="nav-text">自己来做:手动依赖注入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Play中手动注入"><span class="nav-number">4.1.</span> <span class="nav-text">Play中手动注入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结-1"><span class="nav-number">4.2.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MacWire库_-_宏命令(Macros)"><span class="nav-number">5.</span> <span class="nav-text">MacWire库 - 宏命令(Macros)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#简化手动DI"><span class="nav-number">5.1.</span> <span class="nav-text">简化手动DI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在Play中使用MacWire"><span class="nav-number">5.2.</span> <span class="nav-text">在Play中使用MacWire</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结-2"><span class="nav-number">5.3.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#蛋糕模式"><span class="nav-number">6.</span> <span class="nav-text">蛋糕模式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定义组件-1"><span class="nav-number">6.1.</span> <span class="nav-text">定义组件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从接口中分离实现"><span class="nav-number">6.2.</span> <span class="nav-text">从接口中分离实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#在Play中实现蛋糕模式"><span class="nav-number">6.3.</span> <span class="nav-text">在Play中实现蛋糕模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结-3"><span class="nav-number">6.4.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#THE_READER_MONAD"><span class="nav-number">7.</span> <span class="nav-text">THE READER MONAD</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#这是个什么东西"><span class="nav-number">7.1.</span> <span class="nav-text">这是个什么东西</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#释放reader的力量进行DI"><span class="nav-number">7.2.</span> <span class="nav-text">释放reader的力量进行DI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#你妈妈没有告诉你的"><span class="nav-number">7.3.</span> <span class="nav-text">你妈妈没有告诉你的</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考列表"><span class="nav-number">8.</span> <span class="nav-text">参考列表</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator"></div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner"> <div class="copyright" >
+  
+  &copy; &nbsp; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="icon-next-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhange</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+ </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+    
+    
+
+  
+
+
+  
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/fancy-box.js?v=0.4.5.1"></script>
+
+
+  <script type="text/javascript" src="/js/helpers.js?v=0.4.5.1"></script>
+  
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/js/motion_global.js?v=0.4.5.1" id="motion.global"></script>
+
+
+
+
+  <script type="text/javascript" src="/js/nav-toggle.js?v=0.4.5.1"></script>
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+<script type="text/javascript" src="/js/bootstrap.scrollspy.js?v=0.4.5.1" id="bootstrap.scrollspy.custom"></script>
+
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 0.4 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    var $tocContent = $('.post-toc-content');
+    if (isDesktop() && CONFIG.sidebar === 'post') {
+      if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+        displaySidebar();
+      }
+    }
+  });
+</script>
+
+
+
+  <script type="text/javascript">
+    $(document).ready(function () {
+      if (CONFIG.sidebar === 'always') {
+        displaySidebar();
+      }
+      if (isMobile()) {
+        FastClick.attach(document.body);
+      }
+    });
+  </script>
+
+  
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/lazyload.js"></script>
+  <script type="text/javascript">
+    $(function () {
+      $("#posts").find('img').lazyload({
+        placeholder: "/images/loading.gif",
+        effect: "fadeIn"
+      });
+    });
+  </script>
+</body>
+</html>
